@@ -1650,12 +1650,12 @@ a.link-unstyled a.link:active {
 @media only screen and (max-width: 1023px) {
   #mce-EMAIL {
     width: 100%;
-    min-width: normal; }
+    min-width: auto; }
   .post-mailchimp .mailchimp-subscribe {
     position: relative;
     width: 100%;
     margin-top: 6px;
-    min-width: normal; } }
+    min-width: auto; } }
 
 .main-content-wrap {
   display: block;
