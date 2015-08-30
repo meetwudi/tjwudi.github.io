@@ -1654,7 +1654,8 @@ a.link-unstyled a.link:active {
   .post-mailchimp .mailchimp-subscribe {
     position: relative;
     width: 100%;
-    margin-top: 6px; } }
+    margin-top: 6px;
+    min-width: normal; } }
 
 .main-content-wrap {
   display: block;
