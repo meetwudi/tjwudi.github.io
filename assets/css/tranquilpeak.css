@@ -1642,20 +1642,20 @@ a.link-unstyled a.link:active {
   outline: none !important;
   -webkit-tap-highlight-color: none !important;
   border-bottom: 3px solid #64b5f6;
-  min-width: 400px;
+  width: 400px;
   transition: border-bottom-color 0.5s ease-in-out; }
   #mce-EMAIL:focus {
     border-bottom-color: #1c92f2; }
 
 @media only screen and (max-width: 1023px) {
   #mce-EMAIL {
-    width: 100%;
-    min-width: auto; }
+    display: block;
+    width: 100%; }
   .post-mailchimp .mailchimp-subscribe {
     position: relative;
-    width: 100%;
+    display: block;
     margin-top: 6px;
-    min-width: auto; } }
+    width: 100%; } }
 
 .main-content-wrap {
   display: block;
