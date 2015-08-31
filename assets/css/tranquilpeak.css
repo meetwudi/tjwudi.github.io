@@ -1761,7 +1761,8 @@ a.link-unstyled a.link:active {
       margin: auto;
       width: auto;
       max-width: 100%;
-      border-radius: 3px; }
+      border-radius: 3px;
+      margin-bottom: 20px; }
   .post .post-footer {
     margin-top: 20px; }
     .post .post-footer-tags {

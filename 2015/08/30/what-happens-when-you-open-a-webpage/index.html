@@ -1,0 +1,507 @@
+
+<!DOCTYPE html>
+<html lang="zh_CN">
+    
+<head>
+    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="回田园 - John Wu&#39;s Engineering Blog">
+    <title>当你打开网页的时候，世界都发生了什么（1） - 回田园 - John Wu&#39;s Engineering Blog</title>
+    <meta name="author" content="John Wu">
+    
+    
+    <meta name="description" content="你有没有好奇过，当你试图打开一个网页的时候，这个世界上都发生了一些什么事情？会不会因为你手气键落，产生了蝴蝶效应，指尖的风拂起千年后你梦中的那个女孩的刘海？咳，也不是没有可能。今天我就来告诉你会发生什么事情，你可以沏一壶茶，坐在躺椅上，慢慢品味……">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="当你打开网页的时候，世界都发生了什么（1）">
+<meta property="og:url" content="http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/index.html">
+<meta property="og:site_name" content="回田园 - John Wu's Engineering Blog">
+<meta property="og:description" content="你有没有好奇过，当你试图打开一个网页的时候，这个世界上都发生了一些什么事情？会不会因为你手气键落，产生了蝴蝶效应，指尖的风拂起千年后你梦中的那个女孩的刘海？咳，也不是没有可能。今天我就来告诉你会发生什么事情，你可以沏一壶茶，坐在躺椅上，慢慢品味……">
+<meta property="og:image" content="http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/browser.png">
+<meta property="og:image" content="http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/baidu-url.png">
+<meta property="og:image" content="http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/many-servers.png">
+<meta property="og:image" content="http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/dnslookup.png">
+<meta property="og:image" content="http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/connection.png">
+<meta property="og:image" content="http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/url.png">
+<meta property="og:image" content="http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/req-res.png">
+<meta property="og:updated_time" content="2015-08-31T03:47:42.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="当你打开网页的时候，世界都发生了什么（1）">
+<meta name="twitter:description" content="你有没有好奇过，当你试图打开一个网页的时候，这个世界上都发生了一些什么事情？会不会因为你手气键落，产生了蝴蝶效应，指尖的风拂起千年后你梦中的那个女孩的刘海？咳，也不是没有可能。今天我就来告诉你会发生什么事情，你可以沏一壶茶，坐在躺椅上，慢慢品味……">
+<meta name="twitter:creator" content="@leapoahead">
+    
+    
+    
+        <meta property="og:image" content="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=640"/>
+    
+    
+    
+    
+    
+        <meta property="wb:webmaster" content="7ac6379013a2dc59" />
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/font-awesome.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/jquery.fancybox.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/jquery.fancybox-thumbs.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/tranquilpeak.css" type="text/css">
+    <!--STYLES END-->
+    
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-50843289-7']);
+        _gaq.push(['_trackPageview']);
+        (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+
+</head>
+
+    <body>
+        <div id="blog">
+            <header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <h1 class="header-title">
+        <a class="header-title-link" href="/ ">回田园 - John Wu&#39;s Engineering Blog</a>
+    </h1>
+    
+        <a class="header-right-picture" href="/#about">
+            <img class="header-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90"/>
+        </a>
+    
+</header>
+            <nav id="sidebar" data-behavior="4">
+    
+        <div class="sidebar-profile">
+            <a href="/#about">
+                
+                    <img class="sidebar-profile-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90"/>
+                
+            </a>
+            <span class="sidebar-profile-name">John Wu</span>
+        </div>
+    
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/ "
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-home"></i>
+                    <span class="sidebar-button-desc">Home</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/all-categories"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
+                    <span class="sidebar-button-desc">Categories</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link st-search-show-outputs"
+                         href="/#search"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-search"></i>
+                    <span class="sidebar-button-desc">Search</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://github.com/tjwudi" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-github"></i>
+                    <span class="sidebar-button-desc">GitHub</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://twitter.com/leapoahead" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-twitter"></i>
+                    <span class="sidebar-button-desc">Twitter</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://facebook.com/leapoahead" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-facebook"></i>
+                    <span class="sidebar-button-desc">Facebook</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-linkedin"></i>
+                    <span class="sidebar-button-desc">Linked In</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="mailto:webmaster@leapoahead.com" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-envelope-o"></i>
+                    <span class="sidebar-button-desc">Mail</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/atom.xml"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-rss"></i>
+                    <span class="sidebar-button-desc">RSS</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+</nav>
+
+            
+            <div id="main" data-behavior="4"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post" itemscope itemType="http://schema.org/BlogPosting">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title" itemprop="headline">
+            当你打开网页的时候，世界都发生了什么（1）
+        </h1>
+    
+    <div class="post-meta">
+    <time itemprop="datePublished" content="Sun Aug 30 2015 20:47:42 GMT-0700">
+	
+		    8月 30, 2015
+    	
+    </time>
+    
+        <span>in </span>
+        
+    <a class="category-link" href="/categories/beginner/">Web Beginner</a>
+
+
+    
+</div>
+</div>
+    
+    <div class="post-content markdown" itemprop="articleBody">
+        <div class="main-content-wrap">
+            <p>你有没有好奇过，当你试图打开一个网页的时候，这个世界上都发生了一些什么事情？会不会因为你手气键落，产生了蝴蝶效应，指尖的风拂起千年后你梦中的那个女孩的刘海？咳，也不是没有可能。今天我就来告诉你会发生什么事情，你可以沏一壶茶，坐在躺椅上，慢慢品味……</p>
+<a id="more"></a>
+<blockquote>
+<p>时光倒流到你刚才打开这个页面的那一瞬间…</p>
+</blockquote>
+<p>Hi！大家好，我的名字叫做浏览器，我还有个很酷的英文名字叫做Browser！很高兴认识你！</p>
+<img src="/2015/08/30/what-happens-when-you-open-a-webpage/browser.png" alt="浏览器" title="浏览器">
+<p>什么，你想上百度？没问题！请你告诉我一下，百度的地址是什么？或者说，百度的<strong>URL</strong>是什么？</p>
+<p>对了，给你介绍一下URL，全称Unified Resource Locator，中文名为统一资源定位符，也就是我们俗称的<strong>网址</strong>。它就像互联网上的门牌一样，而浏览器就好像的士司机。你只要告诉浏览器你想要看的网页的URL，他就会把你载到那里啦！</p>
+<img src="/2015/08/30/what-happens-when-you-open-a-webpage/baidu-url.png" alt="浏览器：访问百度页面" title="浏览器：访问百度页面">
+<p>嗯，百度的地址是<code>http://baidu.com</code>是吧，好嘞！我现在就开始帮你去把这个网页给请过来。</p>
+<p>首先，我先要找到这个网页的家在哪里。网页的家有一个名字叫做<strong>服务器</strong>，它的英文名叫做Server。服务器本身其实也是一台电脑，跟你家中的电脑其实是非常相似的。只不过相比起来，服务器性能会比普通的电脑的性能来得强劲，因为它需要服务成千上万个人！</p>
+<img src="/2015/08/30/what-happens-when-you-open-a-webpage/many-servers.png" alt="互联网上的服务器" title="互联网上的服务器">
+<p>那么这么多的服务器，我怎么找到百度所在的那个服务器呢？就靠你刚才告诉我的URL了！URL只是服务器地址的一个比较好听的名字而已，我没有办法直接通过这个地址找到服务器。其实啊，在服务器的世界里面，他们还有一种更精确的地址表达方式，叫做IP地址。</p>
+<blockquote>
+<p>插一嘴：IP地址是什么，它是怎么工作的，恐怕可以写好几本书了。简单地说，IP地址就是形同<code>192.168.0.1</code>这种形式的数字和英文句号的组合。你可以把它当做相对</p>
+</blockquote>
+<p>我找到IP地址的方式其实很简单，我只要请操作系统帮忙就好了。</p>
+<img src="/2015/08/30/what-happens-when-you-open-a-webpage/dnslookup.png" alt="dnslookup.png" title="">
+<p>这个从URL到IP地址的过程叫做DNS查找，即DNS Lookup。天啊，又一个新名词！没关系，你不需要记住这个名词。你所需要知道的是，这里看似操作系统独自很快地完成了这个过程，但是其实它为此所做的事情相当复杂。我们今后将有专门的文章用来介绍这一过程。</p>
+<h3 id="建立连接和发送请求">建立连接和发送请求</h3><p>已经顺利拿到了服务器的IP地址，接下来我就要向他要东西啦！首先我希望它把baidu.com对应的网页传送给我。我们之间传输信息的方式比较特殊，不需要我坐地铁去找它然后搬回来，而是我会跟服务器建立一个<strong>连接</strong>。</p>
+<p>连接，英文名叫做Connection。实际上，它就像开辟了一个专用的通道，供我们互相之间传递信息。</p>
+<img src="/2015/08/30/what-happens-when-you-open-a-webpage/connection.png" alt="连接的建立" title="连接的建立">
+<p>接下来，我就会通过这个专用通道，向服务器发起一个请求（Request）。在这个请求里面，我会像服务器阐明我想要的资源是什么，例如在这里，我想要的资源就是百度的首页。</p>
+<p>那么具体这个资源的位置我是怎么告诉服务器的呢？还得回到刚才的URL来说！</p>
+<img src="/2015/08/30/what-happens-when-you-open-a-webpage/url.png" alt="URL的组成" title="URL的组成">
+<p>一个URL一般由六个部分组成，这里我们只介绍主机名（服务器名）和资源位置（或者说是资源路径）。一个服务器上可以有很多的资源，对应着不同的页面或者文件，例如<code>http://xxx.com/login</code>可以是某网站的登录页面，<code>http://xxx.com/register</code>则可以是某网站的注册页面。这里的<code>/login</code>和<code>/register</code>就代表了两个不同的资源（这里是页面）。<code>/</code>是比较特殊的资源路径，叫做“根路径”，通常就是网站的首页了。其实，这里的原理就和我们电脑上的文件夹是一模一样的。</p>
+<blockquote>
+<p>小知识：这里你可能会比较好奇“端口号”。一个服务器上可以有很多的软件为你服务，当然了，一个服务器上也可以同时有两个网站</p>
+</blockquote>
+<p>在知道了需要的资源的位置之后，我就会给服务器发送一个请求。这个请求实际上就是一系列的英文字符，就像一篇文章一样。</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="request">GET <span class="string">/</span> HTTP/1.1</span></span><br><span class="line"><span class="attribute">User-Agent</span>: <span class="string">curl/7.37.1</span></span><br><span class="line"><span class="attribute">Host</span>: <span class="string">baidu.com</span></span><br><span class="line"><span class="attribute">Accept</span>: <span class="string">*/*</span></span><br></pre></td></tr></table></figure>
+<p>怎么样，我也是很有文采的吧！在这里，你需要知道的是，<code>GET /</code>即代表，我现在要从服务器上拿下来一个资源，这个资源的位置是<code>/</code>。另外，<code>Host: baidu.com</code>代表我要请求的主机名叫做<code>baidu.com</code>。Host这个英文单词就是有主机的意思！</p>
+<p>好了，请求已经准备完毕了，我现在就通过之前建立的连接将这个请求直接送给服务器！</p>
+<h3 id="获得响应">获得响应</h3><p>当服务器获得请求之后，经过一系列的工作（可能是类似翻箱倒柜找材料之类的吧），最后将要送还给我的材料，包括网页的代码，全部打包起来形成一个<strong>响应</strong>（Response），通过连接返回给我。</p>
+<p>响应是和请求对应的，一个请求对应一个响应。这就好像问问题一样，一问一答。所以，响应本身其实也就是一系列的英文字符，就像这样：（下面的响应是被简化的版本）</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">HTTP/1.1 200 OK</span><br><span class="line">Date: Mon, 31 Aug 2015 03:06:34 GMT</span><br><span class="line">Server: Apache</span><br><span class="line"><span class="operator"><span class="keyword">Cache</span>-Control: <span class="keyword">max</span>-age=<span class="number">86400</span></span><br><span class="line">Expires: Tue, <span class="number">01</span> Sep <span class="number">2015</span> <span class="number">03</span>:<span class="number">06</span>:<span class="number">34</span> GMT</span><br><span class="line"><span class="keyword">Last</span>-Modified: Tue, <span class="number">12</span> Jan <span class="number">2010</span> <span class="number">13</span>:<span class="number">48</span>:<span class="number">00</span> GMT</span><br><span class="line">ETag: <span class="string">"51-4b4c7d90"</span></span><br><span class="line"><span class="keyword">Accept</span>-Ranges: <span class="keyword">bytes</span></span><br><span class="line"><span class="keyword">Content</span>-<span class="keyword">Length</span>: <span class="number">81</span></span><br><span class="line"><span class="keyword">Connection</span>: <span class="keyword">Keep</span>-Alive</span><br><span class="line"><span class="keyword">Content</span>-<span class="keyword">Type</span>: <span class="built_in">text</span>/html</span><br><span class="line"> </span><br><span class="line">&lt;html&gt;</span><br><span class="line">    .... 此处省略<span class="keyword">N</span>多行</span><br><span class="line">&lt;/html&gt;</span></span><br></pre></td></tr></table></figure>
+<p>你可以注意到，响应分为两个部分。在13行之上的部分称作响应头（Response Head），下面的部分称作响应主体（Response Body）。在这里，响应主体就是网页的代码了。</p>
+<img src="/2015/08/30/what-happens-when-you-open-a-webpage/req-res.png" alt="请求-响应" title="请求-响应">
+<p>好了，到目前为止，我已经拿到了网页的代码。</p>
+<h3 id="等等…啥是代码？">等等…啥是代码？</h3><p>好问题！</p>
+<p>网页本身其实是由一系列的英文字符编写成的，这些英文字符称作“代码”（Code）。这些英文字符和普通的英文文章看起来差不多，但是它们都是用一种我（浏览器）可以看得懂的格式写成的。我通过阅读这些英文字符，理解它，然后按照它的意思将你想要看的页面渲染出来。</p>
+<p>别急，关于这些，我们在接下来的文章中慢慢道来。</p>
+
+            
+                
+
+            
+        </div>
+    </div>
+    <div class="post-mailchimp">
+    <div class="main-content-wrap mailchimp-wrap">
+        <h3>让有趣易懂的知识主动找到你</h3>
+        <p>订阅我的Email半月刊，让我们共同学习、成长。绝无广告！</p>
+        <form action="//leapoahead.us8.list-manage.com/subscribe/post?u=f3a6e2f843ac1be03e00f7bed&amp;id=58e28559b1" method="post" name="mc-embedded-subscribe-form" class="mailchimp-form" target="_blank" novalidate>
+            <label for="mce-EMAIL" style="display: none">Email地址</label>
+            <input type="email" value="" name="EMAIL" id="mce-EMAIL" placeholder="您常用的Email地址" class="mailchimp-input">
+            <input type="submit" value="订阅" name="subscribe" id="mc-embedded-subscribe" class="mailchimp-input mailchimp-subscribe">
+            <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+            <div style="position: absolute; left: -5000px;"><input type="text" name="b_f3a6e2f843ac1be03e00f7bed_58e28559b1" tabindex="-1" value=""></div>
+        </form>
+    </div>
+</div>
+    <div class="post-footer main-content-wrap">
+        
+        <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    <a class="post-action-btn btn btn--disabled">
+                
+                    <i class="fa fa-angle-left"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">PREVIOUS</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/08/27/introduction-to-ab-testing/" data-tooltip="你所应该知道的A/B测试基础">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">NEXT</span>
+                    <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
+                <i class="fa fa-share-alt"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/">
+                <i class="fa fa-google-plus"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/">
+                <i class="fa fa-facebook-official"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/">
+                <i class="fa fa-twitter"></i>
+            </a>
+        </li>
+        
+            <li class="post-action">
+                <a class="post-action-btn btn btn--default" href="#disqus_thread">
+                    <i class="fa fa-comment-o"></i>
+                </a>
+            </li>
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#">
+            
+                <i class="fa fa-list"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+            <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2015 John Wu. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+                    <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    <a class="post-action-btn btn btn--disabled">
+                
+                    <i class="fa fa-angle-left"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">PREVIOUS</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/08/27/introduction-to-ab-testing/" data-tooltip="你所应该知道的A/B测试基础">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">NEXT</span>
+                    <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
+                <i class="fa fa-share-alt"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/">
+                <i class="fa fa-google-plus"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/">
+                <i class="fa fa-facebook-official"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/">
+                <i class="fa fa-twitter"></i>
+            </a>
+        </li>
+        
+            <li class="post-action">
+                <a class="post-action-btn btn btn--default" href="#disqus_thread">
+                    <i class="fa fa-comment-o"></i>
+                </a>
+            </li>
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#">
+            
+                <i class="fa fa-list"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+    <ul class="share-options">
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/">
+                <i class="fa fa-google-plus"></i><span class="">Share on Google Plus</span>
+            </a>
+        </li>
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/">
+                <i class="fa fa-facebook-official"></i><span>Share on Facebook</span>
+            </a>
+        </li>
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/">
+                <i class="fa fa-twitter"></i><span>Share on Twitter</span>
+            </a>
+        </li>
+    </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
+            
+        </div>
+        <div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-remove"></i>
+        </div>
+        
+            <img id="about-card-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=110"/>
+        
+            <h4 id="about-card-name">John Wu</h4>
+        
+            <h5 id="about-card-bio"><p>Life is all about A/B testing</p>
+</h5>
+        
+        
+            <h5 id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>Software Engineer Intern at Yelp</p>
+
+            </h5>
+        
+        
+            <h5 id="about-card-location">
+                <i class="fa fa-map-marker"></i>
+                <br/>
+                San Francisco, CA
+            </h5>
+        
+    </div>
+</div>
+
+        <div id="cover" style="background-image:url('http://res.cloudinary.com/tranquilpeak-hexo-theme/image/upload/v1438975482/v1.3.0-cover.jpg');"></div>
+    </body>
+    <!--SCRIPTS-->
+<script src="/assets/js/jquery.js" type="text/javascript"></script>
+<script src="/assets/js/jquery.fancybox.js" type="text/javascript"></script>
+<script src="/assets/js/jquery.fancybox-thumbs.js" type="text/javascript"></script>
+<script src="/assets/js/tranquilpeak.js" type="text/javascript"></script>
+<!--SCRIPTS END-->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'johnweng';
+        (function() {
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+
+
+
+</html>

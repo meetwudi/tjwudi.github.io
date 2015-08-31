@@ -21,7 +21,7 @@
 <meta property="og:image" content="http://blog.leapoahead.com/2015/08/27/introduction-to-ab-testing/request-bucketing.png">
 <meta property="og:image" content="http://blog.leapoahead.com/2015/08/27/introduction-to-ab-testing/seo-bucketing.png">
 <meta property="og:image" content="http://blog.leapoahead.com/2015/08/27/introduction-to-ab-testing/swimlanes.png">
-<meta property="og:updated_time" content="2015-08-29T21:09:08.000Z">
+<meta property="og:updated_time" content="2015-08-31T01:20:40.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="你所应该知道的A/B测试基础">
 <meta name="twitter:description" content="在互联网行业里面工作，能给我带来的一个乐趣就是“快”。天下武功，唯快不破。我们可以轻易地做到一天三次以上的产品更新速度，这是和许多传统行业的区别之一。如何利用好这个优势，在我眼里成为了产品发展的关键所在。">
@@ -257,7 +257,7 @@
 <li>实验组1</li>
 <li>实验组2</li>
 </ul>
-<p>如果在实验组1里面的某个商家因为其自身原因，数据飙升，带动了整个实验组1的数据飙升。但是，实验组1的数据却没有什么很大的起色的话，那么说明是商家自身原因导致，而非新的功能带来的影响。</p>
+<p>如果在实验组1里面的某个商家因为其自身原因，数据飙升，带动了整个实验组1的数据飙升。但是，实验组2的数据却没有什么很大的起色的话，那么说明是商家自身原因导致，而非新的功能带来的影响。</p>
 <h3 id="分组的比例分配">分组的比例分配</h3><p>分组的比例分配不一定要是50%：50%，因为有些新功能是很可能造成不好的影响的，特别是试用一些新技术。在流量或者页面很多的情况下，哪怕是99%：1%的比例分配也是可以的，因为在后面还有采样的过程。对于淘宝，就算是1%的流量也是非常巨大的，所以样本总量（population）够大，对1%流量采样和50%的流量采样一般是没什么区别的。</p>
 <h3 id="互斥实验">互斥实验</h3><p>有些实验之间是互斥的，可能会互相影响结果。例如，实验A的存在会让实验B的效果适得其反。</p>
 <p>简单的方法就是开辟“泳道”（swimlane）。就好像在游泳的时候，你在你的泳道游你的蛙泳，我在我的泳道游我的自由泳，咱们互不侵犯。拿按页面划分来举例，我们可以让实验A所用的所有页面占网站总页面的20%，实验B占据20%，并且实验A和实验B所涉及的页面互不相交（即互斥）。</p>
@@ -297,7 +297,7 @@
         <ul class="post-actions post-action-nav">
             <li class="post-action">
                 
-                    <a class="post-action-btn btn btn--disabled">
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/08/30/what-happens-when-you-open-a-webpage/"  data-tooltip="当你打开网页的时候，世界都发生了什么（1）">
                 
                     <i class="fa fa-angle-left"></i>
                     <span class="hide-xs hide-sm text-small icon-ml">PREVIOUS</span>
@@ -376,7 +376,7 @@
         <ul class="post-actions post-action-nav">
             <li class="post-action">
                 
-                    <a class="post-action-btn btn btn--disabled">
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/08/30/what-happens-when-you-open-a-webpage/"  data-tooltip="当你打开网页的时候，世界都发生了什么（1）">
                 
                     <i class="fa fa-angle-left"></i>
                     <span class="hide-xs hide-sm text-small icon-ml">PREVIOUS</span>
