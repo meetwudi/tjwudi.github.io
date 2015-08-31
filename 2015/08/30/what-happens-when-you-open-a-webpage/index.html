@@ -23,7 +23,7 @@
 <meta property="og:image" content="http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/connection.png">
 <meta property="og:image" content="http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/url.png">
 <meta property="og:image" content="http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/req-res.png">
-<meta property="og:updated_time" content="2015-08-31T03:54:34.000Z">
+<meta property="og:updated_time" content="2015-08-31T04:02:31.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="当你打开网页的时候，世界都发生了什么（1）">
 <meta name="twitter:description" content="你有没有好奇过，当你试图打开一个网页的时候，这个世界上都发生了一些什么事情？会不会因为你手气键落，产生了蝴蝶效应，指尖的风拂起千年后你梦中的那个女孩的刘海？咳，也不是没有可能。今天我就来告诉你会发生什么事情，你可以沏一壶茶，坐在躺椅上，慢慢品味……">
@@ -254,9 +254,6 @@
 <p>那么具体这个资源的位置我是怎么告诉服务器的呢？还得回到刚才的URL来说！</p>
 <img src="/2015/08/30/what-happens-when-you-open-a-webpage/url.png" alt="URL的组成" title="URL的组成">
 <p>一个URL一般由六个部分组成，这里我们只介绍主机名（服务器名）和资源位置（或者说是资源路径）。一个服务器上可以有很多的资源，对应着不同的页面或者文件，例如<code>http://xxx.com/login</code>可以是某网站的登录页面，<code>http://xxx.com/register</code>则可以是某网站的注册页面。这里的<code>/login</code>和<code>/register</code>就代表了两个不同的资源（这里是页面）。<code>/</code>是比较特殊的资源路径，叫做“根路径”，通常就是网站的首页了。其实，这里的原理就和我们电脑上的文件夹是一模一样的。</p>
-<blockquote>
-<p>小知识：这里你可能会比较好奇“端口号”。一个服务器上可以有很多的软件为你服务，当然了，一个服务器上也可以同时有两个网站</p>
-</blockquote>
 <p>在知道了需要的资源的位置之后，我就会给服务器发送一个请求。这个请求实际上就是一系列的英文字符，就像一篇文章一样。</p>
 <figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="request">GET <span class="string">/</span> HTTP/1.1</span></span><br><span class="line"><span class="attribute">User-Agent</span>: <span class="string">curl/7.37.1</span></span><br><span class="line"><span class="attribute">Host</span>: <span class="string">baidu.com</span></span><br><span class="line"><span class="attribute">Accept</span>: <span class="string">*/*</span></span><br></pre></td></tr></table></figure>
 <p>怎么样，我也是很有文采的吧！在这里，你需要知道的是，<code>GET /</code>即代表，我现在要从服务器上拿下来一个资源，这个资源的位置是<code>/</code>。另外，<code>Host: baidu.com</code>代表我要请求的主机名叫做<code>baidu.com</code>。Host这个英文单词就是有主机的意思！</p>
