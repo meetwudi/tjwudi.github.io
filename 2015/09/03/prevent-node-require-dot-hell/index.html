@@ -6,21 +6,21 @@
     <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="generator" content="回田园 - John Wu&#39;s Engineering Blog">
-    <title>First Week Intern at Yelp - 回田园 - John Wu&#39;s Engineering Blog</title>
+    <title>在Node应用中避免“Dot Hell” - 回田园 - John Wu&#39;s Engineering Blog</title>
     <meta name="author" content="John Wu">
     
     
-    <meta name="description" content="This week is my first week @ Yelp, and I ❤ed it!">
+    <meta name="description" content="在Node应用中，我们使用require来加载模块。在目录层次相对复杂的应用中，总是会出现类似require(&amp;#39;../../../../../module&amp;#39;)的调用，我把它称之为Dot Hell。我用了一些时间研究现有的解决方案，并介绍我个人认为最好的方法。">
 <meta property="og:type" content="blog">
-<meta property="og:title" content="First Week Intern at Yelp">
-<meta property="og:url" content="http://blog.leapoahead.com/2015/08/08/first-week-intern-at-yelp/index.html">
+<meta property="og:title" content="在Node应用中避免“Dot Hell”">
+<meta property="og:url" content="http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/index.html">
 <meta property="og:site_name" content="回田园 - John Wu's Engineering Blog">
-<meta property="og:description" content="This week is my first week @ Yelp, and I ❤ed it!">
-<meta property="og:image" content="http://blog.leapoahead.com/2015/08/08/first-week-intern-at-yelp/yelp-logo.png">
-<meta property="og:updated_time" content="2015-08-27T03:13:57.000Z">
+<meta property="og:description" content="在Node应用中，我们使用require来加载模块。在目录层次相对复杂的应用中，总是会出现类似require(&amp;#39;../../../../../module&amp;#39;)的调用，我把它称之为Dot Hell。我用了一些时间研究现有的解决方案，并介绍我个人认为最好的方法。">
+<meta property="og:image" content="http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/cat.png">
+<meta property="og:updated_time" content="2015-09-03T07:38:51.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="First Week Intern at Yelp">
-<meta name="twitter:description" content="This week is my first week @ Yelp, and I ❤ed it!">
+<meta name="twitter:title" content="在Node应用中避免“Dot Hell”">
+<meta name="twitter:description" content="在Node应用中，我们使用require来加载模块。在目录层次相对复杂的应用中，总是会出现类似require(&amp;#39;../../../../../module&amp;#39;)的调用，我把它称之为Dot Hell。我用了一些时间研究现有的解决方案，并介绍我个人认为最好的方法。">
 <meta name="twitter:creator" content="@leapoahead">
     
     
@@ -28,8 +28,8 @@
         <meta property="og:image" content="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=640"/>
     
     
-        <meta property="og:image" content="/2015/08/08/first-week-intern-at-yelp/yelp-logo.png"/>
-        <meta class="swiftype" name="image" data-type="enum" content="http://blog.leapoahead.com/2015/08/08/first-week-intern-at-yelp/yelp-logo.png" />
+        <meta property="og:image" content="/2015/09/03/prevent-node-require-dot-hell/cat.png"/>
+        <meta class="swiftype" name="image" data-type="enum" content="http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/cat.png" />
     
     
     
@@ -188,19 +188,19 @@
         <div class="post-header main-content-wrap text-left">
     
         <h1 class="post-title" itemprop="headline">
-            First Week Intern at Yelp
+            在Node应用中避免“Dot Hell”
         </h1>
     
     <div class="post-meta">
-    <time itemprop="datePublished" content="Sat Aug 08 2015 22:03:00 GMT-0700">
+    <time itemprop="datePublished" content="Thu Sep 03 2015 00:38:51 GMT-0700">
 	
-		    8月 08, 2015
+		    9月 03, 2015
     	
     </time>
     
         <span>in </span>
         
-    <a class="category-link" href="/categories/life/">Life</a>
+    <a class="category-link" href="/categories/Engineering/">Engineering</a>
 
 
     
@@ -209,21 +209,26 @@
     
     <div class="post-content markdown" itemprop="articleBody">
         <div class="main-content-wrap">
-            <p>This week is my first week @ Yelp, and I ❤ed it!</p>
+            <p>在Node应用中，我们使用<code>require</code>来加载模块。在目录层次相对复杂的应用中，总是会出现类似<code>require(&#39;../../../../../module&#39;)</code>的调用，我把它称之为Dot Hell。我用了一些时间研究现有的解决方案，并介绍我个人认为最好的方法。</p>
 <a id="more"></a>
-<img src="/2015/08/08/first-week-intern-at-yelp/yelp-logo.png" alt="yelp-logo.png" title="">
-<p>[FIREWORKS !!!]</p>
-<p>[SCREAMING !!!]</p>
-<p>It was my first time being here in the US. I am here for internship @ Yelp as a Software Engineer Intern for six months.</p>
-<p>I was well-guided and firmly welcomed during the first week. The overall on-boarding process was quite mature.</p>
-<p>After exploring the Yelp HQ building with Krista — our Intern Program Manager and the New Engineer Orientation, I was introduced to my team, and also my mentor Andrew.</p>
-<p>My hands got dirty and busy at the very first day. I mean, really dirty. I even started writing python code on the first day. Besides that, Engineering Wiki is here to help me to go through the processes.</p>
-<p>Although some of the engineering processes are heavy, many automations are here to save your time. For example, there are many well-defined git hooks. My favourite part is marley — a bot build upon HUBOT on Yelp’s IRC channel. Marley knows everythings — traffic split, who is pushing code, etc. And he/she also does many funny things like sending your LOVE to someone else.</p>
-<p>Yelp seems like data-driven now, which I found really interesting. Data always makes me think, although I am not a Data Science expert.</p>
-<p>In a word, Yelp has a fantastic engineering culture. You are always welcomed to bring up your new ideas and just make it happen with your team. Which is highly appreciated.</p>
-<p>Tech stuff aside, Yelp HQ is a fantastic place for working. I actually would like to take it as living and playing funny stuff instead of working. They have in-house cafe which makes great cafe, and also a pingpong table here for people to play with. You get on-demand beverages and snacks on each floor, which is a privilege I am using carefully (oh, calories again!). I hope I can achieve a great work-life balance here</p>
-<p>My favorite part is the social gene of this company. @ Yelp, People chat and exchange ideas at lunch, talking about many interesting things. To be honest, I just didn’t get many things they were talking about at the beginning, but I think I am starting to catch up. And even though, I can still get many great ideas from other, even it was just five days!</p>
-<p>Hopefully everything will go pretty well and enjoyable in the coming weeks. Great thanks to my team and all my friends here @ Yelp.</p>
+<img src="/2015/09/03/prevent-node-require-dot-hell/cat.png" alt="cat.png" title="">
+<p>在Node中的全局对象是<code>global</code>，它就像浏览器的<code>window</code>对象一样。<code>global</code>对象下面的方法都可以直接调用。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">global.a = <span class="number">1</span></span><br><span class="line"><span class="built_in">require</span>(<span class="string">'assert'</span>).equal(<span class="number">1</span>, a)</span><br></pre></td></tr></table></figure>
+<p>因此最简单的方法，也是我认为最好的方式就是在<code>global</code>下创建一个<code>appRequire</code>方法作为<code>require</code>方法的包装，<code>appRequire</code>方法专门用于调用应用内的包。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> path = <span class="built_in">require</span>(<span class="string">'path'</span>)</span><br><span class="line">global.appRequire = <span class="function"><span class="keyword">function</span>(<span class="params">path</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">require</span>(path.resolve(__dirname, path))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>假设我们的项目目录结构如下</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">├── app</span><br><span class="line">│   ├── controller</span><br><span class="line">│   │   └── AppController<span class="class">.js</span></span><br><span class="line">│   ├── model</span><br><span class="line">│   │   └── User<span class="class">.js</span></span><br><span class="line">│   └── view</span><br><span class="line">│       └── AppView<span class="class">.js</span></span><br><span class="line">└── app.js</span><br></pre></td></tr></table></figure>
+<p>其中<strong>app.js</strong>是应用的入口。那么我们只需要在<strong>app.js</strong>中应用上面的代码，那么在整个应用程序中就都可以使用了。</p>
+<p>例如，现在在<strong>app/controller/AppController.js</strong>中，我们可以用下面的语句调用<strong>app/model/User.js</strong>。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> User = appRequire(<span class="string">'app/model/User'</span>)</span><br></pre></td></tr></table></figure>
+<p>Oh Yeah! 一切都很优雅，很顺利。</p>
+<p>但是一个应用中一定还会有测试代码。以单元测试为例，我们如果用<a href="https://mochajs.org/" target="_blank" rel="external">mocha</a>之类的Task Runner去运行测试的话，就得在每个测试前面都加上这一段代码，这样做很容易出错，而且很麻烦。</p>
+<p>所以，我们可以把上述的封装代码单独封装成一个文件<strong>global-bootstrap.js</strong>，在运行mocha的时候，用mocha的require参数来指定每次运行测试之前要加载<strong>global-bootstrap.js</strong>。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># 用Mocha运行tests文件夹下面的所有测试</span><br><span class="line"># 在运行的时候加载should库，以及我们封装的含有appRequire函数的文件</span><br><span class="line">mocha --require should --require global-bootstrap.js --recursive tests</span><br></pre></td></tr></table></figure>
+<h3 id="其他方案">其他方案</h3><p>对于解决这个问题，还有两种方案：<strong>NODE_ENV方案（及其变种）</strong>和<strong>Symlink方案</strong>，你可以<a href="https://gist.github.com/branneman/8048520" target="_blank" rel="external">在这里</a>看到。</p>
+<p>我认为应该避免使用这两种方案。虽然这两种方案都可行，但是它们都会可能导致应用自身的目录名和node模块名冲突。例如，在下面的结构中，使用<code>require(&#39;request&#39;)</code>就很容易产生二义性。</p>
+<figure class="highlight vbscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── node_modules</span><br><span class="line">│   └── <span class="built_in">request</span></span><br><span class="line">└── <span class="built_in">request</span></span><br><span class="line">    └── index.js</span><br></pre></td></tr></table></figure>
+<h3 id="总结">总结</h3><p>我一直认为Node的模块引用方式的设计是有问题的，Dot Hell就很能说明这点。而Python相对而言就优雅很多，你可以直接通过路径的形式来导入包（在正确配置的情况下）。本文的解决方案允许我们用类似Python的方式去加载模块，你可以在我的项目<a href="https://github.com/tjwudi/webcraft" target="_blank" rel="external">webcraft</a>中看到其应用。</p>
 
             
                 
@@ -251,7 +256,7 @@
         <ul class="post-actions post-action-nav">
             <li class="post-action">
                 
-                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/08/27/how-i-learn-as-a-software-engineer/"  data-tooltip="我是如何对待学习编程这件事的">
+                    <a class="post-action-btn btn btn--disabled">
                 
                     <i class="fa fa-angle-left"></i>
                     <span class="hide-xs hide-sm text-small icon-ml">PREVIOUS</span>
@@ -259,7 +264,7 @@
             </li>
             <li class="post-action">
                 
-                    <a class="post-action-btn btn btn--disabled">
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/08/31/understanding-js-this-keyword/" data-tooltip="用自然语言的角度理解JavaScript中的this关键字">
                 
                     <span class="hide-xs hide-sm text-small icon-mr">NEXT</span>
                     <i class="fa fa-angle-right"></i>
@@ -274,17 +279,17 @@
             </a>
         </li>
         <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/08/08/first-week-intern-at-yelp/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/">
                 <i class="fa fa-google-plus"></i>
             </a>
         </li>
         <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/08/08/first-week-intern-at-yelp/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/">
                 <i class="fa fa-facebook-official"></i>
             </a>
         </li>
         <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/08/08/first-week-intern-at-yelp/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/">
                 <i class="fa fa-twitter"></i>
             </a>
         </li>
@@ -330,7 +335,7 @@
         <ul class="post-actions post-action-nav">
             <li class="post-action">
                 
-                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/08/27/how-i-learn-as-a-software-engineer/"  data-tooltip="我是如何对待学习编程这件事的">
+                    <a class="post-action-btn btn btn--disabled">
                 
                     <i class="fa fa-angle-left"></i>
                     <span class="hide-xs hide-sm text-small icon-ml">PREVIOUS</span>
@@ -338,7 +343,7 @@
             </li>
             <li class="post-action">
                 
-                    <a class="post-action-btn btn btn--disabled">
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/08/31/understanding-js-this-keyword/" data-tooltip="用自然语言的角度理解JavaScript中的this关键字">
                 
                     <span class="hide-xs hide-sm text-small icon-mr">NEXT</span>
                     <i class="fa fa-angle-right"></i>
@@ -353,17 +358,17 @@
             </a>
         </li>
         <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/08/08/first-week-intern-at-yelp/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/">
                 <i class="fa fa-google-plus"></i>
             </a>
         </li>
         <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/08/08/first-week-intern-at-yelp/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/">
                 <i class="fa fa-facebook-official"></i>
             </a>
         </li>
         <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/08/08/first-week-intern-at-yelp/">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/">
                 <i class="fa fa-twitter"></i>
             </a>
         </li>
@@ -389,17 +394,17 @@
                 <div id="share-options-bar" class="share-options-bar" data-behavior="4">
     <ul class="share-options">
         <li class="share-option">
-            <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/08/08/first-week-intern-at-yelp/">
+            <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/">
                 <i class="fa fa-google-plus"></i><span class="">Share on Google Plus</span>
             </a>
         </li>
         <li class="share-option">
-            <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/08/08/first-week-intern-at-yelp/">
+            <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/">
                 <i class="fa fa-facebook-official"></i><span>Share on Facebook</span>
             </a>
         </li>
         <li class="share-option">
-            <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/08/08/first-week-intern-at-yelp/">
+            <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/">
                 <i class="fa fa-twitter"></i><span>Share on Twitter</span>
             </a>
         </li>
