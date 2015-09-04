@@ -1,6 +1,7 @@
 title: 用自然语言的角度理解JavaScript中的this关键字
 date: 2015-08-31 12:44:14
 category: Engineering
+thumbnailImage: what_is_this.png
 ---
 
 在编写JavaScript应用的时候，我们经常会使用`this`关键字。那么`this`关键字究竟是怎样工作的？它的设计有哪些好的地方，有哪些不好的地方？本文带大家全面系统地认识这个老朋友。
