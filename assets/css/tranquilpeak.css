@@ -1781,43 +1781,23 @@ a.link-unstyled a.link:active {
 .post-actions-wrap {
   height: 60px;
   padding: 0;
-  line-height: 60px;
+  ne-height: 60px;
   clear: both; }
-  .post-actions-wrap ul.post-actions {
+  .post-actions-wrap .post-actions {
     float: left;
     padding-left: 0;
     margin-top: 0;
     list-style: none; }
-    .post-actions-wrap ul.post-actions li.post-action {
+    .post-actions-wrap .post-actions .post-action {
       width: auto;
       text-align: center; }
-  .post-actions-wrap ul.post-action-nav {
-    width: 45%;
-    z-index: 42; }
-    .post-actions-wrap ul.post-action-nav li.post-action {
-      float: left;
-      min-width: 42px; }
-      .post-actions-wrap ul.post-action-nav li.post-action:last-child .post-action-btn {
-        margin-left: 15px; }
-  .post-actions-wrap ul.post-action-share {
-    width: 55%;
+  .post-actions-wrap .post-action-share {
+    float: right;
     z-index: 41; }
-    .post-actions-wrap ul.post-action-share li.post-action {
+    .post-actions-wrap .post-action-share .post-action {
       float: right; }
-      .post-actions-wrap ul.post-action-share li.post-action:nth-child(n + 3) .post-action-btn {
+      .post-actions-wrap .post-action-share .post-action:nth-child(n + 3) .post-action-btn {
         margin-right: 15px; }
-
-@media only screen and (max-width: 767px) {
-  .post-actions-wrap ul.post-action-nav {
-    width: 25%; }
-  .post-actions-wrap ul.post-action-share {
-    width: 75%; } }
-
-@media only screen and (max-width: 479px) {
-  .post-actions-wrap ul.post-action-nav {
-    width: 35%; }
-  .post-actions-wrap ul.post-action-share {
-    width: 65%; } }
 
 .pullquote {
   width: 45%;
