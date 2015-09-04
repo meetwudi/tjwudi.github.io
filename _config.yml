@@ -8,7 +8,7 @@ subtitle: 创造是我最大的兴趣
 description: "这里写满了有关我和编程、设计和产品的所有故事"
 author: John Wu
 language: zh_CN
-timezone: 
+timezone:
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
@@ -67,6 +67,12 @@ pagination_dir: page
 ## Plugins: http://hexo.io/plugins/
 ## Themes: http://hexo.io/themes/
 theme: tranquilpeak-hexo-theme
+
+# Feed
+feed:
+  type: atom
+  path: atom.xml
+  limit: 20
 
 # Deployment
 ## Docs: http://hexo.io/docs/deployment.html
