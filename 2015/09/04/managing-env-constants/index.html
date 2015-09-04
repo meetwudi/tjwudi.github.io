@@ -1,0 +1,481 @@
+
+<!DOCTYPE html>
+<html lang="zh_CN">
+    
+<head>
+    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="回田园 - John Wu&#39;s Engineering Blog">
+    <title>以Node应用为例谈如何管理Web应用的环境常量 - 回田园 - John Wu&#39;s Engineering Blog</title>
+    <meta name="author" content="John Wu">
+    
+    
+        <link rel="alternative" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <meta name="description" content="在程序员自己的小世界里，我们一直在和“量”打交道——变量和常量。可是常量真的是一成不变的吗？事实上，常量也分为两种，应用常量（application-specific constant）和环境常量（environment-specific constant）。">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="以Node应用为例谈如何管理Web应用的环境常量">
+<meta property="og:url" content="http://blog.leapoahead.com/2015/09/04/managing-env-constants/index.html">
+<meta property="og:site_name" content="回田园 - John Wu's Engineering Blog">
+<meta property="og:description" content="在程序员自己的小世界里，我们一直在和“量”打交道——变量和常量。可是常量真的是一成不变的吗？事实上，常量也分为两种，应用常量（application-specific constant）和环境常量（environment-specific constant）。">
+<meta property="og:image" content="http://blog.leapoahead.com/2015/09/04/managing-env-constants/dev-stage-prod.png">
+<meta property="og:updated_time" content="2015-09-04T07:33:51.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="以Node应用为例谈如何管理Web应用的环境常量">
+<meta name="twitter:description" content="在程序员自己的小世界里，我们一直在和“量”打交道——变量和常量。可是常量真的是一成不变的吗？事实上，常量也分为两种，应用常量（application-specific constant）和环境常量（environment-specific constant）。">
+<meta name="twitter:creator" content="@leapoahead">
+    
+    
+    
+        <meta property="og:image" content="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=640"/>
+    
+    
+        <meta property="og:image" content="/2015/09/04/managing-env-constants/dev-stage-prod.png"/>
+        <meta class="swiftype" name="image" data-type="enum" content="http://blog.leapoahead.com/2015/09/04/managing-env-constants/dev-stage-prod.png" />
+    
+    
+    
+    
+        <meta property="wb:webmaster" content="7ac6379013a2dc59" />
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/font-awesome.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/jquery.fancybox.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/jquery.fancybox-thumbs.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/tranquilpeak.css" type="text/css">
+    <!--STYLES END-->
+    
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-50843289-7']);
+        _gaq.push(['_trackPageview']);
+        (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+
+</head>
+
+    <body>
+        <div id="blog">
+            <header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <h1 class="header-title">
+        <a class="header-title-link" href="/ ">回田园 - John Wu&#39;s Engineering Blog</a>
+    </h1>
+    
+        <a class="header-right-picture" href="/#about">
+            <img class="header-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90"/>
+        </a>
+    
+</header>
+            <nav id="sidebar" data-behavior="4">
+    
+        <div class="sidebar-profile">
+            <a href="/#about">
+                
+                    <img class="sidebar-profile-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90"/>
+                
+            </a>
+            <span class="sidebar-profile-name">John Wu</span>
+        </div>
+    
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/ "
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-home"></i>
+                    <span class="sidebar-button-desc">Home</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/all-categories"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
+                    <span class="sidebar-button-desc">Categories</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://github.com/tjwudi" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-github"></i>
+                    <span class="sidebar-button-desc">GitHub</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://twitter.com/leapoahead" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-twitter"></i>
+                    <span class="sidebar-button-desc">Twitter</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://facebook.com/leapoahead" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-facebook"></i>
+                    <span class="sidebar-button-desc">Facebook</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-linkedin"></i>
+                    <span class="sidebar-button-desc">Linked In</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="mailto:webmaster@leapoahead.com" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-envelope-o"></i>
+                    <span class="sidebar-button-desc">Mail</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/atom.xml"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-rss"></i>
+                    <span class="sidebar-button-desc">RSS</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+</nav>
+
+            
+            <div id="main" data-behavior="4"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post" itemscope itemType="http://schema.org/BlogPosting">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title" itemprop="headline">
+            以Node应用为例谈如何管理Web应用的环境常量
+        </h1>
+    
+    <div class="post-meta">
+    <time itemprop="datePublished" content="Fri Sep 04 2015 00:33:51 GMT-0700">
+	
+		    9月 04, 2015
+    	
+    </time>
+    
+        <span>in </span>
+        
+    <a class="category-link" href="/categories/Engineering/">Engineering</a>
+
+
+    
+</div>
+</div>
+    
+    <div class="post-content markdown" itemprop="articleBody">
+        <div class="main-content-wrap">
+            <p>在程序员自己的小世界里，我们一直在和“量”打交道——变量和常量。可是常量真的是一成不变的吗？事实上，常量也分为两种，应用常量（application-specific constant）和环境常量（environment-specific constant）。</p>
+<a id="more"></a>
+<p>所谓应用常量就是，无论这个应用程序运行在哪里，这个值都是不会变的。例如，对于一个用户模块，用户名的最大长度一直都为25，那么我就可以在配置文件中直接写下这个常量。下面以JavaScript为例：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> USERNAME_LENGTH_MAX = <span class="number">25</span></span><br></pre></td></tr></table></figure>
+<p>而所谓环境常量，就是<strong>根据这个应用程序所运行的位置的不同而产生变化，但是在运行期间都不会变化的值</strong>。</p>
+<p>举个例子，经典的开发流程有一种是“开发（devlopment）-预发布（staging）-线上（production）”。在这三种环境下，应用程序所使用的数据库一般都是不同的，所以使用的数据库配置也不同。</p>
+<img src="/2015/09/04/managing-env-constants/dev-stage-prod.png" alt="开发-预发布-线上的开发流程" title="开发-预发布-线上的开发流程">
+<p>如果还使用前面的方式来管理这些值的话，那么就相当地麻烦了。那么如何解决这个问题呢？答案跟应用规模有关。</p>
+<h3 id="小型应用：使用环境变量">小型应用：使用环境变量</h3><p>可千万别因为一会儿常量一会儿变量而头疼，待会儿我相信你会清楚的：）</p>
+<p>环境变量指的是，在一个机器（环境）中每个应用程序都能访问到的那些变量。举个例子，很多人都有配置Windows或者Linux系统的PATH的经历，PATH就是一个环境变量，在任何应用程序中都可以访问。我们来做一个小实验：</p>
+<p>在任意目录下新建一个<strong>print-path.js</strong></p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// process.env是Node.js运行的时候创建的一个对象</span></span><br><span class="line"><span class="comment">// 里面包含的是它所在的环境中所定义的环境变量</span></span><br><span class="line">console.<span class="function"><span class="title">log</span><span class="params">(process.env.PATH)</span></span></span><br></pre></td></tr></table></figure>
+<p>然后运行它</p>
+<figure class="highlight dos"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ node <span class="built_in">print</span>-<span class="built_in">path</span>.js</span><br></pre></td></tr></table></figure>
+<p>你就会得到类似像下面所示的字符串</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/usr/local/<span class="symbol">bin:</span>/usr/<span class="symbol">bin:</span>/<span class="symbol">bin:</span>/usr/<span class="symbol">sbin:</span>/<span class="symbol">sbin:</span>/<span class="constant">Users/John/</span>.npm-modules/bin/<span class="symbol">:/usr/local/bin/depot_tools</span><span class="symbol">:/usr/local/Cellar/postgresql/</span><span class="number">9.4</span>.<span class="number">4</span>/bin</span><br></pre></td></tr></table></figure>
+<p>正如在Windows下面定义PATH一样，你也可以随意定制自己的环境变量。例如在Linux/Mac OSX环境下，在终端中我们可以用<strong>export 环境变量名=环境变量值</strong>的方法来定义一个环境变量</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt; $ <span class="keyword">export</span> NAME=Esther</span><br><span class="line">&gt; $ node -e <span class="string">"console.log(process.env.NAME)"</span></span><br><span class="line">&gt; Esther</span><br></pre></td></tr></table></figure>
+<p>在第一行中，我们首先用<code>export</code>创建了一个环境变量，名称是<code>NAME</code>，值是<code>Esther</code>。在第二行中，我们用<code>node -e</code>直接运行一段Node.js程序，要求打印出<code>process.env.NAME</code>。第三行是输出的结果，我们可以看到它正确地输出了<code>Esther</code>。</p>
+<blockquote>
+<p>小知识：我们一般都是用专门的文件来定义环境变量，而不是要用的时候才用<code>export</code>定义的。环境变量其实是针对shell的，我们常用的bash就是一个shell（你可以简单理解成就是Mac自带的那个终端）。使用bash的时候一般将环境变量定义在<code>~/.bashrc</code>中。对于从bash运行的程序，就可以读取其中定义的环境变量。值得一提的是，<code>~/.bashrc</code>里面也是用<code>export</code>来定义环境变量，一样一样的！</p>
+</blockquote>
+<p>但是有的时候，在一个环境下有多个应用，特别是开发环境的机器（也就是我们码农的机器）。所以，如果将所有环境变量都定义在一块，难免很不方便，容易形成下面这样混乱的<strong>bashrc</strong>文件。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> APP1_NAME=weibo</span><br><span class="line"><span class="built_in">export</span> APP1_DB_NAME=weibo-zhalang</span><br><span class="line"><span class="built_in">export</span> APP2_NAME=twitter</span><br><span class="line"><span class="built_in">export</span> APP2_DB_HOST=twitter-prod-db.db.com</span><br><span class="line"><span class="comment"># ...</span></span><br></pre></td></tr></table></figure>
+<p>所以，我们需要更加好的方法来解决！</p>
+<h3 id="使用dotenv">使用dotenv</h3><p>dotenv实际上是一个文件，文件名是<code>.env</code>，一般被我们放在项目的根目录下。例如，下面是一个我自己的项目里面的dotenv文件</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 数据库配置</span></span><br><span class="line"><span class="setting">DB_DIALECT=<span class="value">postgres</span></span></span><br><span class="line"><span class="setting">DB_HOST=<span class="value"><span class="number">10.10</span>.<span class="number">10.10</span></span></span></span><br><span class="line"><span class="setting">DB_PASSWORD=<span class="value">db</span></span></span><br><span class="line"><span class="setting">DB_USER=<span class="value">db</span></span></span><br><span class="line"><span class="setting">DB_PORT=<span class="value"><span class="number">5432</span></span></span></span><br><span class="line"><span class="setting">DB_NAME=<span class="value">webcraft</span></span></span><br><span class="line"><span class="setting">DB_CHARSET=<span class="value">utf8</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Node环境配置</span></span><br><span class="line"><span class="setting">NODE_ENV=<span class="value">development</span></span></span><br></pre></td></tr></table></figure>
+<p>利用dotenv，我们就可以定义针对项目的环境变量了。如果dotenv的位置是<strong>/path/to/project/.env</strong>，那么所有在<strong>/path/to/project</strong>目录下运行的文件，其能访问到的环境变量<strong>/path/to/project/.env</strong>定义的环境变量。</p>
+<p>说起来有点抽象，我们来动手操作理解一下这个过程。在终端中，我们进行下面的操作</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ mkdir ~/<span class="built_in">test</span> &amp;&amp; <span class="built_in">cd</span> <span class="variable">$_</span></span><br><span class="line">$ <span class="built_in">echo</span> <span class="string">'PATH=rats'</span> &gt; .env</span><br><span class="line">$ npm install dotenv</span><br></pre></td></tr></table></figure>
+<p>上面所做的事情其实就是新建目录<code>~/test</code>并进入，然后新建一个<code>.env</code>文件。文件内容很简单：</p>
+<figure class="highlight fix"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">NAME</span>=<span class="string">Lee</span></span><br></pre></td></tr></table></figure>
+<p>这相当于为在这个目录下面运行的所有应用程序重新定义环境变量<code>PATH</code>的值为<code>rats</code>。当然，我们还需要一些库的支持，这个库就叫<a href="https://github.com/motdotla/dotenv" target="_blank" rel="external">dotenv</a>。（这里是Node.js版本的，其他语言基本也有自己的dotenv实现，例如php和python）。所以在上面我们用npm安装了这个库。</p>
+<p>接下来新建<strong>print-name.js</strong></p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 加载dotenv模块</span></span><br><span class="line"><span class="comment">// 具体用法可以查看文档</span></span><br><span class="line"><span class="function"><span class="title">require</span><span class="params">(<span class="string">'dotenv'</span>)</span></span>.<span class="function"><span class="title">load</span><span class="params">()</span></span></span><br><span class="line">console.<span class="function"><span class="title">log</span><span class="params">(process.env.NAME)</span></span></span><br></pre></td></tr></table></figure>
+<p>运行后就能看到输出为<code>Lee</code>。</p>
+<p>这样做的好处就很明显，在不同的项目目录下应用不同的环境变量，并且它们之间不会互相干扰。</p>
+<blockquote>
+<p>小挑战：你可能想问，dotenv定义的环境变量可以覆盖bash的环境变量吗？请自己尝试，看看能不能覆盖bash中的PATH变量。</p>
+</blockquote>
+<p>这些环境变量其实对于这个项目而言就是环境常量。所以，环境常量是对于应用而言的，而环境变量是对于环境而言的。</p>
+<p><a href="https://github.com/motdotla/dotenv" target="_blank" rel="external">dotenv</a></p>
+<h3 id="-env-example">.env-example</h3><p>每个人的开发机器都不同，就算是同一个项目，所需环境变量也不同。我的数据库地址可能是A，你的则可能是B。因此，每个人的<code>.env</code>都会不同。那么，如何对<code>.env</code>进行源码管理呢？</p>
+<p>答案就是，我们为每个人提供一个<code>.env</code>的模板，名字一般是<code>.env-example</code>。当我们将项目clone到本地后，将其复制成<code>.env</code>，然后填上我们自己需要的环境变量。</p>
+<p>如果这样做，那么就应该将<code>.env</code>排除在源码管理之外，因为我们不希望它被分享出去。如果使用git作为源码管理工具的话，那么我们就需要在<code>.gitignore</code>中指明忽略<code>.env</code></p>
+<figure class="highlight mel"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># Ignore .<span class="keyword">env</span> <span class="keyword">file</span></span><br><span class="line">.<span class="keyword">env</span></span><br></pre></td></tr></table></figure>
+<p>可以参考<a href="https://github.com/tjwudi/webcraft" target="_blank" rel="external">我的这个项目的做法</a></p>
+<h3 id="中大型项目：将环境常量仓库式集中管理">中大型项目：将环境常量仓库式集中管理</h3><p>中大型项目中要配置的环境常量可能很多，或许会接近两三千哥，不再适合用dotenv管理。</p>
+<p>解决的方法只有一个——把它们从代码中独立出来管理。例如，我们用yaml文件定义环境常量，全部放在源码<code>config/env</code>下，其目录结构大致如下。</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── application-setting<span class="class">.yaml</span></span><br><span class="line">├── database<span class="class">.yaml</span></span><br><span class="line">├── dinner<span class="class">.yaml</span></span><br><span class="line">├── user<span class="class">.yaml</span></span><br><span class="line">└── 此处省略N个yaml文件</span><br></pre></td></tr></table></figure>
+<p>放在源码中的配置文件是给开发环境用的。对于其他环境，例如stage和production，我们可以将它们放在统一的代码仓库下面进行管理。由于配置文件的修改一般都不会是大改，所以我们可以手工维护其一致性，只要保证有类似Code Review或者一些简单的自动化检查的环节来保障就可以保持其有效。</p>
+<p>在部署的时候，我们也可以单独部署。在这个过程中，可能需要由我们自己开发部署的工具，或者可以采用一些持续集成平台来进行部署。</p>
+<p>综上，不同的大型项目业务环境有不同的选择，但是我认为，对于这些环境常量应该保持两条原则：</p>
+<ol>
+<li>集中式仓库管理，独立作为一个子系统运作</li>
+<li>自动化，这已经是很简单的场景了，完全依靠自动化排错不是问题</li>
+</ol>
+<h3 id="写在最后">写在最后</h3><p>所谓架构就是对应用程序的一系列选择。做好每一个小的选择，都是对架构的改进。良好的环境常量管理可以让配置流程更加清晰易懂，简单高效。</p>
+
+            
+                
+
+            
+        </div>
+    </div>
+    
+    <div class="post-rmds main-content-wrap">
+        <h4>猜你想读</h4>
+        <ul>
+            
+            
+                <li><a href="">在Node应用中避免“Dot Hell”</a></li>
+            
+        </ul>
+        
+    </div>
+
+    <div class="post-mailchimp">
+    <div class="main-content-wrap mailchimp-wrap">
+        <h3>让有趣易懂的知识主动找到你</h3>
+        <p>订阅我的Email半月刊，让我们共同学习、成长。绝无广告！</p>
+        <form action="//leapoahead.us8.list-manage.com/subscribe/post?u=f3a6e2f843ac1be03e00f7bed&amp;amp;id=58e28559b1" method="post" name="mc-embedded-subscribe-form" class="mailchimp-form" target="_blank" novalidate>
+            <label for="mce-EMAIL" style="display: none">Email地址</label>
+            <input type="email" value="" name="EMAIL" id="mce-EMAIL" placeholder="您常用的Email地址" class="mailchimp-input">
+            <input type="submit" value="订阅" name="subscribe" id="mc-embedded-subscribe" class="mailchimp-input mailchimp-subscribe">
+            <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+            <div style="position: absolute; left: -5000px;"><input type="text" name="b_f3a6e2f843ac1be03e00f7bed_58e28559b1" tabindex="-1" value=""></div>
+        </form>
+    </div>
+</div>
+    <div class="post-footer main-content-wrap">
+        
+        <div class="post-actions-wrap">
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
+                <i class="fa fa-share-alt"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/09/04/managing-env-constants/">
+                <i class="fa fa-google-plus"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/09/04/managing-env-constants/">
+                <i class="fa fa-facebook-official"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/09/04/managing-env-constants/">
+                <i class="fa fa-twitter"></i>
+            </a>
+        </li>
+        
+            <li class="post-action">
+                <a class="post-action-btn btn btn--default" href="#disqus_thread">
+                    <i class="fa fa-comment-o"></i>
+                </a>
+            </li>
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#">
+            
+                <i class="fa fa-list"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+            <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2015 John Wu. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+                    <div class="post-actions-wrap">
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
+                <i class="fa fa-share-alt"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/09/04/managing-env-constants/">
+                <i class="fa fa-google-plus"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/09/04/managing-env-constants/">
+                <i class="fa fa-facebook-official"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/09/04/managing-env-constants/">
+                <i class="fa fa-twitter"></i>
+            </a>
+        </li>
+        
+            <li class="post-action">
+                <a class="post-action-btn btn btn--default" href="#disqus_thread">
+                    <i class="fa fa-comment-o"></i>
+                </a>
+            </li>
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#">
+            
+                <i class="fa fa-list"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+    <ul class="share-options">
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/09/04/managing-env-constants/">
+                <i class="fa fa-google-plus"></i><span class="">Share on Google Plus</span>
+            </a>
+        </li>
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/09/04/managing-env-constants/">
+                <i class="fa fa-facebook-official"></i><span>Share on Facebook</span>
+            </a>
+        </li>
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/09/04/managing-env-constants/">
+                <i class="fa fa-twitter"></i><span>Share on Twitter</span>
+            </a>
+        </li>
+    </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
+            
+        </div>
+        <div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-remove"></i>
+        </div>
+        
+            <img id="about-card-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=110"/>
+        
+            <h4 id="about-card-name">John Wu</h4>
+        
+            <h5 id="about-card-bio"><p>Life is all about A/B testing</p>
+</h5>
+        
+        
+            <h5 id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>Software Engineer Intern at Yelp</p>
+
+            </h5>
+        
+        
+            <h5 id="about-card-location">
+                <i class="fa fa-map-marker"></i>
+                <br/>
+                San Francisco, CA
+            </h5>
+        
+    </div>
+</div>
+
+        <div id="cover" style="background-image:url('http://res.cloudinary.com/tranquilpeak-hexo-theme/image/upload/v1438975482/v1.3.0-cover.jpg');"></div>
+    </body>
+    <!--SCRIPTS-->
+<script src="/assets/js/jquery.js" type="text/javascript"></script>
+<script src="/assets/js/jquery.fancybox.js" type="text/javascript"></script>
+<script src="/assets/js/jquery.fancybox-thumbs.js" type="text/javascript"></script>
+<script src="/assets/js/tranquilpeak.js" type="text/javascript"></script>
+<!--SCRIPTS END-->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'johnweng';
+        (function() {
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+
+
+
+</html>
