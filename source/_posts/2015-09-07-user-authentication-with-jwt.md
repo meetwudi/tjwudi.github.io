@@ -1,6 +1,7 @@
 title: 八幅漫画理解使用JSON Web Token设计单点登录系统
 date: 2015-09-07 22:43:19
 category: Engineering
+thumbnailImage: jwtauth1.png
 ---
 
 上次在[《JSON Web Token - 在Web应用间安全地传递信息》](/2015/09/06/understanding-jwt/)中我提到了JSON Web Token可以用来设计单点登录系统。我尝试用八幅漫画先让大家理解如何设计正常的用户认证系统，然后再延伸到单点登录系统。
