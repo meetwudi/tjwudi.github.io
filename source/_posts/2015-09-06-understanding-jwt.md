@@ -1,7 +1,9 @@
 title: JSON Web Token - 在Web应用间安全地传递信息
 category: Engineering
 thumbnailImage: jwt.png
+date: 2015-09-06 20:25:36
 ---
+
 
 JSON Web Token（JWT）是一个非常轻巧的[规范](https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32)。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。
 
