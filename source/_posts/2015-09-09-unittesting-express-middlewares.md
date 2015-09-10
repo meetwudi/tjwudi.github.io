@@ -286,8 +286,59 @@ it('should have users object attached to request object', function (done) {
 })
 ```
 
+你可以在项目目录下运行下面的命令让所有文件和上面所做的变更同步。
+
 ```js
 $ git checkout step4
+```
+
+### Step 5：对于不调用`next`的中间件
+
+对于不调用`next`的中间件，例如`responseUserWithProjects`，我们可以直接将这个Promise当做中间件函数的返回值返回。
+
+```js
+responseUserWithProjects: function (req, res, next) {
+  return Promise.all([
+    req.user,
+    req.projects
+  ]).then(function (results) {
+    var user = results[0];
+    user.projects = results[1];
+    res.json(user);
+  }, next);
+}
+```
+
+这样在测试的时候，我们只需要接着这个Promise往下`then`我们的测试逻辑即可。在测试逻辑运行前，对`res`的操作是已经结束了的，所以我们就可以直接对`res`对象进行断言了。
+
+另外，有了Promise，我们也可以让`req.user`和`req.projects`的注入变得异常简单。我们可以使用`Promise.resove`将测试数据包装成一个会立即resolve的Promise。
+
+```js
+describe('responseUserWithProjects middleware', function () {
+  it('should have user with projects object\'s JSON attached in response', function (done) {
+    var request = mocksHttp.createRequest();
+    var response = mocksHttp.createResponse();
+    request.user = Promise.resolve({"type":"User","id":1,"name":"John Wu","position":"Software Engineer","_id":"UUTpdPICsQSLS5zp"});
+    request.projects = Promise.resolve([{"type":"Project","user_id":1,"id":3,"title":"InterU","_id":"QH8MxJKnAsHSwA5X"},
+      {"type":"Project","user_id":1,"id":1,"title":"Midway","_id":"UnNJxQ7eopLlWFY1"},
+      {"type":"Project","user_id":1,"id":2,"title":"Esther","_id":"gZe3sgOsKxxCXHBA"}
+    ]);
+    usersMiddlewares.responseUserWithProjects(request, response)
+      .then(function () {
+        var data = JSON.parse(response._getData());
+        data.should.have.properties(['id', 'name', 'position', 'projects']);
+        data.projects.should.be.an.instanceOf(Array);
+        data.projects.should.have.length(3);
+        done();
+      }, done)
+  });
+});
+```
+
+你可以在项目目录下运行下面的命令让所有文件和上面所做的变更同步。
+
+```js
+$ git checkout step5
 ```
 
 ### 总结
