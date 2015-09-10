@@ -1,0 +1,477 @@
+
+<!DOCTYPE html>
+<html lang="zh_CN">
+    
+<head>
+    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="回田园 - John Wu&#39;s Engineering Blog">
+    <title>Workshop - 对Express中间件进行单元测试 - 回田园 - John Wu&#39;s Engineering Blog</title>
+    <meta name="author" content="John Wu">
+    
+    
+        <link rel="alternative" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <meta name="description" content="我最近围绕着Express构建应用，尝试用不同的方法来对Express的中间件进行单元测试。今天通过Workshop的形式，一步一步地向大家介绍我的测试方式。">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="Workshop - 对Express中间件进行单元测试">
+<meta property="og:url" content="http://blog.leapoahead.com/2015/09/09/unittesting-express-middlewares/index.html">
+<meta property="og:site_name" content="回田园 - John Wu's Engineering Blog">
+<meta property="og:description" content="我最近围绕着Express构建应用，尝试用不同的方法来对Express的中间件进行单元测试。今天通过Workshop的形式，一步一步地向大家介绍我的测试方式。">
+<meta property="og:image" content="http://blog.leapoahead.com/2015/09/09/unittesting-express-middlewares/unittest.jpeg">
+<meta property="og:updated_time" content="2015-09-10T03:35:30.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Workshop - 对Express中间件进行单元测试">
+<meta name="twitter:description" content="我最近围绕着Express构建应用，尝试用不同的方法来对Express的中间件进行单元测试。今天通过Workshop的形式，一步一步地向大家介绍我的测试方式。">
+<meta name="twitter:creator" content="@leapoahead">
+    
+    
+    
+        <meta property="og:image" content="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=640"/>
+    
+    
+        <meta property="og:image" content="/2015/09/09/unittesting-express-middlewares/unittest.jpeg"/>
+        <meta class="swiftype" name="image" data-type="enum" content="http://blog.leapoahead.com/2015/09/09/unittesting-express-middlewares/unittest.jpeg" />
+    
+    
+    
+    
+        <meta property="wb:webmaster" content="7ac6379013a2dc59" />
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/font-awesome.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/jquery.fancybox.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/jquery.fancybox-thumbs.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/tranquilpeak.css" type="text/css">
+    <!--STYLES END-->
+    
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-50843289-7']);
+        _gaq.push(['_trackPageview']);
+        (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+
+</head>
+
+    <body>
+        <div id="blog">
+            <header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <h1 class="header-title">
+        <a class="header-title-link" href="/ ">回田园 - John Wu&#39;s Engineering Blog</a>
+    </h1>
+    
+        <a class="header-right-picture" href="/#about">
+            <img class="header-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90"/>
+        </a>
+    
+</header>
+            <nav id="sidebar" data-behavior="4">
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/ "
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-home"></i>
+                    <span class="sidebar-button-desc">Home</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/all-categories"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
+                    <span class="sidebar-button-desc">Categories</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://github.com/tjwudi" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-github"></i>
+                    <span class="sidebar-button-desc">GitHub</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://twitter.com/leapoahead" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-twitter"></i>
+                    <span class="sidebar-button-desc">Twitter</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://facebook.com/leapoahead" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-facebook"></i>
+                    <span class="sidebar-button-desc">Facebook</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-linkedin"></i>
+                    <span class="sidebar-button-desc">Linked In</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="mailto:webmaster@leapoahead.com" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-envelope-o"></i>
+                    <span class="sidebar-button-desc">Mail</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/atom.xml"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-rss"></i>
+                    <span class="sidebar-button-desc">RSS</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+</nav>
+
+            
+            <div id="main" data-behavior="4"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post" itemscope itemType="http://schema.org/BlogPosting">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title" itemprop="headline">
+            Workshop - 对Express中间件进行单元测试
+        </h1>
+    
+    <div class="post-meta">
+    <time itemprop="datePublished" content="Wed Sep 09 2015 19:21:33 GMT-0700">
+	
+		    9月 09, 2015
+    	
+    </time>
+    
+        <span>in </span>
+        
+    <a class="category-link" href="/categories/Engineering/">Engineering</a>
+
+
+    
+</div>
+</div>
+    
+    <div class="post-content markdown" itemprop="articleBody">
+        <div class="main-content-wrap">
+            <p>我最近围绕着Express构建应用，尝试用不同的方法来对Express的中间件进行单元测试。今天通过Workshop的形式，一步一步地向大家介绍我的测试方式。</p>
+<a id="more"></a>
+<img src="/2015/09/09/unittesting-express-middlewares/unittest.jpeg" alt="unittest.jpeg" title="">
+<p>本文要求读者有一定<a href="http://expressjs.com" target="_blank" rel="external">Express.js</a>基础，并对JavaScript的Promise特性有所了解。你可以在<a href="http://www.html5rocks.com/zh/tutorials/es6/promises/" target="_blank" rel="external">这篇文章</a>中学习到关于Promise的基础知识。</p>
+<p>请在<a href="https://github.com/tjwudi/unit-testing-express-middlewares-example" target="_blank" rel="external">GitHub</a>上将我们学习用的代码clone到本地的任意目录。</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$ </span>git clone git<span class="variable">@github</span>.<span class="symbol">com:</span>tjwudi/unit-testing-express-middlewares-example.git</span><br><span class="line"><span class="variable">$ </span>cd unit-testing-express-middlewares-example</span><br><span class="line"><span class="variable">$ </span>git checkout step1  <span class="comment"># 回到第一步</span></span><br><span class="line"><span class="variable">$ </span>npm install</span><br><span class="line"><span class="variable">$ </span>node bin/www</span><br></pre></td></tr></table></figure>
+<p>在这个项目中，我们提供一个JSON接口<code>/users/:id</code>，返回对应用户<code>id</code>的用户信息，其中包含该用户所负责的项目（projects）。你可以访问<code>http://localhost:3000/users/1</code>看到下面的返回结果。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">   "<span class="attribute">type</span>":<span class="value"><span class="string">"User"</span></span>,</span><br><span class="line">   "<span class="attribute">id</span>":<span class="value"><span class="number">1</span></span>,</span><br><span class="line">   "<span class="attribute">name</span>":<span class="value"><span class="string">"John Wu"</span></span>,</span><br><span class="line">   "<span class="attribute">position</span>":<span class="value"><span class="string">"Software Engineer"</span></span>,</span><br><span class="line">   "<span class="attribute">_id</span>":<span class="value"><span class="string">"UUTpdPICsQSLS5zp"</span></span>,</span><br><span class="line">   "<span class="attribute">projects</span>":<span class="value">[</span><br><span class="line">      &#123;</span><br><span class="line">         "<span class="attribute">type</span>":<span class="value"><span class="string">"Project"</span></span>,</span><br><span class="line">         "<span class="attribute">user_id</span>":<span class="value"><span class="number">1</span></span>,</span><br><span class="line">         "<span class="attribute">id</span>":<span class="value"><span class="number">3</span></span>,</span><br><span class="line">         "<span class="attribute">title</span>":<span class="value"><span class="string">"InterU"</span></span>,</span><br><span class="line">         "<span class="attribute">_id</span>":<span class="value"><span class="string">"QH8MxJKnAsHSwA5X"</span></span><br><span class="line">      </span>&#125;,</span><br><span class="line">      &#123;</span><br><span class="line">         "<span class="attribute">type</span>":<span class="value"><span class="string">"Project"</span></span>,</span><br><span class="line">         "<span class="attribute">user_id</span>":<span class="value"><span class="number">1</span></span>,</span><br><span class="line">         "<span class="attribute">id</span>":<span class="value"><span class="number">1</span></span>,</span><br><span class="line">         "<span class="attribute">title</span>":<span class="value"><span class="string">"Midway"</span></span>,</span><br><span class="line">         "<span class="attribute">_id</span>":<span class="value"><span class="string">"UnNJxQ7eopLlWFY1"</span></span><br><span class="line">      </span>&#125;,</span><br><span class="line">      &#123;</span><br><span class="line">         "<span class="attribute">type</span>":<span class="value"><span class="string">"Project"</span></span>,</span><br><span class="line">         "<span class="attribute">user_id</span>":<span class="value"><span class="number">1</span></span>,</span><br><span class="line">         "<span class="attribute">id</span>":<span class="value"><span class="number">2</span></span>,</span><br><span class="line">         "<span class="attribute">title</span>":<span class="value"><span class="string">"Esther"</span></span>,</span><br><span class="line">         "<span class="attribute">_id</span>":<span class="value"><span class="string">"gZe3sgOsKxxCXHBA"</span></span><br><span class="line">      </span>&#125;</span><br><span class="line">   ]</span><br><span class="line"></span>&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="常规中间件用法">常规中间件用法</h3><p>在<strong>routes/users.js</strong>中我们可以看到响应该请求的中间件，该请求由三个中间件组成，它们分别负责</p>
+<ol>
+<li>根据用户id从数据库获取用户对象，赋值给<code>req.user</code></li>
+<li>根据用户对象获取其负责的所有项目，赋值给<code>req.projects</code></li>
+<li>组合上面两步的结果，返回JSON</li>
+</ol>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">router.get(<span class="string">'/:id'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">req, res, next</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> userId = <span class="built_in">parseInt</span>(req.params.id, <span class="number">10</span>);</span><br><span class="line">  User.getUserById(userId).then(<span class="function"><span class="keyword">function</span> (<span class="params">user</span>) </span>&#123;</span><br><span class="line">    req.user = user;</span><br><span class="line">    next();</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>&#123;</span><br><span class="line">  User.getUserProjects(req.user).then(<span class="function"><span class="keyword">function</span> (<span class="params">projects</span>) </span>&#123;</span><br><span class="line">    req.projects = projects;</span><br><span class="line">    next();</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>&#123;</span><br><span class="line">  req.user.projects = req.projects;</span><br><span class="line">  res.json(req.user);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>到目前为止，一切都很完美！接下来我们希望能够针对每个中间件设计单元测试。</p>
+<blockquote>
+<p>题外话：一般情况下，我们都会先设计单元测试，再进行具体实现。但是在这里出于Workshop目的，我们将顺序反过来。</p>
+</blockquote>
+<p><strong>单元测试（Unit Testing）</strong>中，我们针对函数这类小型的、符合<a href="http://www.uml.org.cn/sjms/201211023.asp" target="_blank" rel="external">单一职责原则</a>的功能单元进行测试。但是在对Express中间件进行单元测试的时候，我们可能遇到挑战。</p>
+<h3 id="直接对接口测试？">直接对接口测试？</h3><p>首先，我们可能尝试直接用类似<a href="https://github.com/visionmedia/supertest#readme" target="_blank" rel="external">supertest</a>的工具进行测试。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> request = <span class="built_in">require</span>(<span class="string">'supertest'</span>);</span><br><span class="line"></span><br><span class="line">request(app)</span><br><span class="line">  .get(<span class="string">'/users/1'</span>)</span><br><span class="line">  .expect(<span class="number">200</span>)</span><br><span class="line">  .then(...);</span><br></pre></td></tr></table></figure>
+<p>但是这样做实际上已经不是单元测试了，而是对整个请求中涉及的所有中间件测试。如果我们不对这些中间件进行变动，但是插入了新的中间件，也可能导致这个测试失败，所以是不可取的。</p>
+<p>为了解决这个为题，我们可以将中间件函数独立暴露出来，方便测试。</p>
+<h3 id="Step_2：独立中间件">Step 2：独立中间件</h3><p>首先在<strong>routes/users.js</strong>中，我们将三个中间件单独提取到一个对象中，并暴露给外界。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> middlewares = &#123;</span><br><span class="line">  getUserById: <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> userId = <span class="built_in">parseInt</span>(req.params.id, <span class="number">10</span>);</span><br><span class="line">    User.getUserById(userId).then(<span class="function"><span class="keyword">function</span> (<span class="params">user</span>) </span>&#123;</span><br><span class="line">      req.user = user;</span><br><span class="line">      next();</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  getProjectsForUser: <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>&#123;</span><br><span class="line">    User.getUserProjects(req.user).then(<span class="function"><span class="keyword">function</span> (<span class="params">projects</span>) </span>&#123;</span><br><span class="line">      req.projects = projects;</span><br><span class="line">      next();</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  responseUserWithProjects: <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>&#123;</span><br><span class="line">    req.user.projects = req.projects;</span><br><span class="line">    res.json(req.user);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">router.get(<span class="string">'/:id'</span>,</span><br><span class="line">  middlewares.getUserById,</span><br><span class="line">  middlewares.getProjectsForUser,</span><br><span class="line">  middlewares.responseUserWithProjects</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  router: router,</span><br><span class="line">  middlewares: middlewares</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>接下来在<strong>app.js</strong>中的第27行更新router的引用</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">app.use(<span class="string">'/users'</span>, users.router);</span><br></pre></td></tr></table></figure>
+<p>你可以在项目目录下运行下面的命令让所有文件和上面所做的变更同步。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git checkout step2</span><br></pre></td></tr></table></figure>
+<h3 id="Step_3：建立测试文件">Step 3：建立测试文件</h3><p>接下来在项目目录下新建测试文件<strong>tests/users.js</strong>。我们将用<a href="https://mochajs.org" target="_blank" rel="external">mocha</a>和<a href="https://github.com/shouldjs/should.js" target="_blank" rel="external">should</a>进行测试。mocha是测试运行工具，用于执行测试；而should则是一个断言（assertion）库。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ npm <span class="operator"><span class="keyword">install</span> -<span class="keyword">g</span> mocha</span><br><span class="line">$ npm <span class="keyword">install</span> should <span class="comment">--save-dev</span></span></span><br></pre></td></tr></table></figure>
+<p>另外我们使用<a href="https://github.com/howardabrams/node-mocks-http" target="_blank" rel="external">node-mocks-http</a>来创建模拟的<code>req</code>和<code>res</code>对象。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ npm <span class="operator"><span class="keyword">install</span> node-mocks-<span class="keyword">http</span> <span class="comment">--save-dev</span></span></span><br></pre></td></tr></table></figure>
+<p>我们以下面的方式对其中一个中间件进行测试。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> should = <span class="built_in">require</span>(<span class="string">'should'</span>);</span><br><span class="line"><span class="keyword">var</span> mocksHttp = <span class="built_in">require</span>(<span class="string">'node-mocks-http'</span>);</span><br><span class="line"><span class="keyword">var</span> usersMiddlewares = <span class="built_in">require</span>(<span class="string">'../routes/users'</span>).middlewares;</span><br><span class="line"></span><br><span class="line">describe(<span class="string">'Users endpoint'</span>, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">  describe(<span class="string">'getUserById middleware'</span>, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    it(<span class="string">'should have users object attached to request object'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">done</span>) </span>&#123;</span><br><span class="line">      <span class="keyword">var</span> request = mocksHttp.createRequest(&#123;</span><br><span class="line">        params: &#123; id: <span class="number">1</span> &#125;</span><br><span class="line">      &#125;);</span><br><span class="line">      <span class="keyword">var</span> response = mocksHttp.createResponse();</span><br><span class="line">      usersMiddlewares.getUserById(request, response, <span class="function"><span class="keyword">function</span> (<span class="params">err</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (err) done(err);</span><br><span class="line">        should.exist(request.user);</span><br><span class="line">        request.user.should.have.properties([<span class="string">'id'</span>, <span class="string">'name'</span>, <span class="string">'position'</span>]);</span><br><span class="line">        done();</span><br><span class="line">      &#125;);</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// test other middlewares</span></span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>接下来用mocha运行测试</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ mocha tests/users<span class="class">.js</span></span><br><span class="line"></span><br><span class="line">  Users endpoint</span><br><span class="line">    getUserById middleware</span><br><span class="line">      ✓ should have users <span class="tag">object</span> attached to request <span class="tag">object</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  <span class="number">1</span> passing (<span class="number">17ms</span>)</span><br></pre></td></tr></table></figure>
+<p>你可以在项目目录下运行下面的命令让所有文件和上面所做的变更同步。</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$ </span>git checkout step3</span><br></pre></td></tr></table></figure>
+<p>但是现在存在一些问题。</p>
+<p><strong>如果<code>next</code>函数没有被执行怎么办？</strong>就如<code>responseUserWithProjects</code>这个中间件一样，它是没有调用<code>next</code>函数的，那么回调函数里的逻辑自然也就不会被触发。所以，这个函数的“出口”也就不唯一了。为了让测试准确，我们必须让其出口是唯一的。</p>
+<h3 id="Step_4：单一“出口”_-_Promise">Step 4：单一“出口” - Promise</h3><p>我们尝试将<code>getUserById</code>中间件改写成返回一个Promise的形式。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> <span class="built_in">Promise</span> = <span class="built_in">require</span>(<span class="string">'bluebird'</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line">getUserById: <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> userId = <span class="built_in">parseInt</span>(req.params.id, <span class="number">10</span>);</span><br><span class="line">  <span class="keyword">var</span> userPromise = User.getUserById(userId);</span><br><span class="line">  req.user = userPromise;</span><br><span class="line">  next();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里我们将<code>req.user</code>变成了一个会resolve（产生）一个user对象的Promise。那么在<code>getProjectsForUser</code>中，我们使用<code>req.user</code>的方式就会发生变化，同时，我们也让<code>req.project</code>变成一个Promise。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">getProjectsForUser: <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> projectsPromise = req.user.then(<span class="function"><span class="keyword">function</span> (<span class="params">user</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> User.getUserProjects(user);</span><br><span class="line">  &#125;, next);</span><br><span class="line">  req.projects = projectsPromise;</span><br><span class="line">  next();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对最后一个中间件<code>responseUserWithProjects</code>，也做相应的改动</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">responseUserWithProjects: <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>&#123;</span><br><span class="line">  <span class="built_in">Promise</span>.all([</span><br><span class="line">    req.user,</span><br><span class="line">    req.projects</span><br><span class="line">  ]).then(<span class="function"><span class="keyword">function</span> (<span class="params">results</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> user = results[<span class="number">0</span>];</span><br><span class="line">    user.projects = results[<span class="number">1</span>];</span><br><span class="line">    res.json(user);</span><br><span class="line">  &#125;, next);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在这里，我们在中间件运行的过程中通过Promise来传递我们想要获取并传递的对象。这样做的好处在于，现在我们保证了<code>next</code>函数一定会被运行。整个中间件的“出口”是单一的。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">it(<span class="string">'should have users object attached to request object'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">done</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> request = mocksHttp.createRequest(&#123;</span><br><span class="line">    params: &#123; id: <span class="number">1</span> &#125;</span><br><span class="line">  &#125;);</span><br><span class="line">  <span class="keyword">var</span> response = mocksHttp.createResponse();</span><br><span class="line">  usersMiddlewares.getUserById(request, response, <span class="function"><span class="keyword">function</span> (<span class="params">err</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (err) done(err);</span><br><span class="line">    request.user.then(<span class="function"><span class="keyword">function</span> (<span class="params">user</span>) </span>&#123;</span><br><span class="line">      user.should.have.properties([<span class="string">'id'</span>, <span class="string">'name'</span>, <span class="string">'position'</span>]);</span><br><span class="line">      done();</span><br><span class="line">    &#125;, done);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git checkout step4</span><br></pre></td></tr></table></figure>
+<h3 id="对于不调用next的中间件">对于不调用<code>next</code>的中间件</h3><p>对于不调用<code>next</code>的中间件，例如<code>responseUserWithProjects</code>，我们可以直接将这个Promise当做中间件函数的返回值返回。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">responseUserWithProjects: <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">Promise</span>.all([</span><br><span class="line">    req.user,</span><br><span class="line">    req.projects</span><br><span class="line">  ]).then(<span class="function"><span class="keyword">function</span> (<span class="params">results</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> user = results[<span class="number">0</span>];</span><br><span class="line">    user.projects = results[<span class="number">1</span>];</span><br><span class="line">    res.json(user);</span><br><span class="line">  &#125;, next);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这样在测试的时候，我们只需要接着这个Promise往下<code>then</code>我们的测试逻辑即可。在测试逻辑运行前，对<code>res</code>的操作是已经结束了的，所以我们就可以直接对<code>res</code>对象进行断言了。</p>
+<p>另外，有了Promise，我们也可以让<code>req.user</code>和<code>req.projects</code>的注入变得异常简单。我们可以使用<code>Promise.resove</code>将测试数据包装成一个会立即resolve的Promise。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">describe(<span class="string">'responseUserWithProjects middleware'</span>, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">  it(<span class="string">'should have user with projects object\'s JSON attached in response'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">done</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> request = mocksHttp.createRequest();</span><br><span class="line">    <span class="keyword">var</span> response = mocksHttp.createResponse();</span><br><span class="line">    request.user = <span class="built_in">Promise</span>.resolve(&#123;<span class="string">"type"</span>:<span class="string">"User"</span>,<span class="string">"id"</span>:<span class="number">1</span>,<span class="string">"name"</span>:<span class="string">"John Wu"</span>,<span class="string">"position"</span>:<span class="string">"Software Engineer"</span>,<span class="string">"_id"</span>:<span class="string">"UUTpdPICsQSLS5zp"</span>&#125;);</span><br><span class="line">    request.projects = <span class="built_in">Promise</span>.resolve([&#123;<span class="string">"type"</span>:<span class="string">"Project"</span>,<span class="string">"user_id"</span>:<span class="number">1</span>,<span class="string">"id"</span>:<span class="number">3</span>,<span class="string">"title"</span>:<span class="string">"InterU"</span>,<span class="string">"_id"</span>:<span class="string">"QH8MxJKnAsHSwA5X"</span>&#125;,</span><br><span class="line">      &#123;<span class="string">"type"</span>:<span class="string">"Project"</span>,<span class="string">"user_id"</span>:<span class="number">1</span>,<span class="string">"id"</span>:<span class="number">1</span>,<span class="string">"title"</span>:<span class="string">"Midway"</span>,<span class="string">"_id"</span>:<span class="string">"UnNJxQ7eopLlWFY1"</span>&#125;,</span><br><span class="line">      &#123;<span class="string">"type"</span>:<span class="string">"Project"</span>,<span class="string">"user_id"</span>:<span class="number">1</span>,<span class="string">"id"</span>:<span class="number">2</span>,<span class="string">"title"</span>:<span class="string">"Esther"</span>,<span class="string">"_id"</span>:<span class="string">"gZe3sgOsKxxCXHBA"</span>&#125;</span><br><span class="line">    ]);</span><br><span class="line">    usersMiddlewares.responseUserWithProjects(request, response)</span><br><span class="line">      .then(<span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="keyword">var</span> data = <span class="built_in">JSON</span>.parse(response._getData());</span><br><span class="line">        data.should.have.properties([<span class="string">'id'</span>, <span class="string">'name'</span>, <span class="string">'position'</span>, <span class="string">'projects'</span>]);</span><br><span class="line">        data.projects.should.be.an.instanceOf(<span class="built_in">Array</span>);</span><br><span class="line">        data.projects.should.have.length(<span class="number">3</span>);</span><br><span class="line">        done();</span><br><span class="line">      &#125;, done)</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h3 id="总结">总结</h3><p>在这样的测试方法中，Promise本身起到了对象的“Placeholder”的作用。其本身一旦创建后就可以被使用，传递给下一个中间件，而不需要创建出回调函数，使得中间件的“出口”变成了多个。</p>
+<p>使用Promise同时还允许我们将逻辑变成对象到处传递，我们可以随时将它们抽取出来测试。可见，使用Promise可远远不是让我们摆脱<a href="www.infoq.com/cn/articles/nodejs-callback-hell">Callback Hell</a>那么简单。</p>
+<p>另外，单元测试要求我们要能够准确地</p>
+<ul>
+<li>描述一个功能单元的输入</li>
+<li>描述一个功能单元的输出</li>
+</ul>
+<p>通过这个特点，单元测试就能让我们在设计测试阶段就很好地约束每个函数（或者类方法）对应的功能（或者说scope），让我们更容易写出符合<strong>单一职责原则</strong>的代码。</p>
+
+            
+                
+
+            
+        </div>
+    </div>
+    
+    <div class="post-rmds main-content-wrap">
+        <h4>猜你想读</h4>
+        <ul>
+            
+            
+                <li><a href="">八幅漫画理解使用JSON Web Token设计单点登录系统</a></li>
+            
+        </ul>
+        
+    </div>
+
+    <div class="post-mailchimp">
+    <div class="main-content-wrap mailchimp-wrap">
+        <h3>让有趣易懂的知识主动找到你</h3>
+        <p>订阅我的Email半月刊，让我们共同学习、成长。绝无广告！</p>
+        <form action="//leapoahead.us8.list-manage.com/subscribe/post?u=f3a6e2f843ac1be03e00f7bed&amp;amp;id=58e28559b1" method="post" name="mc-embedded-subscribe-form" class="mailchimp-form" target="_blank" novalidate>
+            <label for="mce-EMAIL" style="display: none">Email地址</label>
+            <input type="email" value="" name="EMAIL" id="mce-EMAIL" placeholder="您常用的Email地址" class="mailchimp-input">
+            <input type="submit" value="订阅" name="subscribe" id="mc-embedded-subscribe" class="mailchimp-input mailchimp-subscribe">
+            <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+            <div style="position: absolute; left: -5000px;"><input type="text" name="b_f3a6e2f843ac1be03e00f7bed_58e28559b1" tabindex="-1" value=""></div>
+        </form>
+    </div>
+</div>
+    <div class="post-footer main-content-wrap">
+        
+        <div class="post-actions-wrap">
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
+                <i class="fa fa-share-alt"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/09/09/unittesting-express-middlewares/">
+                <i class="fa fa-google-plus"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/09/09/unittesting-express-middlewares/">
+                <i class="fa fa-facebook-official"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/09/09/unittesting-express-middlewares/">
+                <i class="fa fa-twitter"></i>
+            </a>
+        </li>
+        
+            <li class="post-action">
+                <a class="post-action-btn btn btn--default" href="#disqus_thread">
+                    <i class="fa fa-comment-o"></i>
+                </a>
+            </li>
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#">
+            
+                <i class="fa fa-list"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+            <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2015 John Wu. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+                    <div class="post-actions-wrap">
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
+                <i class="fa fa-share-alt"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/09/09/unittesting-express-middlewares/">
+                <i class="fa fa-google-plus"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/09/09/unittesting-express-middlewares/">
+                <i class="fa fa-facebook-official"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/09/09/unittesting-express-middlewares/">
+                <i class="fa fa-twitter"></i>
+            </a>
+        </li>
+        
+            <li class="post-action">
+                <a class="post-action-btn btn btn--default" href="#disqus_thread">
+                    <i class="fa fa-comment-o"></i>
+                </a>
+            </li>
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#">
+            
+                <i class="fa fa-list"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+    <ul class="share-options">
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/09/09/unittesting-express-middlewares/">
+                <i class="fa fa-google-plus"></i><span class="">Share on Google Plus</span>
+            </a>
+        </li>
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/09/09/unittesting-express-middlewares/">
+                <i class="fa fa-facebook-official"></i><span>Share on Facebook</span>
+            </a>
+        </li>
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/09/09/unittesting-express-middlewares/">
+                <i class="fa fa-twitter"></i><span>Share on Twitter</span>
+            </a>
+        </li>
+    </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
+            
+        </div>
+        <div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-remove"></i>
+        </div>
+        
+            <img id="about-card-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=110"/>
+        
+            <h4 id="about-card-name">John Wu</h4>
+        
+            <h5 id="about-card-bio"><p>Life is all about A/B testing</p>
+</h5>
+        
+        
+            <h5 id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>Software Engineer Intern at Yelp</p>
+
+            </h5>
+        
+        
+            <h5 id="about-card-location">
+                <i class="fa fa-map-marker"></i>
+                <br/>
+                San Francisco, CA
+            </h5>
+        
+    </div>
+</div>
+
+        <div id="cover" style="background-image:url('http://res.cloudinary.com/tranquilpeak-hexo-theme/image/upload/v1438975482/v1.3.0-cover.jpg');"></div>
+    </body>
+    <!--SCRIPTS-->
+<script src="/assets/js/jquery.js" type="text/javascript"></script>
+<script src="/assets/js/jquery.fancybox.js" type="text/javascript"></script>
+<script src="/assets/js/jquery.fancybox-thumbs.js" type="text/javascript"></script>
+<script src="/assets/js/tranquilpeak.js" type="text/javascript"></script>
+<!--SCRIPTS END-->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'johnweng';
+        (function() {
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+
+
+
+</html>
