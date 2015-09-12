@@ -341,6 +341,49 @@ describe('responseUserWithProjects middleware', function () {
 $ git checkout step5
 ```
 
+### Step 7：提高一致性
+
+我们在上面对于调用`next`和不调用`next`的方法做了区分，但是实际上，我们只需要一点改动就能让他们的测试方法一致。
+
+注意到`getUserById`这个函数本身还没有返回值。我们可以把我们要测试的对象——`req.user`这个Promise直接作为返回值返回。
+
+```js
+getUserById: function (req, res, next) {
+  var userId = parseInt(req.params.id, 10);
+  var userPromise = User.getUserById(userId);
+  req.user = userPromise;
+  next();
+  // 返回待测对象的Promise
+  return req.user;
+}
+```
+
+这样的话，我们就可以用一样的接口进行测试了。
+
+```js
+describe('getUserById middleware', function () {
+  it('should have users object attached to request object', function (done) {
+    var request = mocksHttp.createRequest({
+      params: { id: 1 }
+    });
+    var response = mocksHttp.createResponse();
+    usersMiddlewares.getUserById(request, response function (err) {
+      if (err) done(err);
+      request.user.then(function (user) {
+        user.should.have.properties(['id', 'name', 'position']);
+        done();
+      }, done);
+    });
+  })
+});
+```
+
+你可以在项目目录下运行下面的命令让所有文件和上面所做的变更同步。
+
+```js
+$ git checkout step6
+```
+
 ### 总结
 
 在这样的测试方法中，Promise本身起到了对象的“Placeholder”的作用。其本身一旦创建后就可以被使用，传递给下一个中间件，而不需要创建出回调函数，使得中间件的“出口”变成了多个。
