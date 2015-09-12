@@ -1,0 +1,419 @@
+
+<!DOCTYPE html>
+<html lang="zh_CN">
+    
+<head>
+    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="回田园 - John Wu&#39;s Engineering Blog">
+    <title>5分钟内使用React、Webpack与ES6构建应用 - 回田园 - John Wu&#39;s Engineering Blog</title>
+    <meta name="author" content="John Wu">
+    
+    
+        <link rel="alternative" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <meta name="description" content="假设你想要非常快速地搭建一个React应用，或者你想快速地搭建用ES6学习React开发的环境，那么这篇文章你一定不想错过。">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="5分钟内使用React、Webpack与ES6构建应用">
+<meta property="og:url" content="http://blog.leapoahead.com/2015/09/12/react-es6-webpack-in-5-minutes/index.html">
+<meta property="og:site_name" content="回田园 - John Wu's Engineering Blog">
+<meta property="og:description" content="假设你想要非常快速地搭建一个React应用，或者你想快速地搭建用ES6学习React开发的环境，那么这篇文章你一定不想错过。">
+<meta property="og:image" content="http://blog.leapoahead.com/2015/09/12/react-es6-webpack-in-5-minutes/first-react-app.png">
+<meta property="og:updated_time" content="2015-09-12T18:54:02.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="5分钟内使用React、Webpack与ES6构建应用">
+<meta name="twitter:description" content="假设你想要非常快速地搭建一个React应用，或者你想快速地搭建用ES6学习React开发的环境，那么这篇文章你一定不想错过。">
+<meta name="twitter:creator" content="@leapoahead">
+    
+    
+    
+        <meta property="og:image" content="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=640"/>
+    
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/font-awesome.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/jquery.fancybox.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/jquery.fancybox-thumbs.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/tranquilpeak.css" type="text/css">
+    <!--STYLES END-->
+    
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-50843289-7']);
+        _gaq.push(['_trackPageview']);
+        (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+
+</head>
+
+    <body>
+        <div id="blog">
+            <header id="header" data-behavior="2">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <h1 class="header-title">
+        <a class="header-title-link" href="/ ">回田园 - John Wu&#39;s Engineering Blog</a>
+    </h1>
+    
+        <a class="header-right-picture" href="/#about">
+            <img class="header-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90"/>
+        </a>
+    
+</header>
+            <nav id="sidebar" data-behavior="2">
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/ "
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-home"></i>
+                    <span class="sidebar-button-desc">Home</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/all-categories"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
+                    <span class="sidebar-button-desc">Categories</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://github.com/tjwudi" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-github"></i>
+                    <span class="sidebar-button-desc">GitHub</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://twitter.com/leapoahead" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-twitter"></i>
+                    <span class="sidebar-button-desc">Twitter</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://facebook.com/leapoahead" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-facebook"></i>
+                    <span class="sidebar-button-desc">Facebook</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-linkedin"></i>
+                    <span class="sidebar-button-desc">Linked In</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="mailto:webmaster@leapoahead.com" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-envelope-o"></i>
+                    <span class="sidebar-button-desc">Mail</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/atom.xml"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-rss"></i>
+                    <span class="sidebar-button-desc">RSS</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+</nav>
+
+            
+            <div id="main" data-behavior="2"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post" itemscope itemType="http://schema.org/BlogPosting">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title" itemprop="headline">
+            5分钟内使用React、Webpack与ES6构建应用
+        </h1>
+    
+    <div class="post-meta">
+    <time itemprop="datePublished" content="Sat Sep 12 2015 11:54:02 GMT-0700">
+	
+		    9月 12, 2015
+    	
+    </time>
+    
+        <span>in </span>
+        
+    <a class="category-link" href="/categories/tools/">Tools</a>
+
+
+    
+</div>
+</div>
+    
+    <div class="post-content markdown" itemprop="articleBody">
+        <div class="main-content-wrap">
+            <p>假设你想要非常快速地搭建一个React应用，或者你想快速地搭建用ES6学习React开发的环境，那么这篇文章你一定不想错过。</p>
+<a id="more"></a>
+<p>我们将使用<a href="https://github.com/webpack/webpack" target="_blank" rel="external">webpack</a>作为打包工具。我们使用webpack来将ES6代码转译成ES5代码，编译Stylus样式等。如果你没有安装webpack则需先安装它。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ npm <span class="operator"><span class="keyword">install</span> -<span class="keyword">g</span> webpack</span><br><span class="line">$ npm <span class="keyword">install</span> -<span class="keyword">g</span> webpack-dev-<span class="keyword">server</span></span></span><br></pre></td></tr></table></figure>
+<p>如果遇到类似<strong>EACESS</strong>错误，则需要用超级用户的模式运行</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ sudo npm <span class="operator"><span class="keyword">install</span> -<span class="keyword">g</span> webpack</span><br><span class="line">$ sudo npm <span class="keyword">install</span> -<span class="keyword">g</span> webpack-dev-<span class="keyword">server</span></span></span><br></pre></td></tr></table></figure>
+<p>接下来创建项目的目录，并且安装<a href="https://github.com/HenrikJoreteg/hjs-webpack" target="_blank" rel="external">hjs-webpack</a>。</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$ </span>mkdir react-playground &amp;&amp; cd <span class="variable">$_</span></span><br><span class="line"><span class="variable">$ </span>npm init -y</span><br><span class="line"><span class="variable">$ </span>npm install hjs-webpack --save</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查npm版本</span></span><br><span class="line"><span class="variable">$ </span>npm -v</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果npm版本是3.x.x或者更高执行下面这句</span></span><br><span class="line"><span class="variable">$ </span>npm i --save autoprefixer babel babel-loader css-loader json-loader postcss-loader react react-hot-loader style-loader stylus-loader url-loader webpack-dev-server yeticss</span><br></pre></td></tr></table></figure>
+<p>hjs-webpack是一个简化webpack配置流程的工具，它免去了配置复杂的webpack选项的流程。</p>
+<p>在项目根目录下创建<strong>webpack.config.js</strong>。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> getConfig = <span class="built_in">require</span>(<span class="string">'hjs-webpack'</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = getConfig(&#123;</span><br><span class="line">  <span class="comment">// 入口JS文件的位置</span></span><br><span class="line">  <span class="keyword">in</span>: <span class="string">'src/app.js'</span>,</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 应用打包（build）之后将存放在哪个文件夹 </span></span><br><span class="line">  out: <span class="string">'public'</span>,</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 是否在每次打包之前将之前的打包文件</span></span><br><span class="line">  <span class="comment">// 删除</span></span><br><span class="line">  clearBeforeBuild: <span class="literal">true</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p><strong>好了，现在所有的配置都完成了！</strong>让我们开始构建React应用吧！创建<strong>src/app.js</strong>。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">'react'</span></span><br><span class="line"></span><br><span class="line">class MyApp extends React.Component &#123;</span><br><span class="line">    render () &#123;</span><br><span class="line">        return &lt;h1&gt;Wonderful App&lt;/h1&gt;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">React.render(&lt;MyApp /&gt;,</span><br><span class="line">    document.body)</span><br></pre></td></tr></table></figure>
+<p>接下来启动webpack的开发服务器。它的主要作用是在后台监控文件变动，在每次我们修改文件的时候动态地帮我们进行打包。</p>
+<figure class="highlight axapta"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ webpack-dev-<span class="keyword">server</span></span><br></pre></td></tr></table></figure>
+<p>打开<a href="http://localhost:3000" target="_blank" rel="external">http://localhost:3000</a>，你就能看到你刚才创建的React应用了！</p>
+<img src="/2015/09/12/react-es6-webpack-in-5-minutes/first-react-app.png" alt="React应用" title="React应用">
+<p>注意到，在这里我们已经可以使用ES6的语法来创建应用了。</p>
+<h3 id="CSS加载和自动刷新">CSS加载和自动刷新</h3><p>创建<strong>src/style.css</strong>。</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">body</span> <span class="rules">&#123;</span><br><span class="line">    <span class="rule"><span class="attribute">background-color</span>:<span class="value"> red</span></span>;</span><br><span class="line">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>然后在<strong>src/app.js</strong>中加载它。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">'react'</span></span><br><span class="line"></span><br><span class="line">// 加载CSS</span><br><span class="line">require(<span class="string">'./style.css'</span>)</span><br><span class="line"></span><br><span class="line">class MyApp extends React.Component &#123;</span><br><span class="line">    render () &#123;</span><br><span class="line">        return &lt;h1&gt;Wonderful App&lt;/h1&gt;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">React.render(&lt;MyApp /&gt;,</span><br><span class="line">    document.body)</span><br></pre></td></tr></table></figure>
+<p>接下来回到你的页面（不用刷新），Blah！整个页面突然充满了喜庆（又血腥）的红色。</p>
+<p>这里你可以注意到两点。第一，CSS可以直接通过JavaScript来加载，这是webpack打包的功能之一，它会加载CSS文件并为我们插入到页面上；第二，我们保存后无需刷新就可以刷新页面，这是webpack-dev-server监控到了文件变化，动态打包后自动为我们刷新了页面。这又称作<strong>live reload</strong>。</p>
+<h3 id="总结">总结</h3><p>我们其实还可以使用一些<a href="http://yeoman.io/" target="_blank" rel="external">Yeoman</a>的脚手架来生成React应用，但是大部分配置依然复杂。hjs-webpack提供了简洁明了的配置接口，适合快速地搭建项目原型、小型应用的开发或者React学习等目的。</p>
+
+            
+                
+
+            
+        </div>
+    </div>
+    
+    <div class="post-rmds main-content-wrap">
+        <h4>猜你想读</h4>
+        <ul>
+            
+            
+                <li><a href="">Workshop - 对Express中间件进行单元测试</a></li>
+            
+        </ul>
+        
+    </div>
+
+    <div class="post-mailchimp">
+    <div class="main-content-wrap mailchimp-wrap">
+        <h3>让有趣易懂的知识主动找到你</h3>
+        <p>订阅我的Email半月刊，让我们共同学习、成长。绝无广告！</p>
+        <form action="//leapoahead.us8.list-manage.com/subscribe/post?u=f3a6e2f843ac1be03e00f7bed&amp;amp;id=58e28559b1" method="post" name="mc-embedded-subscribe-form" class="mailchimp-form" target="_blank" novalidate>
+            <label for="mce-EMAIL" style="display: none">Email地址</label>
+            <input type="email" value="" name="EMAIL" id="mce-EMAIL" placeholder="您常用的Email地址" class="mailchimp-input">
+            <input type="submit" value="订阅" name="subscribe" id="mc-embedded-subscribe" class="mailchimp-input mailchimp-subscribe">
+            <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+            <div style="position: absolute; left: -5000px;"><input type="text" name="b_f3a6e2f843ac1be03e00f7bed_58e28559b1" tabindex="-1" value=""></div>
+        </form>
+    </div>
+</div>
+    <div class="post-footer main-content-wrap">
+        
+        <div class="post-actions-wrap">
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
+                <i class="fa fa-share-alt"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/09/12/react-es6-webpack-in-5-minutes/">
+                <i class="fa fa-facebook-official"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/09/12/react-es6-webpack-in-5-minutes/">
+                <i class="fa fa-twitter"></i>
+            </a>
+        </li>
+        
+            <li class="post-action">
+                <a class="post-action-btn btn btn--default" href="#disqus_thread">
+                    <i class="fa fa-comment-o"></i>
+                </a>
+            </li>
+        
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default jiathis_button_tsina" href="http://www.jiathis.com/send/?webid=tsina&uid=1399172634630776&summary=&lt;p&gt;假设你想要非常快速地搭建一个React应用，或者你想快速地搭建用ES6学习React开发的环境，那么这篇文章你一定不想错过。&lt;/p&gt;&title=5分钟内使用React、Webpack与ES6构建应用&url=http://blog.leapoahead.com/2015/09/12/react-es6-webpack-in-5-minutes/" target="new">
+                <i class="fa fa-weibo"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+            <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2015 John Wu. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="2">
+                    <div class="post-actions-wrap">
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
+                <i class="fa fa-share-alt"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/09/12/react-es6-webpack-in-5-minutes/">
+                <i class="fa fa-facebook-official"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/09/12/react-es6-webpack-in-5-minutes/">
+                <i class="fa fa-twitter"></i>
+            </a>
+        </li>
+        
+            <li class="post-action">
+                <a class="post-action-btn btn btn--default" href="#disqus_thread">
+                    <i class="fa fa-comment-o"></i>
+                </a>
+            </li>
+        
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default jiathis_button_tsina" href="http://www.jiathis.com/send/?webid=tsina&uid=1399172634630776&summary=&lt;p&gt;假设你想要非常快速地搭建一个React应用，或者你想快速地搭建用ES6学习React开发的环境，那么这篇文章你一定不想错过。&lt;/p&gt;&title=5分钟内使用React、Webpack与ES6构建应用&url=http://blog.leapoahead.com/2015/09/12/react-es6-webpack-in-5-minutes/" target="new">
+                <i class="fa fa-weibo"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                <div id="share-options-bar" class="share-options-bar" data-behavior="2">
+    <ul class="share-options">
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/09/12/react-es6-webpack-in-5-minutes/">
+                <i class="fa fa-google-plus"></i><span class="">Share on Google Plus</span>
+            </a>
+        </li>
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/09/12/react-es6-webpack-in-5-minutes/">
+                <i class="fa fa-facebook-official"></i><span>Share on Facebook</span>
+            </a>
+        </li>
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/09/12/react-es6-webpack-in-5-minutes/">
+                <i class="fa fa-twitter"></i><span>Share on Twitter</span>
+            </a>
+        </li>
+    </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
+            
+        </div>
+        <div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-remove"></i>
+        </div>
+        
+            <img id="about-card-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=110"/>
+        
+            <h4 id="about-card-name">John Wu</h4>
+        
+            <h5 id="about-card-bio"><p>Life is all about A/B testing</p>
+</h5>
+        
+        
+            <h5 id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>Software Engineer Intern at Yelp</p>
+
+            </h5>
+        
+        
+            <h5 id="about-card-location">
+                <i class="fa fa-map-marker"></i>
+                <br/>
+                San Francisco, CA
+            </h5>
+        
+    </div>
+</div>
+
+        <div id="cover" style="background-image:url('http://res.cloudinary.com/tranquilpeak-hexo-theme/image/upload/v1438975482/v1.3.0-cover.jpg');"></div>
+    </body>
+    <!--SCRIPTS-->
+<script src="/assets/js/jquery.js" type="text/javascript"></script>
+<script src="/assets/js/jquery.fancybox.js" type="text/javascript"></script>
+<script src="/assets/js/jquery.fancybox-thumbs.js" type="text/javascript"></script>
+<script src="/assets/js/tranquilpeak.js" type="text/javascript"></script>
+<!--SCRIPTS END-->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'johnweng';
+        (function() {
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+
+
+
+</html>

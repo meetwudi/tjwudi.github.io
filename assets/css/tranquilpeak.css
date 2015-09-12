@@ -1786,7 +1786,7 @@ a.link-unstyled a.link:active {
   .post-actions-wrap .post-actions {
     float: left;
     padding-left: 0;
-    margin-top: 0;
+    margin-top: 8px;
     list-style: none; }
     .post-actions-wrap .post-actions .post-action {
       width: auto;
@@ -1796,6 +1796,8 @@ a.link-unstyled a.link:active {
     z-index: 41; }
     .post-actions-wrap .post-action-share .post-action {
       float: right; }
+      .post-actions-wrap .post-action-share .post-action .post-action-btn {
+        float: right; }
       .post-actions-wrap .post-action-share .post-action:nth-child(n + 3) .post-action-btn {
         margin-right: 15px; }
 
