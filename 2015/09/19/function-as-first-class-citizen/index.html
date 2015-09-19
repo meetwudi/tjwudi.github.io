@@ -1,0 +1,498 @@
+
+<!DOCTYPE html>
+<html lang="zh_CN">
+    
+<head>
+    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="回田园 - John Wu&#39;s Engineering Blog">
+    <title>“函数是一等公民”背后的含义 - 回田园 - John Wu&#39;s Engineering Blog</title>
+    <meta name="author" content="John Wu">
+    
+    
+        <link rel="alternative" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <meta name="description" content="在学习一些语言的时候，你经常会听到“函数是一等公民”这样的描述。那么究竟函数在这类语言中扮演着怎么样的一个角色？它和函数式编程、无状态设计、封装抽象有什么千丝万缕的联系？">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="“函数是一等公民”背后的含义">
+<meta property="og:url" content="http://blog.leapoahead.com/2015/09/19/function-as-first-class-citizen/index.html">
+<meta property="og:site_name" content="回田园 - John Wu's Engineering Blog">
+<meta property="og:description" content="在学习一些语言的时候，你经常会听到“函数是一等公民”这样的描述。那么究竟函数在这类语言中扮演着怎么样的一个角色？它和函数式编程、无状态设计、封装抽象有什么千丝万缕的联系？">
+<meta property="og:updated_time" content="2015-09-19T08:37:41.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="“函数是一等公民”背后的含义">
+<meta name="twitter:description" content="在学习一些语言的时候，你经常会听到“函数是一等公民”这样的描述。那么究竟函数在这类语言中扮演着怎么样的一个角色？它和函数式编程、无状态设计、封装抽象有什么千丝万缕的联系？">
+<meta name="twitter:creator" content="@leapoahead">
+    
+    
+    
+        <meta property="og:image" content="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=640"/>
+    
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/font-awesome.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/jquery.fancybox.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/jquery.fancybox-thumbs.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/tranquilpeak.css" type="text/css">
+    <!--STYLES END-->
+    
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-50843289-7']);
+        _gaq.push(['_trackPageview']);
+        (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+
+</head>
+
+    <body>
+        <div id="blog">
+            <header id="header" data-behavior="2">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <h1 class="header-title">
+        <a class="header-title-link" href="/ ">回田园 - John Wu&#39;s Engineering Blog</a>
+    </h1>
+    
+        <a class="header-right-picture" href="/#about">
+            <img class="header-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90"/>
+        </a>
+    
+</header>
+            <nav id="sidebar" data-behavior="2">
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/ "
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-home"></i>
+                    <span class="sidebar-button-desc">Home</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/all-categories"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
+                    <span class="sidebar-button-desc">Categories</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://github.com/tjwudi" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-github"></i>
+                    <span class="sidebar-button-desc">GitHub</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://twitter.com/leapoahead" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-twitter"></i>
+                    <span class="sidebar-button-desc">Twitter</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://facebook.com/leapoahead" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-facebook"></i>
+                    <span class="sidebar-button-desc">Facebook</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-linkedin"></i>
+                    <span class="sidebar-button-desc">Linked In</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="mailto:webmaster@leapoahead.com" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-envelope-o"></i>
+                    <span class="sidebar-button-desc">Mail</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/atom.xml"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-rss"></i>
+                    <span class="sidebar-button-desc">RSS</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+</nav>
+
+            
+            <div id="main" data-behavior="2"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post" itemscope itemType="http://schema.org/BlogPosting">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title" itemprop="headline">
+            “函数是一等公民”背后的含义
+        </h1>
+    
+    <div class="post-meta">
+    <time itemprop="datePublished" content="Sat Sep 19 2015 01:37:41 GMT-0700">
+	
+		    9月 19, 2015
+    	
+    </time>
+    
+        <span>in </span>
+        
+    <a class="category-link" href="/categories/Engineering/">Engineering</a>
+
+
+    
+</div>
+</div>
+    
+    <div class="post-content markdown" itemprop="articleBody">
+        <div class="main-content-wrap">
+            <p>在学习一些语言的时候，你经常会听到“函数是一等公民”这样的描述。那么究竟函数在这类语言中扮演着怎么样的一个角色？它和函数式编程、无状态设计、封装抽象有什么千丝万缕的联系？</p>
+<a id="more"></a>
+<p>在本文中，我们用JavaScript为例，娓娓道来这其中的故事。当然了，只是我发现的这一部分……</p>
+<h3 id="时间的奥秘">时间的奥秘</h3><p>我们从最简单的五行代码说起。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">add</span> (<span class="params">a, b</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> a + b</span><br><span class="line">&#125;</span><br><span class="line">add(<span class="number">1</span>, <span class="number">2</span>)</span><br><span class="line">add(<span class="number">5</span>, <span class="number">2</span>)</span><br></pre></td></tr></table></figure>
+<p>是的，我写JavaScript不加分号。当然，关键不是这个……</p>
+<p>我们可以很轻松地写出关于这个函数的测试用例来。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">describe(<span class="string">'add'</span>, () =&gt; &#123;</span><br><span class="line">    it(<span class="string">'should return a + b'</span>, () =&gt; &#123;</span><br><span class="line">        add(<span class="number">1</span>, <span class="number">2</span>).should.equal(<span class="number">3</span>)</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>但是如果我们引入一个全局的变量C。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> C = <span class="number">0</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">addWithC</span> (<span class="params">a, b</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> a + b + C</span><br><span class="line">&#125;</span><br><span class="line">addWithC(<span class="number">1</span>, <span class="number">2</span>) <span class="comment">// 3</span></span><br><span class="line">addWithC(<span class="number">5</span>, <span class="number">2</span>) <span class="comment">// 7</span></span><br></pre></td></tr></table></figure>
+<p>这个代码看起来还是很好测试的，只要你在测试中也能访问到<code>C</code>这个变量。你修改两三次<code>C</code>的值，然后运行几次被测试的函数，大概地看下结果是不是正确“就行了”。</p>
+<p>慢着，看似平静的表象下，就是一切问题的开始。我们编写一个函数，里面只是简单地调用<code>addWithC</code>。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span> (<span class="params">a, b</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> addWithC(a, b)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>foo</code>在这里成为了<code>addWithC</code>的一个抽象。你怎么样<strong>较为全面地</strong>测试<code>foo</code>？很显然，你依然还是要在它的测试里面去引用到<code>C</code>。</p>
+<p>好的，在这里，<code>C</code>就成为了一种<strong>状态(State)</strong>，它的变化可以左右函数的输出。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">addWithC(<span class="number">1</span>, <span class="number">2</span>) <span class="comment">// 3</span></span><br><span class="line">C = <span class="number">1</span></span><br><span class="line">addWithC(<span class="number">1</span>, <span class="number">2</span>) <span class="comment">// 4</span></span><br></pre></td></tr></table></figure>
+<p>第二句<code>C = 1</code>的玄妙之处在于，它在这三行代码中创建了“时间”这个纬度。你可能在想，这是什么鬼话？</p>
+<p>别急，请仔细看。在阅读这份代码的时候，我们会说：</p>
+<blockquote>
+<p>在<code>C = 1</code>之前，<code>addWithC(1, 2)</code>的结果是3；在<code>C = 1</code>之后，<code>addWithC(1, 2)</code>的结果是4。</p>
+</blockquote>
+<p>看，这不就是时间吗？我们在这里有了之前和之后的概念。这也称作“副作用” —— <code>C</code>的变化对<code>addWithC</code>的结果产生了<strong>副作用</strong>。</p>
+<p>如果我们回到引用<code>C</code>这个状态之前的<code>add</code>函数呢？</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">add(<span class="number">1</span>, <span class="number">2</span>) <span class="comment">// 3</span></span><br><span class="line">add(<span class="number">4</span>, <span class="number">5</span>) <span class="comment">// 9</span></span><br></pre></td></tr></table></figure>
+<p>我们会说：</p>
+<blockquote>
+<p><code>add(1, 2)</code>的结果就是3；<code>add(4, 5)</code>的结果就是9</p>
+</blockquote>
+<p><code>add</code>比<code>addWithC</code>来得好测试。为什么呢？因为<strong>对于固定的输入，<code>add</code>总是可以有固定的输出</strong>。但是<code>addWithC</code>并不是这样的，因为在不同的“时间”里（也就是状态取不同的值的时候），它对于同样的输入，不一定有同样的输出。</p>
+<p>其实这一点在编写测试的时候，编写行为描述的时候就可以发现了。在进行<a href="https://zh.wikipedia.org/zh/%E8%A1%8C%E4%B8%BA%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91" target="_blank" rel="external">行为驱动开发</a>编写行为描述的时候，我们应该描述清楚被测函数的下面几个方面</p>
+<ul>
+<li>它所期待的输入是什么</li>
+<li>输入所对应的输出是什么</li>
+</ul>
+<p>例如，对于<code>add</code>，我就可以写道</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">it(<span class="string">'should return sum of a and b'</span>, ...)</span><br></pre></td></tr></table></figure>
+<p>对于<code>addWithC</code>，我们要写</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">it(<span class="string">'should return sum of a, b and an external C'</span>, ...)</span><br></pre></td></tr></table></figure>
+<p>看到了吧，通过编写行为描述，我们发现在单元测试中，竟然还引入了外部变量。这还能叫单元测试吗？</p>
+<p>很多时候，我们可能会选择破例在单元测试里面引入状态，而不去思考重新修改代码。因此，系统中引入了越来越多的状态，直到混乱不堪，难以测试……</p>
+<p>所以我们看到，在这里，<strong>状态</strong>是导致混乱的最主要原因。实际上，它也是导致很多系统难以测试，经常崩溃的原因。</p>
+<h3 id="外部量C何去何从？">外部量C何去何从？</h3><p>但是在很多时候，我们是必须要依赖一些外部的量的，比如刚才的<code>C</code>。我们不希望引入状态，那么就有一个办法，那就是让<code>C</code>变成常量。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> C = <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p>这让它人不再能够修改这个量，那么我们就不必要在测试中引入C这个常量了。测试<code>addWithC</code>的代码就可以变得非常地简单：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">describe(<span class="string">'addWithC'</span>, () =&gt; &#123;</span><br><span class="line">    it(<span class="string">'should return sum of a, b and constant C (which is 1)'</span>, () =&gt; &#123;</span><br><span class="line">        add(<span class="number">1</span>, <span class="number">2</span>).should.equal(<span class="number">4</span>)</span><br><span class="line">        <span class="comment">// 没有副作用</span></span><br><span class="line">        <span class="comment">// 不会有时间的概念</span></span><br><span class="line">    &#125;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>让我们思考得更深一点，常量就是什么？实际上就是一个返回固定值的函数。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> C = <span class="number">0</span></span><br><span class="line"><span class="comment">// 等价于</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">C</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>因此<code>addWithC</code>实际上可以是这样的。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">addWithC</span>(<span class="params">a, b</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> a + b + C()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>那么这个时候，我们发现<code>C</code>和<code>addWithC</code>都符合一个原则。</p>
+<blockquote>
+<p>输出仅取决于输入的参数。</p>
+</blockquote>
+<p>对于这样的函数，我们又称之为<strong>纯函数（Pure function）</strong>，这个概念非常地重要。</p>
+<p>奇妙的事情发生了。在一个无状态（Stateless）的世界里，所有的常量都被替换成返回固定值的函数，整个程序的运行无非就是一系列的函数调用。而且，这些函数还都是纯函数！等等，这难道不就是——</p>
+<blockquote>
+<p><strong>函数是一等公民</strong>。（Function is first-class citizen）</p>
+</blockquote>
+<p>这是学过JavaScript语言的人都耳熟能详一句话了，但是还是不够准确。毕竟在无状态的世界里，我们就可以用函数来抽象出所有的量了，那么更准确地说——</p>
+<blockquote>
+<p><strong>函数是<em>唯一</em>的一等公民</strong>。（Function is the one and only first-class citizen）</p>
+</blockquote>
+<p>我还是不满意，我必须强调“纯函数”这个概念。</p>
+<blockquote>
+<p><strong><em>纯</em>函数是<em>唯一</em>的一等公民</strong>。（Pure function is the one and only first-class citizen）</p>
+</blockquote>
+<p>这样做的目的只有一个，<strong>没有副作用</strong>。</p>
+<p>好了，所有复杂的问题都解决了，我们不要变量，只要常量，所有的事情都用一层层的纯函数调用来解决。程序员们解散吧，这么简单的事情，用不着那么多人来做……</p>
+<p>呵呵。</p>
+<h3 id="无状态的乌托邦">无状态的乌托邦</h3><p>上面说的这个世界太理想了。</p>
+<p>程序语言给予了我们赋值的能力，给予了我们变量，难道我们就轻易地将它们抛弃吗？当然不是的。在一个局限的小范围内，实际上使用状态还是没有问题的。例如，一个简单的<code>for</code>循环本身也是Stateful的。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> result = <span class="number">0</span>, upperBound = <span class="number">10</span></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">1</span>; i &lt; upperBound; i ++) &#123;</span><br><span class="line">    result += i</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里的<code>result</code>本身依赖于<code>i</code>的取值，<code>i</code>也是一个状态。但是，如果它们被放在一个函数里：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">seriesSum</span> (<span class="params">upperBound</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> result = <span class="number">0</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">1</span>; i &lt; upperBound; i ++) &#123;</span><br><span class="line">        result += i</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> result</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们来审视<code>seriesSum</code>。其输出依然是取决于其输入，哦耶！它还是一个纯函数，虽然它内部不是纯函数。<code>seriesSum</code>依然是一个很容易测试的单元。</p>
+<p>需要注意的一点是，如果一个函数的输出取决于一个非纯函数的输出的话，那么它一定也不是纯函数。例如下面的场景中</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span> (<span class="params">arg1, arg2</span>) </span>&#123;</span><br><span class="line">    <span class="comment">// 这不是一个纯函数</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">bar</span> (<span class="params">arg1, arg2</span>) </span>&#123;</span><br><span class="line">    <span class="comment">// 结果依赖于foo，依然不是一个纯函数</span></span><br><span class="line">    result = foo(arg1, arg2) + ...</span><br><span class="line">    <span class="keyword">return</span> result</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="依赖注入（Dependency_Injection）">依赖注入（Dependency Injection）</h3><p>如果你接触过<a href="https://angularjs.org/" target="_blank" rel="external">Angular.js</a>，你一定知道依赖注入（Dependency Injection）。</p>
+<p>纯函数之所以易于测试，从某种角度上说是因为它的所有依赖就是它的参数，所以我们可以很容易地在测试的时候模拟其所有需要的依赖的变化进行测试。</p>
+<p>依赖注入通过给所有我们需要用到的函数、量统一包装，也能实现类似的效果。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">angular.module(<span class="string">'myModule'</span>, [])</span><br><span class="line">.factory(<span class="string">'serviceId'</span>, [<span class="string">'depService'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">depService</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;])</span><br><span class="line">.directive(<span class="string">'directiveName'</span>, [<span class="string">'depService'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">depService</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;])</span><br><span class="line">.filter(<span class="string">'filterName'</span>, [<span class="string">'depService'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">depService</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;])</span><br></pre></td></tr></table></figure>
+<p>例如在上面的例子中，如果我们要测试<code>serviceId</code>、<code>directiveName</code>或者<code>filterName</code>的话，那么只需要注入<code>depService</code>就好了。所以，依赖注入提供了跟虚函数一样的依赖跟踪性质，并且相对而言更加分散。但是依赖注入并不能保证每个模块暴露出来的都是虚函数。</p>
+<h3 id="面向对象怎么办？">面向对象怎么办？</h3><p>好问题。（咦，好像夸的是我自己……）</p>
+<p>一个对象内部的属性如果发生了变化，那么这个对象本质上就不再是之前那个对象了。例如下面的类：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyClass</span> </span>&#123;</span><br><span class="line">    constructor () &#123;</span><br><span class="line">        <span class="keyword">this</span>.someVar = <span class="number">1</span></span><br><span class="line">    &#125;</span><br><span class="line">    incSomeVar() &#123;</span><br><span class="line">        <span class="keyword">this</span>.someVar++</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> myObj = <span class="keyword">new</span> MyClass()</span><br><span class="line">myObj.incSomeVar()</span><br><span class="line"><span class="comment">// myObj.someVar变化了</span></span><br><span class="line"><span class="comment">// 她便再也不是从前那个专一（1）的她…</span></span><br></pre></td></tr></table></figure>
+<p>我们不希望这样的事情发生，但又希望做出良好的封装性，那么怎么办呢？答案是让类实例不可变（Immuatable）。每次在对象内部的属性变化的时候，我们不直接修改这个对象，而是返回一个新的对象。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyClass</span> </span>&#123;</span><br><span class="line">    constructor (someVar = <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">this</span>.someVar = someVar</span><br><span class="line">    &#125;</span><br><span class="line">    incSomeVar() &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> MyClass(<span class="keyword">this</span>.someVar + <span class="number">1</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> myObj = <span class="keyword">new</span> MyClass()</span><br><span class="line"><span class="built_in">console</span>.log(myObj.someVar) <span class="comment">// 1</span></span><br><span class="line"><span class="keyword">var</span> mySecondObj = myObj.incSomeVar()</span><br><span class="line"><span class="built_in">console</span>.log(myObj.someVar) <span class="comment">// 1</span></span><br><span class="line"><span class="built_in">console</span>.log(mySecondObj.someVar) <span class="comment">// 2</span></span><br><span class="line"><span class="comment">// 两者不指向同样的内存区域，故为false</span></span><br><span class="line"><span class="built_in">console</span>.log(myObj == mySecondObj)</span><br></pre></td></tr></table></figure>
+<p>这样做的理由很简单，产生一个新的对象不会对现有的对象产生影响，因此这个操作是<strong>没有副作用</strong>的，符合我们前面提到的我们的目标。</p>
+<p>在JavaScript的世界里面，我们有<a href="https://facebook.github.io/immutable-js/" target="_blank" rel="external">Immutable.js</a>。Immutable.js封装了JavaScript原生类型的Immutable版本。例如<code>Immutable.Map</code>就是一个例子。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> map1 = Immutable.Map(&#123;a:<span class="number">1</span>, b:<span class="number">2</span>, c:<span class="number">3</span>&#125;);</span><br><span class="line"><span class="keyword">var</span> map2 = map1.set(<span class="string">'b'</span>, <span class="number">50</span>);</span><br><span class="line">map1.get(<span class="string">'b'</span>); <span class="comment">// 2</span></span><br><span class="line">map2.get(<span class="string">'b'</span>); <span class="comment">// 50</span></span><br></pre></td></tr></table></figure>
+<p>实际上，在immutable的世界里，每一个对象永远都是它自己，不会被修改。所以，它可以被视为一个常量，被视为一个返回常量的值。这里精彩的部分在于：</p>
+<blockquote>
+<p>Hey，Immutable将变量给常量化了！</p>
+</blockquote>
+<p>显而易见，这样做看似会导致很多不必要的内存开销。其实Immutable数据结构本身会重复利用很多的内存空间，例如链表、Map之类的数据结构，库都会尽量重用可以重用的部分。</p>
+<p>在实在无法重用的时候，完全复制在99%的情况下也是没有任何问题的。现在内存那么便宜，你确定你真的对那不必要的几KB几MB的开销很上心吗？大部分时候，并没有必要节约那一点内存，尤其是在浏览器端。</p>
+<h3 id="JavaScript与函数式编程">JavaScript与函数式编程</h3><p>最后回到我们最熟悉的JavaScript的函数式编程上来，验证我们之前的一些发现。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>].map(i =&gt; i + <span class="number">1</span>)</span><br><span class="line">    .filter(i =&gt; i &gt; <span class="number">2</span>)</span><br><span class="line">    .forEach(i =&gt; <span class="built_in">console</span>.log(i))</span><br><span class="line"><span class="comment">// 输出3 4</span></span><br></pre></td></tr></table></figure>
+<p>首先，<code>map</code>、<code>filter</code>返回的都是一个新的数组，不对原有的数组进行修改。这里就表现出了Immutable的特性。其次，我们注意到<code>map</code>、<code>filter</code>和<code>forEach</code>函数都不依赖外界的状态。因此我们可以很容易地把它们拉出来测试。</p>
+<p>如果我们依赖了外界的状态，那么就再也不是函数式编程了。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> C = <span class="number">1</span></span><br><span class="line">[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>].map(i =&gt; i + <span class="number">1</span>)</span><br><span class="line">    .filter(i =&gt; i &gt; <span class="number">2</span>)</span><br><span class="line">    .forEach(i =&gt; <span class="built_in">console</span>.log(i + C))</span><br></pre></td></tr></table></figure>
+<h3 id="总结">总结</h3><p>总结下来，保持两点可以让我们的应用维护、测试复杂度显著降低。</p>
+<p>第一点就是编写纯函数，保持Stateless，并对其进行测试。需要记住的是，我们不需要将所有的东西都变成Stateless的，至于如何设计那就真的是看经验了。</p>
+<p>第二点就是应用Immutable数据结构，将变量常量化。</p>
+<p>无论采用什么方法，总体目标就是<strong>消除副作用</strong>。这也是函数作为一等公民，将过程和量统一背后的实际意义。</p>
+
+            
+                
+
+            
+        </div>
+    </div>
+    
+    <div class="post-rmds main-content-wrap">
+        <h4>猜你想读</h4>
+        <ul>
+            
+            
+                <li><a href="">JavaScript闭包的底层运行机制</a></li>
+            
+        </ul>
+        
+    </div>
+
+    <div class="post-mailchimp">
+    <div class="main-content-wrap mailchimp-wrap">
+        <h3>让有趣易懂的知识主动找到你</h3>
+        <p>订阅我的Email半月刊，让我们共同学习、成长。绝无广告！</p>
+        <form action="//leapoahead.us8.list-manage.com/subscribe/post?u=f3a6e2f843ac1be03e00f7bed&amp;amp;id=58e28559b1" method="post" name="mc-embedded-subscribe-form" class="mailchimp-form" target="_blank" novalidate>
+            <label for="mce-EMAIL" style="display: none">Email地址</label>
+            <input type="email" value="" name="EMAIL" id="mce-EMAIL" placeholder="您常用的Email地址" class="mailchimp-input">
+            <input type="submit" value="订阅" name="subscribe" id="mc-embedded-subscribe" class="mailchimp-input mailchimp-subscribe">
+            <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+            <div style="position: absolute; left: -5000px;"><input type="text" name="b_f3a6e2f843ac1be03e00f7bed_58e28559b1" tabindex="-1" value=""></div>
+        </form>
+    </div>
+</div>
+    <div class="post-footer main-content-wrap">
+        
+        <div class="post-actions-wrap">
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
+                <i class="fa fa-share-alt"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/09/19/function-as-first-class-citizen/">
+                <i class="fa fa-facebook-official"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/09/19/function-as-first-class-citizen/">
+                <i class="fa fa-twitter"></i>
+            </a>
+        </li>
+        
+            <li class="post-action">
+                <a class="post-action-btn btn btn--default" href="#disqus_thread">
+                    <i class="fa fa-comment-o"></i>
+                </a>
+            </li>
+        
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default jiathis_button_tsina" href="http://www.jiathis.com/send/?webid=tsina&uid=1399172634630776&summary=&lt;p&gt;在学习一些语言的时候，你经常会听到“函数是一等公民”这样的描述。那么究竟函数在这类语言中扮演着怎么样的一个角色？它和函数式编程、无状态设计、封装抽象有什么千丝万缕的联系？&lt;/p&gt;&title=“函数是一等公民”背后的含义&url=http://blog.leapoahead.com/2015/09/19/function-as-first-class-citizen/" target="new">
+                <i class="fa fa-weibo"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+            <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2015 John Wu. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="2">
+                    <div class="post-actions-wrap">
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
+                <i class="fa fa-share-alt"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/09/19/function-as-first-class-citizen/">
+                <i class="fa fa-facebook-official"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/09/19/function-as-first-class-citizen/">
+                <i class="fa fa-twitter"></i>
+            </a>
+        </li>
+        
+            <li class="post-action">
+                <a class="post-action-btn btn btn--default" href="#disqus_thread">
+                    <i class="fa fa-comment-o"></i>
+                </a>
+            </li>
+        
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default jiathis_button_tsina" href="http://www.jiathis.com/send/?webid=tsina&uid=1399172634630776&summary=&lt;p&gt;在学习一些语言的时候，你经常会听到“函数是一等公民”这样的描述。那么究竟函数在这类语言中扮演着怎么样的一个角色？它和函数式编程、无状态设计、封装抽象有什么千丝万缕的联系？&lt;/p&gt;&title=“函数是一等公民”背后的含义&url=http://blog.leapoahead.com/2015/09/19/function-as-first-class-citizen/" target="new">
+                <i class="fa fa-weibo"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                <div id="share-options-bar" class="share-options-bar" data-behavior="2">
+    <ul class="share-options">
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/09/19/function-as-first-class-citizen/">
+                <i class="fa fa-google-plus"></i><span class="">Share on Google Plus</span>
+            </a>
+        </li>
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/09/19/function-as-first-class-citizen/">
+                <i class="fa fa-facebook-official"></i><span>Share on Facebook</span>
+            </a>
+        </li>
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/09/19/function-as-first-class-citizen/">
+                <i class="fa fa-twitter"></i><span>Share on Twitter</span>
+            </a>
+        </li>
+    </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
+            
+        </div>
+        <div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-remove"></i>
+        </div>
+        
+            <img id="about-card-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=110"/>
+        
+            <h4 id="about-card-name">John Wu</h4>
+        
+            <h5 id="about-card-bio"><p>Life is all about A/B testing</p>
+</h5>
+        
+        
+            <h5 id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>Software Engineer Intern at Yelp</p>
+
+            </h5>
+        
+        
+            <h5 id="about-card-location">
+                <i class="fa fa-map-marker"></i>
+                <br/>
+                San Francisco, CA
+            </h5>
+        
+    </div>
+</div>
+
+        <div id="cover" style="background-image:url('http://res.cloudinary.com/tranquilpeak-hexo-theme/image/upload/v1438975482/v1.3.0-cover.jpg');"></div>
+    </body>
+    <!--SCRIPTS-->
+<script src="/assets/js/jquery.js" type="text/javascript"></script>
+<script src="/assets/js/jquery.fancybox.js" type="text/javascript"></script>
+<script src="/assets/js/jquery.fancybox-thumbs.js" type="text/javascript"></script>
+<script src="/assets/js/tranquilpeak.js" type="text/javascript"></script>
+<!--SCRIPTS END-->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'johnweng';
+        (function() {
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+
+
+
+</html>
