@@ -1,6 +1,9 @@
 title: JavaScript闭包的底层运行机制
 category: Engineering
+date: 2015-09-15 21:17:24
+thumbnailImage: js_closure_1.png
 ---
+
 
 我研究JavaScript闭包（closure）已经有一段时间了。我之前只是学会了如何使用它们，而没有透彻地了解它们具体是如何运作的。那么，究竟什么是闭包？
 
