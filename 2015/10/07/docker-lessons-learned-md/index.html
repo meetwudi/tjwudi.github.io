@@ -1,0 +1,418 @@
+
+<!DOCTYPE html>
+<html lang="zh_CN">
+    
+<head>
+    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="回田园 - John Wu&#39;s Engineering Blog">
+    <title>我从开源项目中学习到的Docker经验 - 回田园 - John Wu&#39;s Engineering Blog</title>
+    <meta name="author" content="John Wu">
+    
+    
+        <link rel="alternative" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <meta name="description" content="最近几周从一个Web开发俨然摇身一变成了“运维”，在GitHub上面为re:dash做Docker化的支持。在整个Code Review的过程中汲取了一些Docker的经验。">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="我从开源项目中学习到的Docker经验">
+<meta property="og:url" content="http://blog.leapoahead.com/2015/10/07/docker-lessons-learned-md/index.html">
+<meta property="og:site_name" content="回田园 - John Wu's Engineering Blog">
+<meta property="og:description" content="最近几周从一个Web开发俨然摇身一变成了“运维”，在GitHub上面为re:dash做Docker化的支持。在整个Code Review的过程中汲取了一些Docker的经验。">
+<meta property="og:image" content="http://blog.leapoahead.com/2015/10/07/docker-lessons-learned-md/build-process.png">
+<meta property="og:image" content="http://blog.leapoahead.com/2015/10/07/docker-lessons-learned-md/all-in-one-container.png">
+<meta property="og:image" content="http://blog.leapoahead.com/2015/10/07/docker-lessons-learned-md/3d-scale-model.jpg">
+<meta property="og:updated_time" content="2015-10-08T04:30:37.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="我从开源项目中学习到的Docker经验">
+<meta name="twitter:description" content="最近几周从一个Web开发俨然摇身一变成了“运维”，在GitHub上面为re:dash做Docker化的支持。在整个Code Review的过程中汲取了一些Docker的经验。">
+<meta name="twitter:creator" content="@leapoahead">
+    
+    
+    
+        <meta property="og:image" content="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=640"/>
+    
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/font-awesome.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/jquery.fancybox.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/jquery.fancybox-thumbs.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/tranquilpeak.css" type="text/css">
+    <!--STYLES END-->
+    
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-50843289-7']);
+        _gaq.push(['_trackPageview']);
+        (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+
+</head>
+
+    <body>
+        <div id="blog">
+            <header id="header" data-behavior="2">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <h1 class="header-title">
+        <a class="header-title-link" href="/ ">回田园 - John Wu&#39;s Engineering Blog</a>
+    </h1>
+    
+        <a class="header-right-picture" href="/#about">
+            <img class="header-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90"/>
+        </a>
+    
+</header>
+            <nav id="sidebar" data-behavior="2">
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/ "
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-home"></i>
+                    <span class="sidebar-button-desc">Home</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/all-categories"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
+                    <span class="sidebar-button-desc">Categories</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://github.com/tjwudi" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-github"></i>
+                    <span class="sidebar-button-desc">GitHub</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://twitter.com/leapoahead" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-twitter"></i>
+                    <span class="sidebar-button-desc">Twitter</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://facebook.com/leapoahead" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-facebook"></i>
+                    <span class="sidebar-button-desc">Facebook</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-linkedin"></i>
+                    <span class="sidebar-button-desc">Linked In</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="mailto:webmaster@leapoahead.com" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-envelope-o"></i>
+                    <span class="sidebar-button-desc">Mail</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/atom.xml"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-rss"></i>
+                    <span class="sidebar-button-desc">RSS</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+</nav>
+
+            
+            <div id="main" data-behavior="2"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post" itemscope itemType="http://schema.org/BlogPosting">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title" itemprop="headline">
+            我从开源项目中学习到的Docker经验
+        </h1>
+    
+    <div class="post-meta">
+    <time itemprop="datePublished" content="Wed Oct 07 2015 19:42:44 GMT-0700">
+	
+		    10月 07, 2015
+    	
+    </time>
+    
+        <span>in </span>
+        
+    <a class="category-link" href="/categories/DevOps/">DevOps</a>
+
+
+    
+</div>
+</div>
+    
+    <div class="post-content markdown" itemprop="articleBody">
+        <div class="main-content-wrap">
+            <p>最近几周从一个Web开发俨然摇身一变成了“运维”，在GitHub上面为<a href="https://github.com/EverythingMe/redash" target="_blank" rel="external">re:dash</a>做Docker化的支持。在整个Code Review的过程中汲取了一些Docker的经验。</p>
+<a id="more"></a>
+<h3 id="不要build">不要build</h3><p>不要在构建Docker镜像的时候build。这里的build指的是将代码编译至production-ready的过程。例如，在一个Web应用中，用<code>make</code>将静态资源最小化（minify）、拼接（concatenate），以及配置文件的生成等。</p>
+<img src="/2015/10/07/docker-lessons-learned-md/build-process.png" alt="Build Process" title="Build Process">
+<p>仔细思考Docker要解决的主要问题，就是如何跨越操作系统的限制进行部署。因此构建Docker镜像的过程中，我们也只应该专注镜像本身环境的搭建，例如系统软件、python依赖项等。python的依赖项是比较特殊的，因为它们一般是安装在系统层面上的。</p>
+<p>如果是Node.js的非全局依赖项，那么也无需在镜像中来下载安装，而是在build的过程中下载，然后直接在<strong>Dockerfile</strong>中<code>Copy</code>到镜像中。</p>
+<h3 id="合理地将相同的指令结合">合理地将相同的指令结合</h3><p>Docker在构建镜像的过程中，每运行<strong>Dockerfile</strong>的一个指令，都会构建出一个<em>layer</em>。一个镜像就是由许多的<em>layer</em>叠加而成的，这样的设计允许Docker能够缓存我们镜像中特定的一些部分，之后如果对<strong>Dockerfile</strong>进行修改的话，一般情况下能通过缓存加快构建的效率。</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">RUN</span> <span class="bash">apt-get update</span><br><span class="line"></span><span class="built_in">RUN</span> <span class="bash">apt-get -y install libpq-dev postgresql-client</span></span><br></pre></td></tr></table></figure>
+<p>上面两条<code>RUN</code>指令分别会创建两个layer。当指令数量过多的时候，layer就会多到爆了，甚至会提示你磁盘空间已经不够用了。</p>
+<p>更好的方式是将两条相同的指令合理地合成一条。</p>
+<figure class="highlight q"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">RUN apt-<span class="built_in">get</span> <span class="keyword">update</span> &amp;&amp; \</span><br><span class="line">    apt-<span class="built_in">get</span> -y install libpq-<span class="built_in">dev</span> postgresql-client</span><br></pre></td></tr></table></figure>
+<p>这样构建过程中就只会产生一个layer，减少磁盘空间的消耗。</p>
+<h3 id="镜像应该各司其职">镜像应该各司其职</h3><p>每个镜像应该各司其职，这背后的主要目的是为了可扩展性考虑。</p>
+<p>如果你有一个这样的镜像……</p>
+<img src="/2015/10/07/docker-lessons-learned-md/all-in-one-container.png" alt="all-in-one container" title="all-in-one container">
+<p>那么你可能觉得很方便！的确，你只要简单地<code>docker run</code>一下就可以结束工作，到一旁喝咖啡了。</p>
+<p>但是当你的应用需要扩展（scale）的时候，你可能就要抓耳挠腮了。将所有的东西通通放在一个容器里面，你就没有办法做横向的扩展。</p>
+<p>横向扩展，也称作<strong>X-axis scaling</strong>，主要通过复制现有的服务来提高该服务的可用性、并通过负载均衡将请求分散给该服务的诸多“复制品”，提供服务的速率等。横向扩展是3D扩展模型（# Dimensions to Scaling）中的一种。</p>
+<img src="/2015/10/07/docker-lessons-learned-md/3d-scale-model.jpg" alt="3D扩展模型" title="3D扩展模型">
+<p>其中，横向扩展（X-axis scaling）通过复制的方式。纵向扩展（Y-axis scaling）通过将应用功能分解，每个服务运行的代码都不同。最后一个Z-axis scaling通过将数据划分成多块，并由多个服务使用。每个服务上运行的代码是一致的，而所负责的数据分区则不同。如果你感兴趣，可以看<a href="http://microservices.io/articles/scalecube.html" target="_blank" rel="external">The Scale Cube</a>这篇文章（上面的图片出于此）。</p>
+<p>如果一个镜像中同时打包了一个Web应用、postgres和nginx三个不同的服务，那么我们就无法单独地对Web App本身进行复制，横向扩展；也无法对单独将postgres的数据进行扩展。</p>
+<p>相反，如果这三个服务分别被构建到不同的Docker镜像之后，我们就可以轻松地进行扩展了。在这之中，可以应用<a href="https://docs.docker.com/compose/" target="_blank" rel="external">Docker Compose</a>轻松启动一系列的镜像，并将它们互相连接在一起。</p>
+
+            
+                
+
+            
+        </div>
+    </div>
+    
+    <div class="post-rmds main-content-wrap">
+        <h4>猜你想读</h4>
+        <ul>
+            
+            
+                <li><a href="http://blog.leapoahead.com/2015/09/19/function-as-first-class-citizen/">“函数是一等公民”背后的含义</a></li>
+            
+        </ul>
+        
+    </div>
+
+    <div class="post-mailchimp">
+    <div class="main-content-wrap mailchimp-wrap">
+        <h3>让有趣易懂的知识主动找到你</h3>
+        <p>订阅我的Email半月刊，让我们共同学习、成长。绝无广告！</p>
+        <form action="//leapoahead.us8.list-manage.com/subscribe/post?u=f3a6e2f843ac1be03e00f7bed&amp;amp;id=58e28559b1" method="post" name="mc-embedded-subscribe-form" class="mailchimp-form" target="_blank" novalidate>
+            <label for="mce-EMAIL" style="display: none">Email地址</label>
+            <input type="email" value="" name="EMAIL" id="mce-EMAIL" placeholder="您常用的Email地址" class="mailchimp-input">
+            <input type="submit" value="订阅" name="subscribe" id="mc-embedded-subscribe" class="mailchimp-input mailchimp-subscribe">
+            <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+            <div style="position: absolute; left: -5000px;"><input type="text" name="b_f3a6e2f843ac1be03e00f7bed_58e28559b1" tabindex="-1" value=""></div>
+        </form>
+    </div>
+</div>
+    <div class="post-footer main-content-wrap">
+        
+        <div class="post-actions-wrap">
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
+                <i class="fa fa-share-alt"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/10/07/docker-lessons-learned-md/">
+                <i class="fa fa-facebook-official"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/10/07/docker-lessons-learned-md/">
+                <i class="fa fa-twitter"></i>
+            </a>
+        </li>
+        
+            <li class="post-action">
+                <a class="post-action-btn btn btn--default" href="#disqus_thread">
+                    <i class="fa fa-comment-o"></i>
+                </a>
+            </li>
+        
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default jiathis_button_tsina" href="http://www.jiathis.com/send/?webid=tsina&uid=1399172634630776&summary=&lt;p&gt;最近几周从一个Web开发俨然摇身一变成了“运维”，在GitHub上面为&lt;a href=&quot;https://github.com/EverythingMe/redash&quot;&gt;re:dash&lt;/a&gt;做Docker化的支持。在整个Code Review的过程中汲取了一些Docker的经验。&lt;/p&gt;&title=我从开源项目中学习到的Docker经验&url=http://blog.leapoahead.com/2015/10/07/docker-lessons-learned-md/" target="new">
+                <i class="fa fa-weibo"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+            <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2015 John Wu. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="2">
+                    <div class="post-actions-wrap">
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
+                <i class="fa fa-share-alt"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/10/07/docker-lessons-learned-md/">
+                <i class="fa fa-facebook-official"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/10/07/docker-lessons-learned-md/">
+                <i class="fa fa-twitter"></i>
+            </a>
+        </li>
+        
+            <li class="post-action">
+                <a class="post-action-btn btn btn--default" href="#disqus_thread">
+                    <i class="fa fa-comment-o"></i>
+                </a>
+            </li>
+        
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default jiathis_button_tsina" href="http://www.jiathis.com/send/?webid=tsina&uid=1399172634630776&summary=&lt;p&gt;最近几周从一个Web开发俨然摇身一变成了“运维”，在GitHub上面为&lt;a href=&quot;https://github.com/EverythingMe/redash&quot;&gt;re:dash&lt;/a&gt;做Docker化的支持。在整个Code Review的过程中汲取了一些Docker的经验。&lt;/p&gt;&title=我从开源项目中学习到的Docker经验&url=http://blog.leapoahead.com/2015/10/07/docker-lessons-learned-md/" target="new">
+                <i class="fa fa-weibo"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                <div id="share-options-bar" class="share-options-bar" data-behavior="2">
+    <ul class="share-options">
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/10/07/docker-lessons-learned-md/">
+                <i class="fa fa-google-plus"></i><span class="">Share on Google Plus</span>
+            </a>
+        </li>
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/10/07/docker-lessons-learned-md/">
+                <i class="fa fa-facebook-official"></i><span>Share on Facebook</span>
+            </a>
+        </li>
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/10/07/docker-lessons-learned-md/">
+                <i class="fa fa-twitter"></i><span>Share on Twitter</span>
+            </a>
+        </li>
+    </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
+            
+        </div>
+        <div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-remove"></i>
+        </div>
+        
+            <img id="about-card-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=110"/>
+        
+            <h4 id="about-card-name">John Wu</h4>
+        
+            <h5 id="about-card-bio"><p>Life is all about A/B testing</p>
+</h5>
+        
+        
+            <h5 id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>Software Engineer Intern at Yelp</p>
+
+            </h5>
+        
+        
+            <h5 id="about-card-location">
+                <i class="fa fa-map-marker"></i>
+                <br/>
+                San Francisco, CA
+            </h5>
+        
+    </div>
+</div>
+
+        <div id="cover" style="background-image:url('http://res.cloudinary.com/tranquilpeak-hexo-theme/image/upload/v1438975482/v1.3.0-cover.jpg');"></div>
+    </body>
+    <!--SCRIPTS-->
+<script src="/assets/js/jquery.js" type="text/javascript"></script>
+<script src="/assets/js/jquery.fancybox.js" type="text/javascript"></script>
+<script src="/assets/js/jquery.fancybox-thumbs.js" type="text/javascript"></script>
+<script src="/assets/js/tranquilpeak.js" type="text/javascript"></script>
+<!--SCRIPTS END-->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'johnweng';
+        (function() {
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+
+
+
+</html>
