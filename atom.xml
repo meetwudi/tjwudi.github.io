@@ -1,0 +1,916 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title><![CDATA[回田园 - John Wu's Engineering Blog]]></title>
+  <subtitle><![CDATA[创造是我最大的兴趣]]></subtitle>
+  <link href="/atom.xml" rel="self"/>
+  <link href="http://blog.leapoahead.com/"/>
+  <updated>2015-10-08T04:30:37.000Z</updated>
+  <id>http://blog.leapoahead.com/</id>
+  
+  <author>
+    <name><![CDATA[John Wu]]></name>
+    
+  </author>
+  
+  <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title><![CDATA[我从开源项目中学习到的Docker经验]]></title>
+    <link href="http://blog.leapoahead.com/2015/10/07/docker-lessons-learned-md/"/>
+    <id>http://blog.leapoahead.com/2015/10/07/docker-lessons-learned-md/</id>
+    <published>2015-10-08T02:42:44.000Z</published>
+    <updated>2015-10-08T04:30:37.000Z</updated>
+    <content type="html"><![CDATA[<p>最近几周从一个Web开发俨然摇身一变成了“运维”，在GitHub上面为<a href="https://github.com/EverythingMe/redash" target="_blank" rel="external">re:dash</a>做Docker化的支持。在整个Code Review的过程中汲取了一些Docker的经验。</p>
+<a id="more"></a>
+<h3 id="不要build">不要build</h3><p>不要在构建Docker镜像的时候build。这里的build指的是将代码编译至production-ready的过程。例如，在一个Web应用中，用<code>make</code>将静态资源最小化（minify）、拼接（concatenate），以及配置文件的生成等。</p>
+<img src="/2015/10/07/docker-lessons-learned-md/build-process.png" alt="Build Process" title="Build Process">
+<p>仔细思考Docker要解决的主要问题，就是如何跨越操作系统的限制进行部署。因此构建Docker镜像的过程中，我们也只应该专注镜像本身环境的搭建，例如系统软件、python依赖项等。python的依赖项是比较特殊的，因为它们一般是安装在系统层面上的。</p>
+<p>如果是Node.js的非全局依赖项，那么也无需在镜像中来下载安装，而是在build的过程中下载，然后直接在<strong>Dockerfile</strong>中<code>Copy</code>到镜像中。</p>
+<h3 id="合理地将相同的指令结合">合理地将相同的指令结合</h3><p>Docker在构建镜像的过程中，每运行<strong>Dockerfile</strong>的一个指令，都会构建出一个<em>layer</em>。一个镜像就是由许多的<em>layer</em>叠加而成的，这样的设计允许Docker能够缓存我们镜像中特定的一些部分，之后如果对<strong>Dockerfile</strong>进行修改的话，一般情况下能通过缓存加快构建的效率。</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">RUN</span> <span class="bash">apt-get update</span><br><span class="line"></span><span class="built_in">RUN</span> <span class="bash">apt-get -y install libpq-dev postgresql-client</span></span><br></pre></td></tr></table></figure>
+<p>上面两条<code>RUN</code>指令分别会创建两个layer。当指令数量过多的时候，layer就会多到爆了，甚至会提示你磁盘空间已经不够用了。</p>
+<p>更好的方式是将两条相同的指令合理地合成一条。</p>
+<figure class="highlight q"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">RUN apt-<span class="built_in">get</span> <span class="keyword">update</span> &amp;&amp; \</span><br><span class="line">    apt-<span class="built_in">get</span> -y install libpq-<span class="built_in">dev</span> postgresql-client</span><br></pre></td></tr></table></figure>
+<p>这样构建过程中就只会产生一个layer，减少磁盘空间的消耗。</p>
+<h3 id="镜像应该各司其职">镜像应该各司其职</h3><p>每个镜像应该各司其职，这背后的主要目的是为了可扩展性考虑。</p>
+<p>如果你有一个这样的镜像……</p>
+<img src="/2015/10/07/docker-lessons-learned-md/all-in-one-container.png" alt="all-in-one container" title="all-in-one container">
+<p>那么你可能觉得很方便！的确，你只要简单地<code>docker run</code>一下就可以结束工作，到一旁喝咖啡了。</p>
+<p>但是当你的应用需要扩展（scale）的时候，你可能就要抓耳挠腮了。将所有的东西通通放在一个容器里面，你就没有办法做横向的扩展。</p>
+<p>横向扩展，也称作<strong>X-axis scaling</strong>，主要通过复制现有的服务来提高该服务的可用性、并通过负载均衡将请求分散给该服务的诸多“复制品”，提供服务的速率等。横向扩展是3D扩展模型（# Dimensions to Scaling）中的一种。</p>
+<img src="/2015/10/07/docker-lessons-learned-md/3d-scale-model.jpg" alt="3D扩展模型" title="3D扩展模型">
+<p>其中，横向扩展（X-axis scaling）通过复制的方式。纵向扩展（Y-axis scaling）通过将应用功能分解，每个服务运行的代码都不同。最后一个Z-axis scaling通过将数据划分成多块，并由多个服务使用。每个服务上运行的代码是一致的，而所负责的数据分区则不同。如果你感兴趣，可以看<a href="http://microservices.io/articles/scalecube.html" target="_blank" rel="external">The Scale Cube</a>这篇文章（上面的图片出于此）。</p>
+<p>如果一个镜像中同时打包了一个Web应用、postgres和nginx三个不同的服务，那么我们就无法单独地对Web App本身进行复制，横向扩展；也无法对单独将postgres的数据进行扩展。</p>
+<p>相反，如果这三个服务分别被构建到不同的Docker镜像之后，我们就可以轻松地进行扩展了。在这之中，可以应用<a href="https://docs.docker.com/compose/" target="_blank" rel="external">Docker Compose</a>轻松启动一系列的镜像，并将它们互相连接在一起。</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>最近几周从一个Web开发俨然摇身一变成了“运维”，在GitHub上面为<a href="https://github.com/EverythingMe/redash">re:dash</a>做Docker化的支持。在整个Code Review的过程中汲取了一些Docker的经验。</p>]]>
+    
+    </summary>
+    
+      <category term="DevOps" scheme="http://blog.leapoahead.com/categories/DevOps/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[“函数是一等公民”背后的含义]]></title>
+    <link href="http://blog.leapoahead.com/2015/09/19/function-as-first-class-citizen/"/>
+    <id>http://blog.leapoahead.com/2015/09/19/function-as-first-class-citizen/</id>
+    <published>2015-09-19T08:37:41.000Z</published>
+    <updated>2015-09-19T08:37:41.000Z</updated>
+    <content type="html"><![CDATA[<p>在学习一些语言的时候，你经常会听到“函数是一等公民”这样的描述。那么究竟函数在这类语言中扮演着怎么样的一个角色？它和函数式编程、无状态设计、封装抽象有什么千丝万缕的联系？</p>
+<a id="more"></a>
+<p>在本文中，我们用JavaScript为例，娓娓道来这其中的故事。当然了，只是我发现的这一部分……</p>
+<h3 id="时间的奥秘">时间的奥秘</h3><p>我们从最简单的五行代码说起。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">add</span> (<span class="params">a, b</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> a + b</span><br><span class="line">&#125;</span><br><span class="line">add(<span class="number">1</span>, <span class="number">2</span>)</span><br><span class="line">add(<span class="number">5</span>, <span class="number">2</span>)</span><br></pre></td></tr></table></figure>
+<p>是的，我写JavaScript不加分号。当然，关键不是这个……</p>
+<p>我们可以很轻松地写出关于这个函数的测试用例来。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">describe(<span class="string">'add'</span>, () =&gt; &#123;</span><br><span class="line">    it(<span class="string">'should return a + b'</span>, () =&gt; &#123;</span><br><span class="line">        add(<span class="number">1</span>, <span class="number">2</span>).should.equal(<span class="number">3</span>)</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>但是如果我们引入一个全局的变量C。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> C = <span class="number">0</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">addWithC</span> (<span class="params">a, b</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> a + b + C</span><br><span class="line">&#125;</span><br><span class="line">addWithC(<span class="number">1</span>, <span class="number">2</span>) <span class="comment">// 3</span></span><br><span class="line">addWithC(<span class="number">5</span>, <span class="number">2</span>) <span class="comment">// 7</span></span><br></pre></td></tr></table></figure>
+<p>这个代码看起来还是很好测试的，只要你在测试中也能访问到<code>C</code>这个变量。你修改两三次<code>C</code>的值，然后运行几次被测试的函数，大概地看下结果是不是正确“就行了”。</p>
+<p>慢着，看似平静的表象下，就是一切问题的开始。我们编写一个函数，里面只是简单地调用<code>addWithC</code>。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span> (<span class="params">a, b</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> addWithC(a, b)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>foo</code>在这里成为了<code>addWithC</code>的一个抽象。你怎么样<strong>较为全面地</strong>测试<code>foo</code>？很显然，你依然还是要在它的测试里面去引用到<code>C</code>。</p>
+<p>好的，在这里，<code>C</code>就成为了一种<strong>状态(State)</strong>，它的变化可以左右函数的输出。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">addWithC(<span class="number">1</span>, <span class="number">2</span>) <span class="comment">// 3</span></span><br><span class="line">C = <span class="number">1</span></span><br><span class="line">addWithC(<span class="number">1</span>, <span class="number">2</span>) <span class="comment">// 4</span></span><br></pre></td></tr></table></figure>
+<p>第二句<code>C = 1</code>的玄妙之处在于，它在这三行代码中创建了“时间”这个纬度。你可能在想，这是什么鬼话？</p>
+<p>别急，请仔细看。在阅读这份代码的时候，我们会说：</p>
+<blockquote>
+<p>在<code>C = 1</code>之前，<code>addWithC(1, 2)</code>的结果是3；在<code>C = 1</code>之后，<code>addWithC(1, 2)</code>的结果是4。</p>
+</blockquote>
+<p>看，这不就是时间吗？我们在这里有了之前和之后的概念。这也称作“副作用” —— <code>C</code>的变化对<code>addWithC</code>的结果产生了<strong>副作用</strong>。</p>
+<p>如果我们回到引用<code>C</code>这个状态之前的<code>add</code>函数呢？</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">add(<span class="number">1</span>, <span class="number">2</span>) <span class="comment">// 3</span></span><br><span class="line">add(<span class="number">4</span>, <span class="number">5</span>) <span class="comment">// 9</span></span><br></pre></td></tr></table></figure>
+<p>我们会说：</p>
+<blockquote>
+<p><code>add(1, 2)</code>的结果就是3；<code>add(4, 5)</code>的结果就是9</p>
+</blockquote>
+<p><code>add</code>比<code>addWithC</code>来得好测试。为什么呢？因为<strong>对于固定的输入，<code>add</code>总是可以有固定的输出</strong>。但是<code>addWithC</code>并不是这样的，因为在不同的“时间”里（也就是状态取不同的值的时候），它对于同样的输入，不一定有同样的输出。</p>
+<p>其实这一点在编写测试的时候，编写行为描述的时候就可以发现了。在进行<a href="https://zh.wikipedia.org/zh/%E8%A1%8C%E4%B8%BA%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91" target="_blank" rel="external">行为驱动开发</a>编写行为描述的时候，我们应该描述清楚被测函数的下面几个方面</p>
+<ul>
+<li>它所期待的输入是什么</li>
+<li>输入所对应的输出是什么</li>
+</ul>
+<p>例如，对于<code>add</code>，我就可以写道</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">it(<span class="string">'should return sum of a and b'</span>, ...)</span><br></pre></td></tr></table></figure>
+<p>对于<code>addWithC</code>，我们要写</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">it(<span class="string">'should return sum of a, b and an external C'</span>, ...)</span><br></pre></td></tr></table></figure>
+<p>看到了吧，通过编写行为描述，我们发现在单元测试中，竟然还引入了外部变量。这还能叫单元测试吗？</p>
+<p>很多时候，我们可能会选择破例在单元测试里面引入状态，而不去思考重新修改代码。因此，系统中引入了越来越多的状态，直到混乱不堪，难以测试……</p>
+<p>所以我们看到，在这里，<strong>状态</strong>是导致混乱的最主要原因。实际上，它也是导致很多系统难以测试，经常崩溃的原因。</p>
+<h3 id="外部量C何去何从？">外部量C何去何从？</h3><p>但是在很多时候，我们是必须要依赖一些外部的量的，比如刚才的<code>C</code>。我们不希望引入状态，那么就有一个办法，那就是让<code>C</code>变成常量。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> C = <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p>这让它人不再能够修改这个量，那么我们就不必要在测试中引入C这个常量了。测试<code>addWithC</code>的代码就可以变得非常地简单：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">describe(<span class="string">'addWithC'</span>, () =&gt; &#123;</span><br><span class="line">    it(<span class="string">'should return sum of a, b and constant C (which is 1)'</span>, () =&gt; &#123;</span><br><span class="line">        add(<span class="number">1</span>, <span class="number">2</span>).should.equal(<span class="number">4</span>)</span><br><span class="line">        <span class="comment">// 没有副作用</span></span><br><span class="line">        <span class="comment">// 不会有时间的概念</span></span><br><span class="line">    &#125;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>让我们思考得更深一点，常量就是什么？实际上就是一个返回固定值的函数。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> C = <span class="number">0</span></span><br><span class="line"><span class="comment">// 等价于</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">C</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>因此<code>addWithC</code>实际上可以是这样的。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">addWithC</span>(<span class="params">a, b</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> a + b + C()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>那么这个时候，我们发现<code>C</code>和<code>addWithC</code>都符合一个原则。</p>
+<blockquote>
+<p>输出仅取决于输入的参数。</p>
+</blockquote>
+<p>对于这样的函数，我们又称之为<strong>纯函数（Pure function）</strong>，这个概念非常地重要。</p>
+<p>奇妙的事情发生了。在一个无状态（Stateless）的世界里，所有的常量都被替换成返回固定值的函数，整个程序的运行无非就是一系列的函数调用。而且，这些函数还都是纯函数！等等，这难道不就是——</p>
+<blockquote>
+<p><strong>函数是一等公民</strong>。（Function is first-class citizen）</p>
+</blockquote>
+<p>这是学过JavaScript语言的人都耳熟能详一句话了，但是还是不够准确。毕竟在无状态的世界里，我们就可以用函数来抽象出所有的量了，那么更准确地说——</p>
+<blockquote>
+<p><strong>函数是<em>唯一</em>的一等公民</strong>。（Function is the one and only first-class citizen）</p>
+</blockquote>
+<p>我还是不满意，我必须强调“纯函数”这个概念。</p>
+<blockquote>
+<p><strong><em>纯</em>函数是<em>唯一</em>的一等公民</strong>。（Pure function is the one and only first-class citizen）</p>
+</blockquote>
+<p>这样做的目的只有一个，<strong>没有副作用</strong>。</p>
+<p>好了，所有复杂的问题都解决了，我们不要变量，只要常量，所有的事情都用一层层的纯函数调用来解决。程序员们解散吧，这么简单的事情，用不着那么多人来做……</p>
+<p>呵呵。</p>
+<h3 id="无状态的乌托邦">无状态的乌托邦</h3><p>上面说的这个世界太理想了。</p>
+<p>程序语言给予了我们赋值的能力，给予了我们变量，难道我们就轻易地将它们抛弃吗？当然不是的。在一个局限的小范围内，实际上使用状态还是没有问题的。例如，一个简单的<code>for</code>循环本身也是Stateful的。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> result = <span class="number">0</span>, upperBound = <span class="number">10</span></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">1</span>; i &lt; upperBound; i ++) &#123;</span><br><span class="line">    result += i</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里的<code>result</code>本身依赖于<code>i</code>的取值，<code>i</code>也是一个状态。但是，如果它们被放在一个函数里：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">seriesSum</span> (<span class="params">upperBound</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> result = <span class="number">0</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">1</span>; i &lt; upperBound; i ++) &#123;</span><br><span class="line">        result += i</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> result</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们来审视<code>seriesSum</code>。其输出依然是取决于其输入，哦耶！它还是一个纯函数，虽然它内部不是纯函数。<code>seriesSum</code>依然是一个很容易测试的单元。</p>
+<p>需要注意的一点是，如果一个函数的输出取决于一个非纯函数的输出的话，那么它一定也不是纯函数。例如下面的场景中</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span> (<span class="params">arg1, arg2</span>) </span>&#123;</span><br><span class="line">    <span class="comment">// 这不是一个纯函数</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">bar</span> (<span class="params">arg1, arg2</span>) </span>&#123;</span><br><span class="line">    <span class="comment">// 结果依赖于foo，依然不是一个纯函数</span></span><br><span class="line">    result = foo(arg1, arg2) + ...</span><br><span class="line">    <span class="keyword">return</span> result</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="依赖注入（Dependency_Injection）">依赖注入（Dependency Injection）</h3><p>如果你接触过<a href="https://angularjs.org/" target="_blank" rel="external">Angular.js</a>，你一定知道依赖注入（Dependency Injection）。</p>
+<p>纯函数之所以易于测试，从某种角度上说是因为它的所有依赖就是它的参数，所以我们可以很容易地在测试的时候模拟其所有需要的依赖的变化进行测试。</p>
+<p>依赖注入通过给所有我们需要用到的函数、量统一包装，也能实现类似的效果。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">angular.module(<span class="string">'myModule'</span>, [])</span><br><span class="line">.factory(<span class="string">'serviceId'</span>, [<span class="string">'depService'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">depService</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;])</span><br><span class="line">.directive(<span class="string">'directiveName'</span>, [<span class="string">'depService'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">depService</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;])</span><br><span class="line">.filter(<span class="string">'filterName'</span>, [<span class="string">'depService'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">depService</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;])</span><br></pre></td></tr></table></figure>
+<p>例如在上面的例子中，如果我们要测试<code>serviceId</code>、<code>directiveName</code>或者<code>filterName</code>的话，那么只需要注入<code>depService</code>就好了。所以，依赖注入提供了跟虚函数一样的依赖跟踪性质，并且相对而言更加分散。但是依赖注入并不能保证每个模块暴露出来的都是虚函数。</p>
+<h3 id="面向对象怎么办？">面向对象怎么办？</h3><p>好问题。（咦，好像夸的是我自己……）</p>
+<p>一个对象内部的属性如果发生了变化，那么这个对象本质上就不再是之前那个对象了。例如下面的类：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyClass</span> </span>&#123;</span><br><span class="line">    constructor () &#123;</span><br><span class="line">        <span class="keyword">this</span>.someVar = <span class="number">1</span></span><br><span class="line">    &#125;</span><br><span class="line">    incSomeVar() &#123;</span><br><span class="line">        <span class="keyword">this</span>.someVar++</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> myObj = <span class="keyword">new</span> MyClass()</span><br><span class="line">myObj.incSomeVar()</span><br><span class="line"><span class="comment">// myObj.someVar变化了</span></span><br><span class="line"><span class="comment">// 她便再也不是从前那个专一（1）的她…</span></span><br></pre></td></tr></table></figure>
+<p>我们不希望这样的事情发生，但又希望做出良好的封装性，那么怎么办呢？答案是让类实例不可变（Immuatable）。每次在对象内部的属性变化的时候，我们不直接修改这个对象，而是返回一个新的对象。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyClass</span> </span>&#123;</span><br><span class="line">    constructor (someVar = <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">this</span>.someVar = someVar</span><br><span class="line">    &#125;</span><br><span class="line">    incSomeVar() &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> MyClass(<span class="keyword">this</span>.someVar + <span class="number">1</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> myObj = <span class="keyword">new</span> MyClass()</span><br><span class="line"><span class="built_in">console</span>.log(myObj.someVar) <span class="comment">// 1</span></span><br><span class="line"><span class="keyword">var</span> mySecondObj = myObj.incSomeVar()</span><br><span class="line"><span class="built_in">console</span>.log(myObj.someVar) <span class="comment">// 1</span></span><br><span class="line"><span class="built_in">console</span>.log(mySecondObj.someVar) <span class="comment">// 2</span></span><br><span class="line"><span class="comment">// 两者不指向同样的内存区域，故为false</span></span><br><span class="line"><span class="built_in">console</span>.log(myObj == mySecondObj)</span><br></pre></td></tr></table></figure>
+<p>这样做的理由很简单，产生一个新的对象不会对现有的对象产生影响，因此这个操作是<strong>没有副作用</strong>的，符合我们前面提到的我们的目标。</p>
+<p>在JavaScript的世界里面，我们有<a href="https://facebook.github.io/immutable-js/" target="_blank" rel="external">Immutable.js</a>。Immutable.js封装了JavaScript原生类型的Immutable版本。例如<code>Immutable.Map</code>就是一个例子。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> map1 = Immutable.Map(&#123;a:<span class="number">1</span>, b:<span class="number">2</span>, c:<span class="number">3</span>&#125;);</span><br><span class="line"><span class="keyword">var</span> map2 = map1.set(<span class="string">'b'</span>, <span class="number">50</span>);</span><br><span class="line">map1.get(<span class="string">'b'</span>); <span class="comment">// 2</span></span><br><span class="line">map2.get(<span class="string">'b'</span>); <span class="comment">// 50</span></span><br></pre></td></tr></table></figure>
+<p>实际上，在immutable的世界里，每一个对象永远都是它自己，不会被修改。所以，它可以被视为一个常量，被视为一个返回常量的值。这里精彩的部分在于：</p>
+<blockquote>
+<p>Hey，Immutable将变量给常量化了！</p>
+</blockquote>
+<p>显而易见，这样做看似会导致很多不必要的内存开销。其实Immutable数据结构本身会重复利用很多的内存空间，例如链表、Map之类的数据结构，库都会尽量重用可以重用的部分。</p>
+<p>在实在无法重用的时候，完全复制在99%的情况下也是没有任何问题的。现在内存那么便宜，你确定你真的对那不必要的几KB几MB的开销很上心吗？大部分时候，并没有必要节约那一点内存，尤其是在浏览器端。</p>
+<h3 id="JavaScript与函数式编程">JavaScript与函数式编程</h3><p>最后回到我们最熟悉的JavaScript的函数式编程上来，验证我们之前的一些发现。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>].map(i =&gt; i + <span class="number">1</span>)</span><br><span class="line">    .filter(i =&gt; i &gt; <span class="number">2</span>)</span><br><span class="line">    .forEach(i =&gt; <span class="built_in">console</span>.log(i))</span><br><span class="line"><span class="comment">// 输出3 4</span></span><br></pre></td></tr></table></figure>
+<p>首先，<code>map</code>、<code>filter</code>返回的都是一个新的数组，不对原有的数组进行修改。这里就表现出了Immutable的特性。其次，我们注意到<code>map</code>、<code>filter</code>和<code>forEach</code>函数都不依赖外界的状态。因此我们可以很容易地把它们拉出来测试。</p>
+<p>如果我们依赖了外界的状态，那么就再也不是函数式编程了。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> C = <span class="number">1</span></span><br><span class="line">[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>].map(i =&gt; i + <span class="number">1</span>)</span><br><span class="line">    .filter(i =&gt; i &gt; <span class="number">2</span>)</span><br><span class="line">    .forEach(i =&gt; <span class="built_in">console</span>.log(i + C))</span><br></pre></td></tr></table></figure>
+<h3 id="总结">总结</h3><p>总结下来，保持两点可以让我们的应用维护、测试复杂度显著降低。</p>
+<p>第一点就是编写纯函数，保持Stateless，并对其进行测试。需要记住的是，我们不需要将所有的东西都变成Stateless的，至于如何设计那就真的是看经验了。</p>
+<p>第二点就是应用Immutable数据结构，将变量常量化。</p>
+<p>无论采用什么方法，总体目标就是<strong>消除副作用</strong>。这也是函数作为一等公民，将过程和量统一背后的实际意义。</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>在学习一些语言的时候，你经常会听到“函数是一等公民”这样的描述。那么究竟函数在这类语言中扮演着怎么样的一个角色？它和函数式编程、无状态设计、封装抽象有什么千丝万缕的联系？</p>]]>
+    
+    </summary>
+    
+      <category term="Engineering" scheme="http://blog.leapoahead.com/categories/Engineering/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[JavaScript闭包的底层运行机制]]></title>
+    <link href="http://blog.leapoahead.com/2015/09/15/js-closure/"/>
+    <id>http://blog.leapoahead.com/2015/09/15/js-closure/</id>
+    <published>2015-09-16T04:17:24.000Z</published>
+    <updated>2015-09-16T04:17:41.000Z</updated>
+    <content type="html"><![CDATA[<p>我研究JavaScript闭包（closure）已经有一段时间了。我之前只是学会了如何使用它们，而没有透彻地了解它们具体是如何运作的。那么，究竟什么是闭包？</p>
+<a id="more"></a>
+<p><a href="https://en.wikipedia.org/wiki/Closure_%28computer_programming%29" target="_blank" rel="external">Wikipedia</a>给出的解释并没有太大的帮助。闭包是什么时候被创建的，什么时候被销毁的？具体的实现又是怎么样的？</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="pi">"use strict"</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> myClosure = (<span class="function"><span class="keyword">function</span> <span class="title">outerFunction</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">var</span> hidden = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    inc: <span class="function"><span class="keyword">function</span> <span class="title">innerFunction</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> hidden++;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">&#125;());</span><br><span class="line"></span><br><span class="line">myClosure.inc();  <span class="comment">// 返回 1</span></span><br><span class="line">myClosure.inc();  <span class="comment">// 返回 2</span></span><br><span class="line">myClosure.inc();  <span class="comment">// 返回 3</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 相信对JS熟悉的朋友都能很快理解这段代码</span></span><br><span class="line"><span class="comment">// 那么在这段代码运行的背后究竟发生了怎样的事情呢？</span></span><br></pre></td></tr></table></figure>
+<p>现在，我终于知道了答案，我感到很兴奋并且决定向大家解释这个答案。至少，我一定是不会忘记这个答案的。</p>
+<blockquote>
+<p>Tell me and I forget. Teach me and I remember. Involve me and I learn.<br>© Benjamin Franklin</p>
+</blockquote>
+<p>并且，在我阅读与闭包相关的现存的资料时，我很努力地尝试着去在脑海中想想每个事物之间的联系：对象之间是如何引用的，对象之间的继承关系是什么，等等。我找不到关于这些负责关系的很好的图表，于是我决定自己画一些。</p>
+<p>我将假设读者对JavaScript已经比较熟悉了，知道什么是全局对象，知道函数在JavaScript当中是“first-class objects”，等等。</p>
+<h3 id="作用域链（Scope_Chain）">作用域链（Scope Chain）</h3><p>当JavaScript在运行的时候，它需要一些空间让它来存储本地变量（local variables）。我们将这些空间称为作用域对象（Scope object），有时候也称作<code>LexicalEnvironment</code>。例如，当你调用函数时，函数定义了一些本地变量，这些变量就被存储在一个作用域对象中。你可以将作用域函数想象成一个普通的JavaScript对象，但是有一个很大的区别就是你不能够直接在JavaScript当中直接获取这个对象。你只可以修改这个对象的属性，但是你不能够获取这个对象的引用。</p>
+<p>作用域对象的概念使得JavaScript和C、C++非常不同。在C、C++中，本地变量被保存在栈（stack）中。<strong>在JavaScript中，作用域对象是在堆中被创建的（至少表现出来的行为是这样的），所以在函数返回后它们也还是能够被访问到而不被销毁。</strong></p>
+<p>正如你做想的，作用域对象是可以有父作用域对象（parent scope object）的。当代码试图访问一个变量的时候，解释器将在当前的作用域对象中查找这个属性。如果这个属性不存在，那么解释器就会在父作用域对象中查找这个属性。就这样，一直向父作用域对象查找，直到找到该属性或者再也没有父作用域对象。我们将这个查找变量的过程中所经过的作用域对象乘坐作用域链（Scope chain）。</p>
+<p>在作用域链中查找变量的过程和原型继承（prototypal inheritance）有着非常相似之处。但是，非常不一样的地方在于，当你在原型链（prototype chain）中找不到一个属性的时候，并不会引发一个错误，而是会得到<code>undefined</code>。但是如果你试图访问一个作用域链中不存在的属性的话，你就会得到一个<code>ReferenceError</code>。</p>
+<p>在作用域链的最顶层的元素就是全局对象（Global Object）了。运行在全局环境的JavaScript代码中，作用域链始终只含有一个元素，那就是全局对象。所以，当你在全局环境中定义变量的时候，它们就会被定义到全局对象中。当函数被调用的时候，作用域链就会包含多个作用域对象。</p>
+<h3 id="全局环境中运行的代码">全局环境中运行的代码</h3><p>好了，理论就说到这里。接下来我们来从实际的代码入手。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// my_script.js</span></span><br><span class="line"><span class="pi">"use strict"</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> foo = <span class="number">1</span>;</span><br><span class="line"><span class="keyword">var</span> bar = <span class="number">2</span>;</span><br></pre></td></tr></table></figure>
+<p>我们在全局环境中创建了两个变量。正如我刚才所说，此时的作用域对象就是全局对象。</p>
+<img src="/2015/09/15/js-closure/js_closure_1.png" alt="在全局环境中创建两个变量" title="在全局环境中创建两个变量">
+<p>在上面的代码中，我们有一个执行的上下文（<strong>myscript.js</strong>自身的代码），以及它所引用的作用域对象。全局对象里面还含有很多不同的属性，在这里我们就忽略掉了。</p>
+<h3 id="没有被嵌套的函数（Non-nested_functions）">没有被嵌套的函数（Non-nested functions）</h3><p>接下来，我们看这段代码</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="pi">"use strict"</span>;</span><br><span class="line"><span class="keyword">var</span> foo = <span class="number">1</span>;</span><br><span class="line"><span class="keyword">var</span> bar = <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">myFunc</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="comment">//-- define local-to-function variables</span></span><br><span class="line">  <span class="keyword">var</span> a = <span class="number">1</span>;</span><br><span class="line">  <span class="keyword">var</span> b = <span class="number">2</span>;</span><br><span class="line">  <span class="keyword">var</span> foo = <span class="number">3</span>;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">"inside myFunc"</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">"outside"</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//-- and then, call it:</span></span><br><span class="line">myFunc();</span><br></pre></td></tr></table></figure>
+<p>当<code>myFunc</code>被定义的时候，<code>myFunc</code>的标识符（identifier）就被加到了当前的作用域对象中（在这里就是全局对象），并且这个标识符所引用的是一个函数对象（function object）。函数对象中所包含的是函数的源代码以及其他的属性。其中一个我们所关心的属性就是内部属性<code>[[scope]]</code>。<code>[[scope]]</code>所指向的就是当前的作用域对象。也就是指的就是函数的标识符被创建的时候，我们所能够直接访问的那个作用域对象（在这里就是全局对象）。</p>
+<blockquote>
+<p>“直接访问”的意思就是，在当前作用域链中，该作用域对象处于最底层，没有子作用域对象。</p>
+</blockquote>
+<p>所以，在<code>console.log(&quot;outside&quot;)</code>被运行之前，对象之间的关系是如下图所示。</p>
+<img src="/2015/09/15/js-closure/js_closure_2.png" alt="对象之间的关系" title="对象之间的关系">
+<p>温习一下。<code>myFunc</code>所引用的函数对象其本身不仅仅含有函数的代码，并且还含有指向其<strong>被创建的时候的作用域对象</strong>。这一点<strong>非常重要！</strong></p>
+<p>当<code>myFunc</code>函数被调用的时候，一个新的作用域对象被创建了。新的作用域对象中包含<code>myFunc</code>函数所定义的本地变量，以及其参数（arguments）。这个新的作用域对象的父作用域对象就是在运行<code>myFunc</code>时我们所能直接访问的那个作用域对象。</p>
+<p>所以，当<code>myFunc</code>被执行的时候，对象之间的关系如下图所示。</p>
+<img src="/2015/09/15/js-closure/js_closure_3.png" alt="对象之间的关系（函数执行后）" title="对象之间的关系（函数执行后）">
+<p>现在我们就拥有了一个作用域链。当我们试图在<code>myFunc</code>当中访问某些变量的时候，JavaScript会先在其能直接访问的作用域对象（这里就是<code>myFunc() scope</code>）当中查找这个属性。如果找不到，那么就在它的父作用域对象当中查找（在这里就是<code>Global Object</code>）。如果一直往上找，找到没有父作用域对象为止还没有找到的话，那么就会抛出一个<code>ReferenceError</code>。</p>
+<p>例如，如果我们在<code>myFunc</code>中要访问<code>a</code>这个变量，那么在<code>myFunc scope</code>当中就可以找到它，得到值为<code>1</code>。</p>
+<p>如果我们尝试访问<code>foo</code>，我们就会在<code>myFunc() scope</code>中得到<code>3</code>。只有在<code>myFunc() scope</code>里面找不到<code>foo</code>的时候，JavaScript才会往<code>Global Object</code>去查找。所以，这里我们不会访问到<code>Global Object</code>里面的<code>foo</code>。</p>
+<p>如果我们尝试访问<code>bar</code>，我们在<code>myFunc() scope</code>当中找不到它，于是就会在<code>Global Object</code>当中查找，因此查找到2。</p>
+<p>很重要的是，只要这些作用域对象依然被引用，它们就不会被垃圾回收器（garbage collector）销毁，我们就一直能访问它们。当然，<strong>当引用一个作用域对象的最后一个引用被解除的时候，并不代表垃圾回收器会立刻回收它，只是它现在可以被回收了</strong>。</p>
+<p>所以，当<code>myFunc()</code>返回的时候，再也没有人引用<code>myFunc() scope</code>了。当垃圾回收结束后，对象之间的关系变成回了调用前的关系。</p>
+<img src="/2015/09/15/js-closure/js_closure_2.png" alt="对象之间的关系恢复" title="对象之间的关系恢复">
+<p>接下来，为了图表直观起见，我将不再将函数对象画出来。但是，请永远记着，函数对象里面的<code>[[scope]]</code>属性，保存着该函数被定义的时候所能够直接访问的作用域对象。</p>
+<h3 id="嵌套的函数（Nested_functions）">嵌套的函数（Nested functions）</h3><p>正如前面所说，当一个函数返回后，没有其他对象会保存对其的引用。所以，它就可能被垃圾回收器回收。但是如果我们在函数当中定义嵌套的函数并且返回，被调用函数的一方所存储呢？（如下面的代码）</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">myFunc</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> innerFunc() &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> innerFunc = myFunc();</span><br></pre></td></tr></table></figure>
+<p>你已经知道的是，函数对象中总是有一个<code>[[scope]]</code>属性，保存着该函数被定义的时候所能够直接访问的作用域对象。所以，当我们在定义嵌套的函数的时候，这个嵌套的函数的<code>[[scope]]</code>就会引用外围函数（Outer function）的当前作用域对象。</p>
+<p>如果我们将这个嵌套函数返回，并被另外一个地方的标识符所引用的话，那么这个嵌套函数及其<code>[[scope]]</code>所引用的作用域对象就不会被垃圾回收所销毁。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="pi">"use strict"</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">createCounter</span>(<span class="params">initial</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> counter = initial;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">increment</span>(<span class="params">value</span>) </span>&#123;</span><br><span class="line">    counter += value;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">get</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> counter;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    increment: increment,</span><br><span class="line">    get: get</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> myCounter = createCounter(<span class="number">100</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(myCounter.get());   <span class="comment">// 返回 100</span></span><br><span class="line">myCounter.increment(<span class="number">5</span>);</span><br><span class="line"><span class="built_in">console</span>.log(myCounter.get());   <span class="comment">// 返回 105</span></span><br></pre></td></tr></table></figure>
+<p>当我们调用<code>createCounter(100)</code>的那一瞬间，对象之间的关系如下图</p>
+<img src="/2015/09/15/js-closure/js_closure_4.png" alt="调用createCounter(100)时对象间的关系" title="调用createCounter(100)时对象间的关系">
+<p>注意<code>increment</code>和<code>get</code>函数都存有指向<code>createCounter(100) scope</code>的引用。如果<code>createCounter(100)</code>没有任何返回值，那么<code>createCounter(100) scope</code>不再被引用，于是就可以被垃圾回收。但是因为<code>createCounter(100)</code>实际上是有返回值的，并且返回值被存储在了<code>myCounter</code>中，所以对象之间的引用关系变成了如下图所示</p>
+<img src="/2015/09/15/js-closure/js_closure_5.png" alt="调用createCounter(100)后对象间的关系" title="调用createCounter(100)后对象间的关系">
+<p>所以，<code>createCounter(100)</code>虽然已经返回了，但是它的作用域对象依然存在，可以<strong>且仅只能</strong>被嵌套的函数（<code>increment</code>和<code>get</code>）所访问。</p>
+<p>让我们试着运行<code>myCounter.get()</code>。刚才说过，函数被调用的时候会创建一个新的作用域对象，并且该作用域对象的父作用域对象会是当前可以直接访问的作用域对象。所以，当<code>myCounter.get()</code>被调用时的一瞬间，对象之间的关系如下。</p>
+<img src="/2015/09/15/js-closure/js_closure_5.png" alt="调用myCounter.get()对象间的关系" title="调用myCounter.get()对象间的关系">
+<p>在<code>myCounter.get()</code>运行的过程中，作用域链最底层的对象就是<code>get() scope</code>，这是一个空对象。所以，当<code>myCounter.get()</code>访问<code>counter</code>变量时，JavaScript在<code>get() scope</code>中找不到这个属性，于是就向上到<code>createCounter(100) scope</code>当中查找。然后，<code>myCounter.get()</code>将这个值返回。</p>
+<p>调用<code>myCounter.increment(5)</code>的时候，事情变得更有趣了，因为这个时候函数调用的时候传入了参数。</p>
+<img src="/2015/09/15/js-closure/js_closure_6_inc.png" alt="调用myCounter.increment(5)对象间的关系" title="调用myCounter.increment(5)对象间的关系">
+<p>正如你所见，<code>increment(5)</code>的调用创建了一个新的作用域对象，并且其中含有传入的参数<code>value</code>。当这个函数尝试访问<code>value</code>的时候，JavaScript立刻就能在当前的作用域对象找到它。然而，这个函数试图访问<code>counter</code>的时候，JavaScript无法在当前的作用域对象找到它，于是就会在其父作用域<code>createCounter(100) scope</code>中查找。</p>
+<p>我们可以注意到，在<code>createCounter</code>函数之外，除了被返回的<code>get</code>和<code>increment</code>两个方法，没有其他的地方可以访问到<code>value</code>这个变量了。<strong>这就是用闭包实现“私有变量”的方法</strong>。</p>
+<p>我们注意到<code>initial</code>变量也被存储在<code>createCounter()</code>所创建的作用域对象中，尽管它没有被用到。所以，我们实际上可以去掉<code>var counter = initial;</code>，将<code>initial</code>改名为<code>counter</code>。但是为了代码的可读性起见，我们保留原有的代码不做变化。</p>
+<p>需要注意的是作用域链是不会被复制的。每次函数调用只会往作用域链下面新增一个作用域对象。所以，如果在函数调用的过程当中对作用域链中的任何一个作用域对象的变量进行修改的话，那么同时作用域链中也拥有该作用域对象的函数对象也是能够访问到这个变化后的变量的。</p>
+<p>这也就是为什么下面这个大家都很熟悉的例子会不能产出我们想要的结果。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="pi">"use strict"</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> elems = <span class="built_in">document</span>.getElementsByClassName(<span class="string">"myClass"</span>), i;</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; elems.length; i++) &#123;</span><br><span class="line">  elems[i].addEventListener(<span class="string">"click"</span>, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.innerHTML = i;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在上面的循环中创建了多个函数对象，所有的函数对象的<code>[[scope]]</code>都保存着对当前作用域对象的引用。而变量<code>i</code>正好就在当前作用域链中，所以循环每次对<code>i</code>的修改，对于每个函数对象都是能够看到的。</p>
+<h3 id="“看起来一样的”函数，不一样的作用域对象">“看起来一样的”函数，不一样的作用域对象</h3><p>现在我们来看一个更有趣的例子。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="pi">"use strict"</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">createCounter</span>(<span class="params">initial</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> myCounter1 = createCounter(<span class="number">100</span>);</span><br><span class="line"><span class="keyword">var</span> myCounter2 = createCounter(<span class="number">200</span>);</span><br></pre></td></tr></table></figure>
+<p>当<code>myCounter1</code>和<code>myCounter2</code>被创建后，对象之间的关系为</p>
+<img src="/2015/09/15/js-closure/js_closure_7.png" alt="myCounter1和myCounter2被创建后，对象之间的关系" title="myCounter1和myCounter2被创建后，对象之间的关系">
+<p>在上面的例子中，<code>myCounter1.increment</code>和<code>myCounter2.increment</code>的函数对象拥有着一样的代码以及一样的属性值（<code>name</code>，<code>length</code>等等），但是它们的<code>[[scope]]</code>指向的是<strong>不一样的作用域对象</strong>。</p>
+<p>这才有了下面的结果</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> a, b;</span><br><span class="line">a = myCounter1.get();   <span class="comment">// a 等于 100</span></span><br><span class="line">b = myCounter2.get();   <span class="comment">// b 等于 200</span></span><br><span class="line"></span><br><span class="line">myCounter1.increment(<span class="number">1</span>);</span><br><span class="line">myCounter1.increment(<span class="number">2</span>);</span><br><span class="line"></span><br><span class="line">myCounter2.increment(<span class="number">5</span>);</span><br><span class="line"></span><br><span class="line">a = myCounter1.get();   <span class="comment">// a 等于 103</span></span><br><span class="line">b = myCounter2.get();   <span class="comment">// b 等于 205</span></span><br></pre></td></tr></table></figure>
+<h3 id="作用域链和this">作用域链和<code>this</code></h3><p><code>this</code>的值不会被保存在作用域链中，<code>this</code>的值取决于函数被调用的时候的情景。</p>
+<blockquote>
+<p>译者注：对这部分，译者自己曾经写过一篇更加详尽的文章，请参考<a href="http://blog.leapoahead.com/2015/08/31/understanding-js-this-keyword/">《用自然语言的角度理解JavaScript中的this关键字》</a>。原文的这一部分以及“<code>this</code>在嵌套的函数中的使用”译者便不再翻译。</p>
+</blockquote>
+<h3 id="总结">总结</h3><p>让我们来回想我们在本文开头提到的一些问题。</p>
+<ul>
+<li>什么是闭包？闭包就是同时含有对函数对象以及作用域对象引用的最想。实际上，所有JavaScript对象都是闭包。</li>
+<li>闭包是什么时候被创建的？因为所有JavaScript对象都是闭包，因此，当你定义一个函数的时候，你就定义了一个闭包。</li>
+<li>闭包是什么时候被销毁的？当它不被任何其他的对象引用的时候。</li>
+</ul>
+<h3 id="专有名词翻译表">专有名词翻译表</h3><p>本文采用下面的专有名词翻译表，如有更好的翻译请告知，尤其是加<code>*</code>的翻译</p>
+<ul>
+<li>*全局环境中运行的代码：top-level code</li>
+<li>参数：arguments</li>
+<li>作用域对象：Scope object</li>
+<li>作用域链：Scope Chain</li>
+<li>栈：stack</li>
+<li>原型继承：prototypal inheritance</li>
+<li>原型链：prototype chain</li>
+<li>全局对象：Global Object</li>
+<li>标识符：identifier</li>
+<li>垃圾回收器：garbage collector</li>
+</ul>
+<h3 id="著作权声明">著作权声明</h3><p>本文经授权翻译自<a href="http://dmitryfrank.com/articles/js_closures?utm_source=javascriptweekly&amp;utm_medium=email" target="_blank" rel="external">How do JavaScript closures work under the hood</a>。</p>
+<p>译者对原文进行了描述上的一些修改。但在没有特殊注明的情况下，译者表述的意思和原文保持一致。</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>我研究JavaScript闭包（closure）已经有一段时间了。我之前只是学会了如何使用它们，而没有透彻地了解它们具体是如何运作的。那么，究竟什么是闭包？</p>]]>
+    
+    </summary>
+    
+      <category term="Engineering" scheme="http://blog.leapoahead.com/categories/Engineering/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[5分钟内使用React、Webpack与ES6构建应用]]></title>
+    <link href="http://blog.leapoahead.com/2015/09/12/react-es6-webpack-in-5-minutes/"/>
+    <id>http://blog.leapoahead.com/2015/09/12/react-es6-webpack-in-5-minutes/</id>
+    <published>2015-09-12T18:54:02.000Z</published>
+    <updated>2015-09-12T18:54:02.000Z</updated>
+    <content type="html"><![CDATA[<p>假设你想要非常快速地搭建一个React应用，或者你想快速地搭建用ES6学习React开发的环境，那么这篇文章你一定不想错过。</p>
+<a id="more"></a>
+<p>我们将使用<a href="https://github.com/webpack/webpack" target="_blank" rel="external">webpack</a>作为打包工具。我们使用webpack来将ES6代码转译成ES5代码，编译Stylus样式等。如果你没有安装webpack则需先安装它。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ npm <span class="operator"><span class="keyword">install</span> -<span class="keyword">g</span> webpack</span><br><span class="line">$ npm <span class="keyword">install</span> -<span class="keyword">g</span> webpack-dev-<span class="keyword">server</span></span></span><br></pre></td></tr></table></figure>
+<p>如果遇到类似<strong>EACESS</strong>错误，则需要用超级用户的模式运行</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ sudo npm <span class="operator"><span class="keyword">install</span> -<span class="keyword">g</span> webpack</span><br><span class="line">$ sudo npm <span class="keyword">install</span> -<span class="keyword">g</span> webpack-dev-<span class="keyword">server</span></span></span><br></pre></td></tr></table></figure>
+<p>接下来创建项目的目录，并且安装<a href="https://github.com/HenrikJoreteg/hjs-webpack" target="_blank" rel="external">hjs-webpack</a>。</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$ </span>mkdir react-playground &amp;&amp; cd <span class="variable">$_</span></span><br><span class="line"><span class="variable">$ </span>npm init -y</span><br><span class="line"><span class="variable">$ </span>npm install hjs-webpack --save</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查npm版本</span></span><br><span class="line"><span class="variable">$ </span>npm -v</span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果npm版本是3.x.x或者更高执行下面这句</span></span><br><span class="line"><span class="variable">$ </span>npm i --save autoprefixer babel babel-loader css-loader json-loader postcss-loader react react-hot-loader style-loader stylus-loader url-loader webpack-dev-server yeticss</span><br></pre></td></tr></table></figure>
+<p>hjs-webpack是一个简化webpack配置流程的工具，它免去了配置复杂的webpack选项的流程。</p>
+<p>在项目根目录下创建<strong>webpack.config.js</strong>。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> getConfig = <span class="built_in">require</span>(<span class="string">'hjs-webpack'</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = getConfig(&#123;</span><br><span class="line">  <span class="comment">// 入口JS文件的位置</span></span><br><span class="line">  <span class="keyword">in</span>: <span class="string">'src/app.js'</span>,</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 应用打包（build）之后将存放在哪个文件夹 </span></span><br><span class="line">  out: <span class="string">'public'</span>,</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 是否在每次打包之前将之前的打包文件</span></span><br><span class="line">  <span class="comment">// 删除</span></span><br><span class="line">  clearBeforeBuild: <span class="literal">true</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p><strong>好了，现在所有的配置都完成了！</strong>让我们开始构建React应用吧！创建<strong>src/app.js</strong>。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">'react'</span></span><br><span class="line"></span><br><span class="line">class MyApp extends React.Component &#123;</span><br><span class="line">    render () &#123;</span><br><span class="line">        return &lt;h1&gt;Wonderful App&lt;/h1&gt;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">React.render(&lt;MyApp /&gt;,</span><br><span class="line">    document.body)</span><br></pre></td></tr></table></figure>
+<p>接下来启动webpack的开发服务器。它的主要作用是在后台监控文件变动，在每次我们修改文件的时候动态地帮我们进行打包。</p>
+<figure class="highlight axapta"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ webpack-dev-<span class="keyword">server</span></span><br></pre></td></tr></table></figure>
+<p>打开<a href="http://localhost:3000" target="_blank" rel="external">http://localhost:3000</a>，你就能看到你刚才创建的React应用了！</p>
+<img src="/2015/09/12/react-es6-webpack-in-5-minutes/first-react-app.png" alt="React应用" title="React应用">
+<p>注意到，在这里我们已经可以使用ES6的语法来创建应用了。</p>
+<h3 id="CSS加载和自动刷新">CSS加载和自动刷新</h3><p>创建<strong>src/style.css</strong>。</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">body</span> <span class="rules">&#123;</span><br><span class="line">    <span class="rule"><span class="attribute">background-color</span>:<span class="value"> red</span></span>;</span><br><span class="line">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>然后在<strong>src/app.js</strong>中加载它。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">'react'</span></span><br><span class="line"></span><br><span class="line">// 加载CSS</span><br><span class="line">require(<span class="string">'./style.css'</span>)</span><br><span class="line"></span><br><span class="line">class MyApp extends React.Component &#123;</span><br><span class="line">    render () &#123;</span><br><span class="line">        return &lt;h1&gt;Wonderful App&lt;/h1&gt;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">React.render(&lt;MyApp /&gt;,</span><br><span class="line">    document.body)</span><br></pre></td></tr></table></figure>
+<p>接下来回到你的页面（不用刷新），Blah！整个页面突然充满了喜庆（又血腥）的红色。</p>
+<p>这里你可以注意到两点。第一，CSS可以直接通过JavaScript来加载，这是webpack打包的功能之一，它会加载CSS文件并为我们插入到页面上；第二，我们保存后无需刷新就可以刷新页面，这是webpack-dev-server监控到了文件变化，动态打包后自动为我们刷新了页面。这又称作<strong>live reload</strong>。</p>
+<h3 id="总结">总结</h3><p>我们其实还可以使用一些<a href="http://yeoman.io/" target="_blank" rel="external">Yeoman</a>的脚手架来生成React应用，但是大部分配置依然复杂。hjs-webpack提供了简洁明了的配置接口，适合快速地搭建项目原型、小型应用的开发或者React学习等目的。</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>假设你想要非常快速地搭建一个React应用，或者你想快速地搭建用ES6学习React开发的环境，那么这篇文章你一定不想错过。</p>]]>
+    
+    </summary>
+    
+      <category term="Tools" scheme="http://blog.leapoahead.com/categories/tools/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[Workshop - 对Express中间件进行单元测试]]></title>
+    <link href="http://blog.leapoahead.com/2015/09/09/unittesting-express-middlewares/"/>
+    <id>http://blog.leapoahead.com/2015/09/09/unittesting-express-middlewares/</id>
+    <published>2015-09-10T02:21:33.000Z</published>
+    <updated>2015-09-10T04:36:15.000Z</updated>
+    <content type="html"><![CDATA[<p>我最近围绕着Express构建应用，尝试用不同的方法来对Express的中间件进行单元测试。今天通过Workshop的形式，一步一步地向大家介绍我的测试方式。</p>
+<a id="more"></a>
+<img src="/2015/09/09/unittesting-express-middlewares/unittest.jpeg" alt="unittest.jpeg" title="">
+<p>本文要求读者有一定<a href="http://expressjs.com" target="_blank" rel="external">Express.js</a>基础，并对JavaScript的Promise特性有所了解。你可以在<a href="http://www.html5rocks.com/zh/tutorials/es6/promises/" target="_blank" rel="external">这篇文章</a>中学习到关于Promise的基础知识。</p>
+<p>请在<a href="https://github.com/tjwudi/unit-testing-express-middlewares-example" target="_blank" rel="external">GitHub</a>上将我们学习用的代码clone到本地的任意目录。</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$ </span>git clone git<span class="variable">@github</span>.<span class="symbol">com:</span>tjwudi/unit-testing-express-middlewares-example.git</span><br><span class="line"><span class="variable">$ </span>cd unit-testing-express-middlewares-example</span><br><span class="line"><span class="variable">$ </span>git checkout step1  <span class="comment"># 回到第一步</span></span><br><span class="line"><span class="variable">$ </span>npm install</span><br><span class="line"><span class="variable">$ </span>node bin/www</span><br></pre></td></tr></table></figure>
+<p>在这个项目中，我们提供一个JSON接口<code>/users/:id</code>，返回对应用户<code>id</code>的用户信息，其中包含该用户所负责的项目（projects）。你可以访问<code>http://localhost:3000/users/1</code>看到下面的返回结果。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">   "<span class="attribute">type</span>":<span class="value"><span class="string">"User"</span></span>,</span><br><span class="line">   "<span class="attribute">id</span>":<span class="value"><span class="number">1</span></span>,</span><br><span class="line">   "<span class="attribute">name</span>":<span class="value"><span class="string">"John Wu"</span></span>,</span><br><span class="line">   "<span class="attribute">position</span>":<span class="value"><span class="string">"Software Engineer"</span></span>,</span><br><span class="line">   "<span class="attribute">_id</span>":<span class="value"><span class="string">"UUTpdPICsQSLS5zp"</span></span>,</span><br><span class="line">   "<span class="attribute">projects</span>":<span class="value">[</span><br><span class="line">      &#123;</span><br><span class="line">         "<span class="attribute">type</span>":<span class="value"><span class="string">"Project"</span></span>,</span><br><span class="line">         "<span class="attribute">user_id</span>":<span class="value"><span class="number">1</span></span>,</span><br><span class="line">         "<span class="attribute">id</span>":<span class="value"><span class="number">3</span></span>,</span><br><span class="line">         "<span class="attribute">title</span>":<span class="value"><span class="string">"InterU"</span></span>,</span><br><span class="line">         "<span class="attribute">_id</span>":<span class="value"><span class="string">"QH8MxJKnAsHSwA5X"</span></span><br><span class="line">      </span>&#125;,</span><br><span class="line">      &#123;</span><br><span class="line">         "<span class="attribute">type</span>":<span class="value"><span class="string">"Project"</span></span>,</span><br><span class="line">         "<span class="attribute">user_id</span>":<span class="value"><span class="number">1</span></span>,</span><br><span class="line">         "<span class="attribute">id</span>":<span class="value"><span class="number">1</span></span>,</span><br><span class="line">         "<span class="attribute">title</span>":<span class="value"><span class="string">"Midway"</span></span>,</span><br><span class="line">         "<span class="attribute">_id</span>":<span class="value"><span class="string">"UnNJxQ7eopLlWFY1"</span></span><br><span class="line">      </span>&#125;,</span><br><span class="line">      &#123;</span><br><span class="line">         "<span class="attribute">type</span>":<span class="value"><span class="string">"Project"</span></span>,</span><br><span class="line">         "<span class="attribute">user_id</span>":<span class="value"><span class="number">1</span></span>,</span><br><span class="line">         "<span class="attribute">id</span>":<span class="value"><span class="number">2</span></span>,</span><br><span class="line">         "<span class="attribute">title</span>":<span class="value"><span class="string">"Esther"</span></span>,</span><br><span class="line">         "<span class="attribute">_id</span>":<span class="value"><span class="string">"gZe3sgOsKxxCXHBA"</span></span><br><span class="line">      </span>&#125;</span><br><span class="line">   ]</span><br><span class="line"></span>&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="常规中间件用法">常规中间件用法</h3><p>在<strong>routes/users.js</strong>中我们可以看到响应该请求的中间件，该请求由三个中间件组成，它们分别负责</p>
+<ol>
+<li>根据用户id从数据库获取用户对象，赋值给<code>req.user</code></li>
+<li>根据用户对象获取其负责的所有项目，赋值给<code>req.projects</code></li>
+<li>组合上面两步的结果，返回JSON</li>
+</ol>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">router.get(<span class="string">'/:id'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">req, res, next</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> userId = <span class="built_in">parseInt</span>(req.params.id, <span class="number">10</span>);</span><br><span class="line">  User.getUserById(userId).then(<span class="function"><span class="keyword">function</span> (<span class="params">user</span>) </span>&#123;</span><br><span class="line">    req.user = user;</span><br><span class="line">    next();</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>&#123;</span><br><span class="line">  User.getUserProjects(req.user).then(<span class="function"><span class="keyword">function</span> (<span class="params">projects</span>) </span>&#123;</span><br><span class="line">    req.projects = projects;</span><br><span class="line">    next();</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;, <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>&#123;</span><br><span class="line">  req.user.projects = req.projects;</span><br><span class="line">  res.json(req.user);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>到目前为止，一切都很完美！接下来我们希望能够针对每个中间件设计单元测试。</p>
+<blockquote>
+<p>题外话：一般情况下，我们都会先设计单元测试，再进行具体实现。但是在这里出于Workshop目的，我们将顺序反过来。</p>
+</blockquote>
+<p><strong>单元测试（Unit Testing）</strong>中，我们针对函数这类小型的、符合<a href="http://www.uml.org.cn/sjms/201211023.asp" target="_blank" rel="external">单一职责原则</a>的功能单元进行测试。但是在对Express中间件进行单元测试的时候，我们可能遇到挑战。</p>
+<h3 id="直接对接口测试？">直接对接口测试？</h3><p>首先，我们可能尝试直接用类似<a href="https://github.com/visionmedia/supertest#readme" target="_blank" rel="external">supertest</a>的工具进行测试。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> request = <span class="built_in">require</span>(<span class="string">'supertest'</span>);</span><br><span class="line"></span><br><span class="line">request(app)</span><br><span class="line">  .get(<span class="string">'/users/1'</span>)</span><br><span class="line">  .expect(<span class="number">200</span>)</span><br><span class="line">  .then(...);</span><br></pre></td></tr></table></figure>
+<p>但是这样做实际上已经不是单元测试了，而是对整个请求中涉及的所有中间件测试。如果我们不对这些中间件进行变动，但是插入了新的中间件，也可能导致这个测试失败，所以是不可取的。</p>
+<p>为了解决这个为题，我们可以将中间件函数独立暴露出来，方便测试。</p>
+<h3 id="Step_2：独立中间件">Step 2：独立中间件</h3><p>首先在<strong>routes/users.js</strong>中，我们将三个中间件单独提取到一个对象中，并暴露给外界。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> middlewares = &#123;</span><br><span class="line">  getUserById: <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> userId = <span class="built_in">parseInt</span>(req.params.id, <span class="number">10</span>);</span><br><span class="line">    User.getUserById(userId).then(<span class="function"><span class="keyword">function</span> (<span class="params">user</span>) </span>&#123;</span><br><span class="line">      req.user = user;</span><br><span class="line">      next();</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  getProjectsForUser: <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>&#123;</span><br><span class="line">    User.getUserProjects(req.user).then(<span class="function"><span class="keyword">function</span> (<span class="params">projects</span>) </span>&#123;</span><br><span class="line">      req.projects = projects;</span><br><span class="line">      next();</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  responseUserWithProjects: <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>&#123;</span><br><span class="line">    req.user.projects = req.projects;</span><br><span class="line">    res.json(req.user);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">router.get(<span class="string">'/:id'</span>,</span><br><span class="line">  middlewares.getUserById,</span><br><span class="line">  middlewares.getProjectsForUser,</span><br><span class="line">  middlewares.responseUserWithProjects</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  router: router,</span><br><span class="line">  middlewares: middlewares</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>接下来在<strong>app.js</strong>中的第27行更新router的引用</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">app.use(<span class="string">'/users'</span>, users.router);</span><br></pre></td></tr></table></figure>
+<p>你可以在项目目录下运行下面的命令让所有文件和上面所做的变更同步。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git checkout step2</span><br></pre></td></tr></table></figure>
+<h3 id="Step_3：建立测试文件">Step 3：建立测试文件</h3><p>接下来在项目目录下新建测试文件<strong>tests/users.js</strong>。我们将用<a href="https://mochajs.org" target="_blank" rel="external">mocha</a>和<a href="https://github.com/shouldjs/should.js" target="_blank" rel="external">should</a>进行测试。mocha是测试运行工具，用于执行测试；而should则是一个断言（assertion）库。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ npm <span class="operator"><span class="keyword">install</span> -<span class="keyword">g</span> mocha</span><br><span class="line">$ npm <span class="keyword">install</span> should <span class="comment">--save-dev</span></span></span><br></pre></td></tr></table></figure>
+<p>另外我们使用<a href="https://github.com/howardabrams/node-mocks-http" target="_blank" rel="external">node-mocks-http</a>来创建模拟的<code>req</code>和<code>res</code>对象。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ npm <span class="operator"><span class="keyword">install</span> node-mocks-<span class="keyword">http</span> <span class="comment">--save-dev</span></span></span><br></pre></td></tr></table></figure>
+<p>我们以下面的方式对其中一个中间件进行测试。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> should = <span class="built_in">require</span>(<span class="string">'should'</span>);</span><br><span class="line"><span class="keyword">var</span> mocksHttp = <span class="built_in">require</span>(<span class="string">'node-mocks-http'</span>);</span><br><span class="line"><span class="keyword">var</span> usersMiddlewares = <span class="built_in">require</span>(<span class="string">'../routes/users'</span>).middlewares;</span><br><span class="line"></span><br><span class="line">describe(<span class="string">'Users endpoint'</span>, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">  describe(<span class="string">'getUserById middleware'</span>, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    it(<span class="string">'should have users object attached to request object'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">done</span>) </span>&#123;</span><br><span class="line">      <span class="keyword">var</span> request = mocksHttp.createRequest(&#123;</span><br><span class="line">        params: &#123; id: <span class="number">1</span> &#125;</span><br><span class="line">      &#125;);</span><br><span class="line">      <span class="keyword">var</span> response = mocksHttp.createResponse();</span><br><span class="line">      usersMiddlewares.getUserById(request, response, <span class="function"><span class="keyword">function</span> (<span class="params">err</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (err) done(err);</span><br><span class="line">        should.exist(request.user);</span><br><span class="line">        request.user.should.have.properties([<span class="string">'id'</span>, <span class="string">'name'</span>, <span class="string">'position'</span>]);</span><br><span class="line">        done();</span><br><span class="line">      &#125;);</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// test other middlewares</span></span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>接下来用mocha运行测试</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ mocha tests/users<span class="class">.js</span></span><br><span class="line"></span><br><span class="line">  Users endpoint</span><br><span class="line">    getUserById middleware</span><br><span class="line">      ✓ should have users <span class="tag">object</span> attached to request <span class="tag">object</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  <span class="number">1</span> passing (<span class="number">17ms</span>)</span><br></pre></td></tr></table></figure>
+<p>你可以在项目目录下运行下面的命令让所有文件和上面所做的变更同步。</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$ </span>git checkout step3</span><br></pre></td></tr></table></figure>
+<p>但是现在存在一些问题。</p>
+<p><strong>如果<code>next</code>函数没有被执行怎么办？</strong>就如<code>responseUserWithProjects</code>这个中间件一样，它是没有调用<code>next</code>函数的，那么回调函数里的逻辑自然也就不会被触发。所以，这个函数的“出口”也就不唯一了。为了让测试准确，我们必须让其出口是唯一的。</p>
+<h3 id="Step_4：单一“出口”_-_Promise">Step 4：单一“出口” - Promise</h3><p>我们尝试将<code>getUserById</code>中间件改写成返回一个Promise的形式。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> <span class="built_in">Promise</span> = <span class="built_in">require</span>(<span class="string">'bluebird'</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line">getUserById: <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> userId = <span class="built_in">parseInt</span>(req.params.id, <span class="number">10</span>);</span><br><span class="line">  <span class="keyword">var</span> userPromise = User.getUserById(userId);</span><br><span class="line">  req.user = userPromise;</span><br><span class="line">  next();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里我们将<code>req.user</code>变成了一个会resolve（产生）一个user对象的Promise。那么在<code>getProjectsForUser</code>中，我们使用<code>req.user</code>的方式就会发生变化，同时，我们也让<code>req.project</code>变成一个Promise。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">getProjectsForUser: <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> projectsPromise = req.user.then(<span class="function"><span class="keyword">function</span> (<span class="params">user</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> User.getUserProjects(user);</span><br><span class="line">  &#125;, next);</span><br><span class="line">  req.projects = projectsPromise;</span><br><span class="line">  next();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对最后一个中间件<code>responseUserWithProjects</code>，也做相应的改动</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">responseUserWithProjects: <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>&#123;</span><br><span class="line">  <span class="built_in">Promise</span>.all([</span><br><span class="line">    req.user,</span><br><span class="line">    req.projects</span><br><span class="line">  ]).then(<span class="function"><span class="keyword">function</span> (<span class="params">results</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> user = results[<span class="number">0</span>];</span><br><span class="line">    user.projects = results[<span class="number">1</span>];</span><br><span class="line">    res.json(user);</span><br><span class="line">  &#125;, next);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在这里，我们在中间件运行的过程中通过Promise来传递我们想要获取并传递的对象。这样做的好处在于，现在我们保证了<code>next</code>函数一定会被运行。整个中间件的“出口”是单一的。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">it(<span class="string">'should have users object attached to request object'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">done</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> request = mocksHttp.createRequest(&#123;</span><br><span class="line">    params: &#123; id: <span class="number">1</span> &#125;</span><br><span class="line">  &#125;);</span><br><span class="line">  <span class="keyword">var</span> response = mocksHttp.createResponse();</span><br><span class="line">  usersMiddlewares.getUserById(request, response, <span class="function"><span class="keyword">function</span> (<span class="params">err</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (err) done(err);</span><br><span class="line">    request.user.then(<span class="function"><span class="keyword">function</span> (<span class="params">user</span>) </span>&#123;</span><br><span class="line">      user.should.have.properties([<span class="string">'id'</span>, <span class="string">'name'</span>, <span class="string">'position'</span>]);</span><br><span class="line">      done();</span><br><span class="line">    &#125;, done);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>你可以在项目目录下运行下面的命令让所有文件和上面所做的变更同步。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git checkout step4</span><br></pre></td></tr></table></figure>
+<h3 id="Step_5：对于不调用next的中间件">Step 5：对于不调用<code>next</code>的中间件</h3><p>对于不调用<code>next</code>的中间件，例如<code>responseUserWithProjects</code>，我们可以直接将这个Promise当做中间件函数的返回值返回。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">responseUserWithProjects: <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">Promise</span>.all([</span><br><span class="line">    req.user,</span><br><span class="line">    req.projects</span><br><span class="line">  ]).then(<span class="function"><span class="keyword">function</span> (<span class="params">results</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> user = results[<span class="number">0</span>];</span><br><span class="line">    user.projects = results[<span class="number">1</span>];</span><br><span class="line">    res.json(user);</span><br><span class="line">  &#125;, next);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这样在测试的时候，我们只需要接着这个Promise往下<code>then</code>我们的测试逻辑即可。在测试逻辑运行前，对<code>res</code>的操作是已经结束了的，所以我们就可以直接对<code>res</code>对象进行断言了。</p>
+<p>另外，有了Promise，我们也可以让<code>req.user</code>和<code>req.projects</code>的注入变得异常简单。我们可以使用<code>Promise.resove</code>将测试数据包装成一个会立即resolve的Promise。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">describe(<span class="string">'responseUserWithProjects middleware'</span>, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">  it(<span class="string">'should have user with projects object\'s JSON attached in response'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">done</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> request = mocksHttp.createRequest();</span><br><span class="line">    <span class="keyword">var</span> response = mocksHttp.createResponse();</span><br><span class="line">    request.user = <span class="built_in">Promise</span>.resolve(&#123;<span class="string">"type"</span>:<span class="string">"User"</span>,<span class="string">"id"</span>:<span class="number">1</span>,<span class="string">"name"</span>:<span class="string">"John Wu"</span>,<span class="string">"position"</span>:<span class="string">"Software Engineer"</span>,<span class="string">"_id"</span>:<span class="string">"UUTpdPICsQSLS5zp"</span>&#125;);</span><br><span class="line">    request.projects = <span class="built_in">Promise</span>.resolve([&#123;<span class="string">"type"</span>:<span class="string">"Project"</span>,<span class="string">"user_id"</span>:<span class="number">1</span>,<span class="string">"id"</span>:<span class="number">3</span>,<span class="string">"title"</span>:<span class="string">"InterU"</span>,<span class="string">"_id"</span>:<span class="string">"QH8MxJKnAsHSwA5X"</span>&#125;,</span><br><span class="line">      &#123;<span class="string">"type"</span>:<span class="string">"Project"</span>,<span class="string">"user_id"</span>:<span class="number">1</span>,<span class="string">"id"</span>:<span class="number">1</span>,<span class="string">"title"</span>:<span class="string">"Midway"</span>,<span class="string">"_id"</span>:<span class="string">"UnNJxQ7eopLlWFY1"</span>&#125;,</span><br><span class="line">      &#123;<span class="string">"type"</span>:<span class="string">"Project"</span>,<span class="string">"user_id"</span>:<span class="number">1</span>,<span class="string">"id"</span>:<span class="number">2</span>,<span class="string">"title"</span>:<span class="string">"Esther"</span>,<span class="string">"_id"</span>:<span class="string">"gZe3sgOsKxxCXHBA"</span>&#125;</span><br><span class="line">    ]);</span><br><span class="line">    usersMiddlewares.responseUserWithProjects(request, response)</span><br><span class="line">      .then(<span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="keyword">var</span> data = <span class="built_in">JSON</span>.parse(response._getData());</span><br><span class="line">        data.should.have.properties([<span class="string">'id'</span>, <span class="string">'name'</span>, <span class="string">'position'</span>, <span class="string">'projects'</span>]);</span><br><span class="line">        data.projects.should.be.an.instanceOf(<span class="built_in">Array</span>);</span><br><span class="line">        data.projects.should.have.length(<span class="number">3</span>);</span><br><span class="line">        done();</span><br><span class="line">      &#125;, done)</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>你可以在项目目录下运行下面的命令让所有文件和上面所做的变更同步。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git checkout step5</span><br></pre></td></tr></table></figure>
+<h3 id="Step_7：提高一致性">Step 7：提高一致性</h3><p>我们在上面对于调用<code>next</code>和不调用<code>next</code>的方法做了区分，但是实际上，我们只需要一点改动就能让他们的测试方法一致。</p>
+<p>注意到<code>getUserById</code>这个函数本身还没有返回值。我们可以把我们要测试的对象——<code>req.user</code>这个Promise直接作为返回值返回。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">getUserById: <span class="function"><span class="keyword">function</span> (<span class="params">req, res, next</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> userId = <span class="built_in">parseInt</span>(req.params.id, <span class="number">10</span>);</span><br><span class="line">  <span class="keyword">var</span> userPromise = User.getUserById(userId);</span><br><span class="line">  req.user = userPromise;</span><br><span class="line">  next();</span><br><span class="line">  <span class="comment">// 返回待测对象的Promise</span></span><br><span class="line">  <span class="keyword">return</span> req.user;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这样的话，我们就可以用一样的接口进行测试了。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">describe(<span class="string">'getUserById middleware'</span>, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">  it(<span class="string">'should have users object attached to request object'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">done</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> request = mocksHttp.createRequest(&#123;</span><br><span class="line">      params: &#123; id: <span class="number">1</span> &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="keyword">var</span> response = mocksHttp.createResponse();</span><br><span class="line">    usersMiddlewares.getUserById(request, response <span class="function"><span class="keyword">function</span> (<span class="params">err</span>) </span>&#123;</span><br><span class="line">      <span class="keyword">if</span> (err) done(err);</span><br><span class="line">      request.user.then(<span class="function"><span class="keyword">function</span> (<span class="params">user</span>) </span>&#123;</span><br><span class="line">        user.should.have.properties([<span class="string">'id'</span>, <span class="string">'name'</span>, <span class="string">'position'</span>]);</span><br><span class="line">        done();</span><br><span class="line">      &#125;, done);</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>你可以在项目目录下运行下面的命令让所有文件和上面所做的变更同步。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git checkout step6</span><br></pre></td></tr></table></figure>
+<h3 id="总结">总结</h3><p>在这样的测试方法中，Promise本身起到了对象的“Placeholder”的作用。其本身一旦创建后就可以被使用，传递给下一个中间件，而不需要创建出回调函数，使得中间件的“出口”变成了多个。</p>
+<p>使用Promise同时还允许我们将逻辑变成对象到处传递，我们可以随时将它们抽取出来测试。可见，使用Promise可远远不是让我们摆脱<a href="www.infoq.com/cn/articles/nodejs-callback-hell">Callback Hell</a>那么简单。</p>
+<p>另外，单元测试要求我们要能够准确地</p>
+<ul>
+<li>描述一个功能单元的输入</li>
+<li>描述一个功能单元的输出</li>
+</ul>
+<p>通过这个特点，单元测试就能让我们在设计测试阶段就很好地约束每个函数（或者类方法）对应的功能（或者说scope），让我们更容易写出符合<strong>单一职责原则</strong>的代码。</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>我最近围绕着Express构建应用，尝试用不同的方法来对Express的中间件进行单元测试。今天通过Workshop的形式，一步一步地向大家介绍我的测试方式。</p>]]>
+    
+    </summary>
+    
+      <category term="Engineering" scheme="http://blog.leapoahead.com/categories/Engineering/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[八幅漫画理解使用JSON Web Token设计单点登录系统]]></title>
+    <link href="http://blog.leapoahead.com/2015/09/07/user-authentication-with-jwt/"/>
+    <id>http://blog.leapoahead.com/2015/09/07/user-authentication-with-jwt/</id>
+    <published>2015-09-08T05:43:19.000Z</published>
+    <updated>2015-09-08T06:31:10.000Z</updated>
+    <content type="html"><![CDATA[<p>上次在<a href="/2015/09/06/understanding-jwt/">《JSON Web Token - 在Web应用间安全地传递信息》</a>中我提到了JSON Web Token可以用来设计单点登录系统。我尝试用八幅漫画先让大家理解如何设计正常的用户认证系统，然后再延伸到单点登录系统。</p>
+<a id="more"></a>
+<p>如果还没有阅读<a href="/2015/09/06/understanding-jwt/">《JSON Web Token - 在Web应用间安全地传递信息》</a>，我强烈建议你花十分钟阅读它，理解JWT的生成过程和原理。</p>
+<h3 id="用户认证八步走">用户认证八步走</h3><p>所谓用户认证（Authentication），就是让用户登录，并且在接下来的一段时间内让用户访问网站时可以使用其账户，而不需要再次登录的机制。</p>
+<blockquote>
+<p>小知识：可别把用户认证和用户授权（Authorization）搞混了。用户授权指的是规定并允许用户使用自己的权限，例如发布帖子、管理站点等。</p>
+</blockquote>
+<p>首先，服务器应用（下面简称“应用”）让用户通过Web表单将自己的用户名和密码发送到服务器的接口。这一过程一般是一个HTTP POST请求。建议的方式是通过SSL加密的传输（https协议），从而避免敏感信息被嗅探。</p>
+<img src="/2015/09/07/user-authentication-with-jwt/jwtauth1.png" alt="用户登录请求" title="用户登录请求">
+<p>接下来，应用和数据库核对用户名和密码。</p>
+<img src="/2015/09/07/user-authentication-with-jwt/jwtauth2.png" alt="核对用户名密码" title="核对用户名密码">
+<p>核对用户名和密码成功后，应用将用户的<code>id</code>（图中的<code>user_id</code>）作为JWT Payload的一个属性，将其与头部分别进行Base64编码拼接后签名，形成一个JWT。这里的JWT就是一个形同<code>lll.zzz.xxx</code>的字符串。</p>
+<img src="/2015/09/07/user-authentication-with-jwt/jwtauth3.png" alt="生成JWT" title="生成JWT">
+<p>应用将JWT字符串作为该请求Cookie的一部分返回给用户。注意，在这里必须使用<code>HttpOnly</code>属性来防止Cookie被JavaScript读取，从而避免<a href="http://www.cnblogs.com/bangerlee/archive/2013/04/06/3002142.html" target="_blank" rel="external">跨站脚本攻击（XSS攻击）</a>。</p>
+<img src="/2015/09/07/user-authentication-with-jwt/jwtauth4.png" alt="在Cookie中嵌入JWT" title="在Cookie中嵌入JWT">
+<p>在Cookie失效或者被删除前，用户每次访问应用，应用都会接受到含有<code>jwt</code>的Cookie。从而应用就可以将JWT从请求中提取出来。</p>
+<img src="/2015/09/07/user-authentication-with-jwt/jwtauth5.png" alt="从Cookie提取JWT" title="从Cookie提取JWT">
+<p>应用通过一系列任务检查JWT的有效性。例如，检查签名是否正确；检查Token是否过期；检查Token的接收方是否是自己（可选）。</p>
+<img src="/2015/09/07/user-authentication-with-jwt/jwtauth6.png" alt="jwtauth6.png" title="">
+<p>应用在确认JWT有效之后，JWT进行Base64解码（可能在上一步中已经完成），然后在Payload中读取用户的id值，也就是<code>user_id</code>属性。这里用户的<code>id</code>为1025。</p>
+<img src="/2015/09/07/user-authentication-with-jwt/jwtauth7.png" alt="jwtauth7.png" title="">
+<p>应用从数据库取到<code>id</code>为1025的用户的信息，加载到内存中，进行ORM之类的一系列底层逻辑初始化。</p>
+<img src="/2015/09/07/user-authentication-with-jwt/jwtauth8.png" alt="jwtauth8.png" title="">
+<p>应用根据用户请求进行响应。</p>
+<img src="/2015/09/07/user-authentication-with-jwt/jwtauth9.png" alt="jwtauth9.png" title="">
+<h3 id="和Session方式存储id的差异">和Session方式存储id的差异</h3><p>Session方式存储用户id的最大弊病在于要占用大量服务器内存，对于较大型应用而言可能还要保存许多的状态。一般而言，大型应用还需要借助一些KV数据库和一系列缓存机制来实现Session的存储。</p>
+<p>而JWT方式将用户状态分散到了客户端中，可以明显减轻服务端的内存压力。除了用户id之外，还可以存储其他的和用户相关的信息，例如该用户是否是管理员、用户所在的分桶（见[《你所应该知道的A/B测试基础》一文](/2015/08/27/introduction-to-ab-testing/）等。</p>
+<p>虽说JWT方式让服务器有一些计算压力（例如加密、编码和解码），但是这些压力相比磁盘I/O而言或许是半斤八两。具体是否采用，需要在不同场景下用数据说话。</p>
+<h3 id="单点登录">单点登录</h3><p>Session方式来存储用户id，一开始用户的Session只会存储在一台服务器上。对于有多个子域名的站点，每个子域名至少会对应一台不同的服务器，例如：</p>
+<ul>
+<li>www.taobao.com</li>
+<li>nv.taobao.com</li>
+<li>nz.taobao.com</li>
+<li>login.taobao.com</li>
+</ul>
+<p>所以如果要实现在<code>login.taobao.com</code>登录后，在其他的子域名下依然可以取到Session，这要求我们在多台服务器上同步Session。</p>
+<p>使用JWT的方式则没有这个问题的存在，因为用户的状态已经被传送到了客户端。因此，我们只需要将含有JWT的Cookie的<code>domain</code>设置为顶级域名即可，例如</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">Set-Cookie</span>: <span class="string">jwt=lll.zzz.xxx; HttpOnly; max-age=980000; domain=.taobao.com</span></span><br></pre></td></tr></table></figure>
+<p>注意<code>domain</code>必须设置为一个点加顶级域名，即<code>.taobao.com</code>。这样，taobao.com和*.taobao.com就都可以接受到这个Cookie，并获取JWT了。</p>
+<p>对于JWT的两篇文章有相关问题的同学请直接在下面的评论区与我讨论（请勿邮件讨论）。如果你感兴趣，你可以在下方订阅我的半月刊，我将给你推送更多精彩的内容；）</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>上次在<a href="/2015/09/06/understanding-jwt/">《JSON Web Token - 在Web应用间安全地传递信息》</a>中我提到了JSON Web Token可以用来设计单点登录系统。我尝试用八幅漫画先让大家理解如何设计正常的用户认证系统，然后再延伸到单点登录系统。</p>]]>
+    
+    </summary>
+    
+      <category term="Engineering" scheme="http://blog.leapoahead.com/categories/Engineering/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[JSON Web Token - 在Web应用间安全地传递信息]]></title>
+    <link href="http://blog.leapoahead.com/2015/09/06/understanding-jwt/"/>
+    <id>http://blog.leapoahead.com/2015/09/06/understanding-jwt/</id>
+    <published>2015-09-07T03:25:36.000Z</published>
+    <updated>2015-09-07T03:25:36.000Z</updated>
+    <content type="html"><![CDATA[<p>JSON Web Token（JWT）是一个非常轻巧的<a href="https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32" target="_blank" rel="external">规范</a>。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。</p>
+<a id="more"></a>
+<p>让我们来假想一下一个场景。在A用户关注了B用户的时候，系统发邮件给B用户，并且附有一个链接“点此关注A用户”。链接的地址可以是这样的</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">https:</span><span class="comment">//your.awesome-app.com/make-friend/?from_user=B&amp;target_user=A</span></span><br></pre></td></tr></table></figure>
+<p>上面的URL主要通过URL来描述这个当然这样做有一个弊端，那就是要求用户B用户是一定要先登录的。可不可以简化这个流程，让B用户不用登录就可以完成这个操作。JWT就允许我们做到这点。</p>
+<img src="/2015/09/06/understanding-jwt/jwt.png" alt="JSON Web Token" title="JSON Web Token">
+<h3 id="JWT的组成">JWT的组成</h3><p>一个JWT实际上就是一个字符串，它由三部分组成，<strong>头部</strong>、<strong>载荷</strong>与<strong>签名</strong>。</p>
+<h5 id="载荷（Payload）">载荷（Payload）</h5><p>我们先将上面的添加好友的操作描述成一个JSON对象。其中添加了一些其他的信息，帮助今后收到这个JWT的服务器理解这个JWT。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    "<span class="attribute">iss</span>": <span class="value"><span class="string">"John Wu JWT"</span></span>,</span><br><span class="line">    "<span class="attribute">iat</span>": <span class="value"><span class="number">1441593502</span></span>,</span><br><span class="line">    "<span class="attribute">exp</span>": <span class="value"><span class="number">1441594722</span></span>,</span><br><span class="line">    "<span class="attribute">aud</span>": <span class="value"><span class="string">"www.example.com"</span></span>,</span><br><span class="line">    "<span class="attribute">sub</span>": <span class="value"><span class="string">"jrocket@example.com"</span></span>,</span><br><span class="line">    "<span class="attribute">from_user</span>": <span class="value"><span class="string">"B"</span></span>,</span><br><span class="line">    "<span class="attribute">target_user</span>": <span class="value"><span class="string">"A"</span></span><br><span class="line"></span>&#125;</span><br></pre></td></tr></table></figure>
+<p>这里面的前五个字段都是由JWT的标准所定义的。</p>
+<ul>
+<li><code>iss</code>: 该JWT的签发者</li>
+<li><code>sub</code>: 该JWT所面向的用户</li>
+<li><code>aud</code>: 接收该JWT的一方</li>
+<li><code>exp</code>(expires): 什么时候过期，这里是一个Unix时间戳</li>
+<li><code>iat</code>(issued at): 在什么时候签发的</li>
+</ul>
+<p>这些定义都可以在<a href="https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32" target="_blank" rel="external">标准</a>中找到。 </p>
+<p>将上面的JSON对象进行[base64编码]可以得到下面的字符串。这个字符串我们将它称作JWT的<strong>Payload</strong>（载荷）。</p>
+<figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">eyJpc<span class="number">3</span>MiOiJKb<span class="number">2</span>huIFd<span class="number">1</span>IEpX<span class="title">VCIsImlhdCI6</span>MTQ<span class="number">0</span>MTU<span class="number">5</span>MzUwMiwiZXhwIjox<span class="label">NDQxNTk0</span><span class="label">NzIyLCJhdWQiOiJ3</span>d<span class="number">3</span>cuZXhhbXBsZS<span class="number">5</span>jb<span class="number">20</span>iLCJzdWIiOiJqc<span class="title">m9</span>ja<span class="number">2</span>V<span class="number">0</span>QGV<span class="number">4</span>YW<span class="number">1</span>wbGUuY<span class="number">29</span>tIiwiZ<span class="label">nJvbV91</span>c<span class="number">2</span>VyIjoiQiIsI<span class="label">nRhcmdldF91</span>c<span class="number">2</span>VyIjoiQSJ<span class="number">9</span></span><br></pre></td></tr></table></figure>
+<p>如果你使用Node.js，可以用Node.js的包<a href="https://github.com/brianloveswords/base64url" target="_blank" rel="external">base64url</a>来得到这个字符串。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> base64url = <span class="built_in">require</span>(<span class="string">'base64url'</span>)</span><br><span class="line"><span class="keyword">var</span> header = &#123;</span><br><span class="line">    <span class="string">"from_user"</span>: <span class="string">"B"</span>,</span><br><span class="line">    <span class="string">"target_user"</span>: <span class="string">"A"</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">console</span>.log(base64url(<span class="built_in">JSON</span>.stringify(header)))</span><br><span class="line"><span class="comment">// 输出：eyJpc3MiOiJKb2huIFd1IEpXVCIsImlhdCI6MTQ0MTU5MzUwMiwiZXhwIjoxNDQxNTk0NzIyLCJhdWQiOiJ3d3cuZXhhbXBsZS5jb20iLCJzdWIiOiJqcm9ja2V0QGV4YW1wbGUuY29tIiwiZnJvbV91c2VyIjoiQiIsInRhcmdldF91c2VyIjoiQSJ9</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>小知识：Base64是一种编码，也就是说，它是可以被翻译回原来的样子来的。它并不是一种加密过程。</p>
+</blockquote>
+<h5 id="头部（Header）">头部（Header）</h5><p>JWT还需要一个头部，头部用于描述关于该JWT的最基本的信息，例如其类型以及签名所用的算法等。这也可以被表示成一个JSON对象。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  "<span class="attribute">typ</span>": <span class="value"><span class="string">"JWT"</span></span>,</span><br><span class="line">  "<span class="attribute">alg</span>": <span class="value"><span class="string">"HS256"</span></span><br><span class="line"></span>&#125;</span><br></pre></td></tr></table></figure>
+<p>在这里，我们说明了这是一个JWT，并且我们所用的签名算法（后面会提到）是HS256算法。</p>
+<p>对它也要进行Base64编码，之后的字符串就成了JWT的<strong>Header</strong>（头部）。</p>
+<figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">eyJ<span class="number">0</span>eXAiOiJKV<span class="number">1</span>QiLCJhbGciOiJIUzI<span class="number">1</span><span class="label">NiJ9</span></span><br></pre></td></tr></table></figure>
+<h5 id="签名（签名）">签名（签名）</h5><p>将上面的两个编码后的字符串都用句号<code>.</code>连接在一起（头部在前），就形成了</p>
+<figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">eyJ<span class="number">0</span>eXAiOiJKV<span class="number">1</span>QiLCJhbGciOiJIUzI<span class="number">1</span><span class="label">NiJ9</span>.eyJmc<span class="title">m9</span>tX<span class="number">3</span>VzZXIiOiJCIiwidGFyZ<span class="number">2</span>V<span class="number">0</span>X<span class="number">3</span>VzZXIiOiJBI<span class="label">n0</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>这一部分的过程在<a href="https://github.com/brianloveswords/node-jws/blob/master/lib/sign-stream.js" target="_blank" rel="external">node-jws的源码</a>中有体现</p>
+</blockquote>
+<p>最后，我们将上面拼接完的字符串用HS256算法进行加密。在加密的时候，我们还需要提供一个密钥（secret）。如果我们用<code>mystar</code>作为密钥的话，那么就可以得到我们加密后的内容</p>
+<figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rSWamyAYwuHC<span class="preprocessor">o7</span>IFAgd<span class="number">1</span>oRpSP<span class="number">7</span><span class="label">nzL7</span>BF<span class="number">5</span>t<span class="number">7</span>ItqpKViM</span><br></pre></td></tr></table></figure>
+<p>这一部分又叫做<strong>签名</strong>。</p>
+<img src="/2015/09/06/understanding-jwt/sig1.png" alt="签名过程" title="签名过程">
+<p>最后将这一部分签名也拼接在被签名的字符串后面，我们就得到了完整的JWT</p>
+<figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">eyJ<span class="number">0</span>eXAiOiJKV<span class="number">1</span>QiLCJhbGciOiJIUzI<span class="number">1</span><span class="label">NiJ9</span>.eyJmc<span class="title">m9</span>tX<span class="number">3</span>VzZXIiOiJCIiwidGFyZ<span class="number">2</span>V<span class="number">0</span>X<span class="number">3</span>VzZXIiOiJBI<span class="label">n0</span>.rSWamyAYwuHC<span class="preprocessor">o7</span>IFAgd<span class="number">1</span>oRpSP<span class="number">7</span><span class="label">nzL7</span>BF<span class="number">5</span>t<span class="number">7</span>ItqpKViM</span><br></pre></td></tr></table></figure>
+<p>于是，我们就可以将邮件中的URL改成</p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http<span class="variable">s:</span>//your.awesome-app.<span class="keyword">com</span>/<span class="keyword">make</span>-friend/?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcm9tX3VzZXIiOiJCIiwidGFyZ2V0X3VzZXIiOiJBIn0.rSWamyAYwuHCo7IFAgd1oRpSP7nzL7BF5t7ItqpKViM</span><br></pre></td></tr></table></figure>
+<p>这样就可以安全地完成添加好友的操作了！</p>
+<p>且慢，我们一定会有一些问题：</p>
+<ol>
+<li>签名的目的是什么？</li>
+<li>Base64是一种编码，是可逆的，那么我的信息不就被暴露了吗？</li>
+</ol>
+<p>让我逐一为你说明。</p>
+<h3 id="签名的目的">签名的目的</h3><p>最后一步签名的过程，实际上是对头部以及载荷内容进行签名。一般而言，加密算法对于不同的输入产生的输出总是不一样的。对于两个不同的输入，产生同样的输出的概率极其地小（有可能比我成世界首富的概率还小）。所以，我们就把“不一样的输入产生不一样的输出”当做必然事件来看待吧。</p>
+<p>所以，如果有人对头部以及载荷的内容解码之后进行修改，再进行编码的话，那么新的头部和载荷的签名和之前的签名就将是不一样的。而且，如果不知道服务器加密的时候用的密钥的话，得出来的签名也一定会是不一样的。</p>
+<img src="/2015/09/06/understanding-jwt/sig2.png" alt="签名过程" title="签名过程">
+<p>服务器应用在接受到JWT后，会首先对头部和载荷的内容用同一算法再次签名。那么服务器应用是怎么知道我们用的是哪一种算法呢？别忘了，我们在JWT的头部中已经用<code>alg</code>字段指明了我们的加密算法了。</p>
+<p>如果服务器应用对头部和载荷再次以同样方法签名之后发现，自己计算出来的签名和接受到的签名不一样，那么就说明这个Token的内容被别人动过的，我们应该拒绝这个Token，返回一个HTTP 401 Unauthorized响应。</p>
+<h3 id="信息会暴露？">信息会暴露？</h3><p>是的。</p>
+<p>所以，在JWT中，不应该在载荷里面加入任何敏感的数据。在上面的例子中，我们传输的是用户的User ID。这个值实际上不是什么敏感内容，一般情况下被知道也是安全的。</p>
+<p>但是像密码这样的内容就不能被放在JWT中了。如果将用户的密码放在了JWT中，那么怀有恶意的第三方通过Base64解码就能很快地知道你的密码了。</p>
+<h3 id="JWT的适用场景">JWT的适用场景</h3><p>我们可以看到，JWT适合用于向Web应用传递一些非敏感信息。例如在上面提到的完成加好友的操作，还有诸如下订单的操作等等。</p>
+<p>其实JWT还经常用于设计用户认证和授权系统，甚至实现Web应用的单点登录。在下一次的文章中，我将为大家系统地总结JWT在用户认证和授权上的应用。如果想要及时地收到下一篇文章的更新，您可以在下方订阅我的半月刊：）</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>JSON Web Token（JWT）是一个非常轻巧的<a href="https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32">规范</a>。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。</p>]]>
+    
+    </summary>
+    
+      <category term="Engineering" scheme="http://blog.leapoahead.com/categories/Engineering/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[以Node应用为例谈如何管理Web应用的环境常量]]></title>
+    <link href="http://blog.leapoahead.com/2015/09/04/managing-env-constants/"/>
+    <id>http://blog.leapoahead.com/2015/09/04/managing-env-constants/</id>
+    <published>2015-09-04T07:33:51.000Z</published>
+    <updated>2015-09-04T07:33:51.000Z</updated>
+    <content type="html"><![CDATA[<p>在程序员自己的小世界里，我们一直在和“量”打交道——变量和常量。可是常量真的是一成不变的吗？事实上，常量也分为两种，应用常量（application-specific constant）和环境常量（environment-specific constant）。</p>
+<a id="more"></a>
+<p>所谓应用常量就是，无论这个应用程序运行在哪里，这个值都是不会变的。例如，对于一个用户模块，用户名的最大长度一直都为25，那么我就可以在配置文件中直接写下这个常量。下面以JavaScript为例：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> USERNAME_LENGTH_MAX = <span class="number">25</span></span><br></pre></td></tr></table></figure>
+<p>而所谓环境常量，就是<strong>根据这个应用程序所运行的位置的不同而产生变化，但是在运行期间都不会变化的值</strong>。</p>
+<p>举个例子，经典的开发流程有一种是“开发（devlopment）-预发布（staging）-线上（production）”。在这三种环境下，应用程序所使用的数据库一般都是不同的，所以使用的数据库配置也不同。</p>
+<img src="/2015/09/04/managing-env-constants/dev-stage-prod.png" alt="开发-预发布-线上的开发流程" title="开发-预发布-线上的开发流程">
+<p>如果还使用前面的方式来管理这些值的话，那么就相当地麻烦了。那么如何解决这个问题呢？答案跟应用规模有关。</p>
+<h3 id="小型应用：使用环境变量">小型应用：使用环境变量</h3><p>可千万别因为一会儿常量一会儿变量而头疼，待会儿我相信你会清楚的：）</p>
+<p>环境变量指的是，在一个机器（环境）中每个应用程序都能访问到的那些变量。举个例子，很多人都有配置Windows或者Linux系统的PATH的经历，PATH就是一个环境变量，在任何应用程序中都可以访问。我们来做一个小实验：</p>
+<p>在任意目录下新建一个<strong>print-path.js</strong></p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// process.env是Node.js运行的时候创建的一个对象</span></span><br><span class="line"><span class="comment">// 里面包含的是它所在的环境中所定义的环境变量</span></span><br><span class="line">console.<span class="function"><span class="title">log</span><span class="params">(process.env.PATH)</span></span></span><br></pre></td></tr></table></figure>
+<p>然后运行它</p>
+<figure class="highlight dos"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ node <span class="built_in">print</span>-<span class="built_in">path</span>.js</span><br></pre></td></tr></table></figure>
+<p>你就会得到类似像下面所示的字符串</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/usr/local/<span class="symbol">bin:</span>/usr/<span class="symbol">bin:</span>/<span class="symbol">bin:</span>/usr/<span class="symbol">sbin:</span>/<span class="symbol">sbin:</span>/<span class="constant">Users/John/</span>.npm-modules/bin/<span class="symbol">:/usr/local/bin/depot_tools</span><span class="symbol">:/usr/local/Cellar/postgresql/</span><span class="number">9.4</span>.<span class="number">4</span>/bin</span><br></pre></td></tr></table></figure>
+<p>正如在Windows下面定义PATH一样，你也可以随意定制自己的环境变量。例如在Linux/Mac OSX环境下，在终端中我们可以用<strong>export 环境变量名=环境变量值</strong>的方法来定义一个环境变量</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt; $ <span class="keyword">export</span> NAME=Esther</span><br><span class="line">&gt; $ node -e <span class="string">"console.log(process.env.NAME)"</span></span><br><span class="line">&gt; Esther</span><br></pre></td></tr></table></figure>
+<p>在第一行中，我们首先用<code>export</code>创建了一个环境变量，名称是<code>NAME</code>，值是<code>Esther</code>。在第二行中，我们用<code>node -e</code>直接运行一段Node.js程序，要求打印出<code>process.env.NAME</code>。第三行是输出的结果，我们可以看到它正确地输出了<code>Esther</code>。</p>
+<blockquote>
+<p>小知识：我们一般都是用专门的文件来定义环境变量，而不是要用的时候才用<code>export</code>定义的。环境变量其实是针对shell的，我们常用的bash就是一个shell（你可以简单理解成就是Mac自带的那个终端）。使用bash的时候一般将环境变量定义在<code>~/.bashrc</code>中。对于从bash运行的程序，就可以读取其中定义的环境变量。值得一提的是，<code>~/.bashrc</code>里面也是用<code>export</code>来定义环境变量，一样一样的！</p>
+</blockquote>
+<p>但是有的时候，在一个环境下有多个应用，特别是开发环境的机器（也就是我们码农的机器）。所以，如果将所有环境变量都定义在一块，难免很不方便，容易形成下面这样混乱的<strong>bashrc</strong>文件。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> APP1_NAME=weibo</span><br><span class="line"><span class="built_in">export</span> APP1_DB_NAME=weibo-zhalang</span><br><span class="line"><span class="built_in">export</span> APP2_NAME=twitter</span><br><span class="line"><span class="built_in">export</span> APP2_DB_HOST=twitter-prod-db.db.com</span><br><span class="line"><span class="comment"># ...</span></span><br></pre></td></tr></table></figure>
+<p>所以，我们需要更加好的方法来解决！</p>
+<h3 id="使用dotenv">使用dotenv</h3><p>dotenv实际上是一个文件，文件名是<code>.env</code>，一般被我们放在项目的根目录下。例如，下面是一个我自己的项目里面的dotenv文件</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 数据库配置</span></span><br><span class="line"><span class="setting">DB_DIALECT=<span class="value">postgres</span></span></span><br><span class="line"><span class="setting">DB_HOST=<span class="value"><span class="number">10.10</span>.<span class="number">10.10</span></span></span></span><br><span class="line"><span class="setting">DB_PASSWORD=<span class="value">db</span></span></span><br><span class="line"><span class="setting">DB_USER=<span class="value">db</span></span></span><br><span class="line"><span class="setting">DB_PORT=<span class="value"><span class="number">5432</span></span></span></span><br><span class="line"><span class="setting">DB_NAME=<span class="value">webcraft</span></span></span><br><span class="line"><span class="setting">DB_CHARSET=<span class="value">utf8</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Node环境配置</span></span><br><span class="line"><span class="setting">NODE_ENV=<span class="value">development</span></span></span><br></pre></td></tr></table></figure>
+<p>利用dotenv，我们就可以定义针对项目的环境变量了。如果dotenv的位置是<strong>/path/to/project/.env</strong>，那么所有在<strong>/path/to/project</strong>目录下运行的文件，其能访问到的环境变量<strong>/path/to/project/.env</strong>定义的环境变量。</p>
+<p>说起来有点抽象，我们来动手操作理解一下这个过程。在终端中，我们进行下面的操作</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ mkdir ~/<span class="built_in">test</span> &amp;&amp; <span class="built_in">cd</span> <span class="variable">$_</span></span><br><span class="line">$ <span class="built_in">echo</span> <span class="string">'PATH=rats'</span> &gt; .env</span><br><span class="line">$ npm install dotenv</span><br></pre></td></tr></table></figure>
+<p>上面所做的事情其实就是新建目录<code>~/test</code>并进入，然后新建一个<code>.env</code>文件。文件内容很简单：</p>
+<figure class="highlight fix"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">NAME</span>=<span class="string">Lee</span></span><br></pre></td></tr></table></figure>
+<p>这相当于为在这个目录下面运行的所有应用程序重新定义环境变量<code>PATH</code>的值为<code>rats</code>。当然，我们还需要一些库的支持，这个库就叫<a href="https://github.com/motdotla/dotenv" target="_blank" rel="external">dotenv</a>。（这里是Node.js版本的，其他语言基本也有自己的dotenv实现，例如php和python）。所以在上面我们用npm安装了这个库。</p>
+<p>接下来新建<strong>print-name.js</strong></p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 加载dotenv模块</span></span><br><span class="line"><span class="comment">// 具体用法可以查看文档</span></span><br><span class="line"><span class="function"><span class="title">require</span><span class="params">(<span class="string">'dotenv'</span>)</span></span>.<span class="function"><span class="title">load</span><span class="params">()</span></span></span><br><span class="line">console.<span class="function"><span class="title">log</span><span class="params">(process.env.NAME)</span></span></span><br></pre></td></tr></table></figure>
+<p>运行后就能看到输出为<code>Lee</code>。</p>
+<p>这样做的好处就很明显，在不同的项目目录下应用不同的环境变量，并且它们之间不会互相干扰。</p>
+<blockquote>
+<p>小挑战：你可能想问，dotenv定义的环境变量可以覆盖bash的环境变量吗？请自己尝试，看看能不能覆盖bash中的PATH变量。</p>
+</blockquote>
+<p>这些环境变量其实对于这个项目而言就是环境常量。所以，环境常量是对于应用而言的，而环境变量是对于环境而言的。</p>
+<p><a href="https://github.com/motdotla/dotenv" target="_blank" rel="external">dotenv</a></p>
+<h3 id="-env-example">.env-example</h3><p>每个人的开发机器都不同，就算是同一个项目，所需环境变量也不同。我的数据库地址可能是A，你的则可能是B。因此，每个人的<code>.env</code>都会不同。那么，如何对<code>.env</code>进行源码管理呢？</p>
+<p>答案就是，我们为每个人提供一个<code>.env</code>的模板，名字一般是<code>.env-example</code>。当我们将项目clone到本地后，将其复制成<code>.env</code>，然后填上我们自己需要的环境变量。</p>
+<p>如果这样做，那么就应该将<code>.env</code>排除在源码管理之外，因为我们不希望它被分享出去。如果使用git作为源码管理工具的话，那么我们就需要在<code>.gitignore</code>中指明忽略<code>.env</code></p>
+<figure class="highlight mel"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># Ignore .<span class="keyword">env</span> <span class="keyword">file</span></span><br><span class="line">.<span class="keyword">env</span></span><br></pre></td></tr></table></figure>
+<p>可以参考<a href="https://github.com/tjwudi/webcraft" target="_blank" rel="external">我的这个项目的做法</a></p>
+<h3 id="中大型项目：将环境常量仓库式集中管理">中大型项目：将环境常量仓库式集中管理</h3><p>中大型项目中要配置的环境常量可能很多，或许会接近两三千哥，不再适合用dotenv管理。</p>
+<p>解决的方法只有一个——把它们从代码中独立出来管理。例如，我们用yaml文件定义环境常量，全部放在源码<code>config/env</code>下，其目录结构大致如下。</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── application-setting<span class="class">.yaml</span></span><br><span class="line">├── database<span class="class">.yaml</span></span><br><span class="line">├── dinner<span class="class">.yaml</span></span><br><span class="line">├── user<span class="class">.yaml</span></span><br><span class="line">└── 此处省略N个yaml文件</span><br></pre></td></tr></table></figure>
+<p>放在源码中的配置文件是给开发环境用的。对于其他环境，例如stage和production，我们可以将它们放在统一的代码仓库下面进行管理。由于配置文件的修改一般都不会是大改，所以我们可以手工维护其一致性，只要保证有类似Code Review或者一些简单的自动化检查的环节来保障就可以保持其有效。</p>
+<p>在部署的时候，我们也可以单独部署。在这个过程中，可能需要由我们自己开发部署的工具，或者可以采用一些持续集成平台来进行部署。</p>
+<p>综上，不同的大型项目业务环境有不同的选择，但是我认为，对于这些环境常量应该保持两条原则：</p>
+<ol>
+<li>集中式仓库管理，独立作为一个子系统运作</li>
+<li>自动化，这已经是很简单的场景了，完全依靠自动化排错不是问题</li>
+</ol>
+<h3 id="写在最后">写在最后</h3><p>所谓架构就是对应用程序的一系列选择。做好每一个小的选择，都是对架构的改进。良好的环境常量管理可以让配置流程更加清晰易懂，简单高效。</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>在程序员自己的小世界里，我们一直在和“量”打交道——变量和常量。可是常量真的是一成不变的吗？事实上，常量也分为两种，应用常量（application-specific constant）和环境常量（environment-specific constant）。</p>]]>
+    
+    </summary>
+    
+      <category term="Engineering" scheme="http://blog.leapoahead.com/categories/Engineering/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[在Node应用中避免“Dot Hell”]]></title>
+    <link href="http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/"/>
+    <id>http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/</id>
+    <published>2015-09-03T07:38:51.000Z</published>
+    <updated>2015-09-03T07:38:51.000Z</updated>
+    <content type="html"><![CDATA[<p>在Node应用中，我们使用<code>require</code>来加载模块。在目录层次相对复杂的应用中，总是会出现类似<code>require(&#39;../../../../../module&#39;)</code>的调用，我把它称之为Dot Hell。我用了一些时间研究现有的解决方案，并介绍我个人认为最好的方法。</p>
+<a id="more"></a>
+<img src="/2015/09/03/prevent-node-require-dot-hell/cat.png" alt="cat.png" title="">
+<p>在Node中的全局对象是<code>global</code>，它就像浏览器的<code>window</code>对象一样。<code>global</code>对象下面的方法都可以直接调用。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">global.a = <span class="number">1</span></span><br><span class="line"><span class="built_in">require</span>(<span class="string">'assert'</span>).equal(<span class="number">1</span>, a)</span><br></pre></td></tr></table></figure>
+<p>因此最简单的方法，也是我认为最好的方式就是在<code>global</code>下创建一个<code>appRequire</code>方法作为<code>require</code>方法的包装，<code>appRequire</code>方法专门用于调用应用内的包。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> path = <span class="built_in">require</span>(<span class="string">'path'</span>)</span><br><span class="line">global.appRequire = <span class="function"><span class="keyword">function</span>(<span class="params">path</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">require</span>(path.resolve(__dirname, path))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>假设我们的项目目录结构如下</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">├── app</span><br><span class="line">│   ├── controller</span><br><span class="line">│   │   └── AppController<span class="class">.js</span></span><br><span class="line">│   ├── model</span><br><span class="line">│   │   └── User<span class="class">.js</span></span><br><span class="line">│   └── view</span><br><span class="line">│       └── AppView<span class="class">.js</span></span><br><span class="line">└── app.js</span><br></pre></td></tr></table></figure>
+<p>其中<strong>app.js</strong>是应用的入口。那么我们只需要在<strong>app.js</strong>中应用上面的代码，那么在整个应用程序中就都可以使用了。</p>
+<p>例如，现在在<strong>app/controller/AppController.js</strong>中，我们可以用下面的语句调用<strong>app/model/User.js</strong>。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> User = appRequire(<span class="string">'app/model/User'</span>)</span><br></pre></td></tr></table></figure>
+<p>Oh Yeah! 一切都很优雅，很顺利。</p>
+<p>但是一个应用中一定还会有测试代码。以单元测试为例，我们如果用<a href="https://mochajs.org/" target="_blank" rel="external">mocha</a>之类的Task Runner去运行测试的话，就得在每个测试前面都加上这一段代码，这样做很容易出错，而且很麻烦。</p>
+<p>所以，我们可以把上述的封装代码单独封装成一个文件<strong>global-bootstrap.js</strong>，在运行mocha的时候，用mocha的require参数来指定每次运行测试之前要加载<strong>global-bootstrap.js</strong>。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># 用Mocha运行tests文件夹下面的所有测试</span><br><span class="line"># 在运行的时候加载should库，以及我们封装的含有appRequire函数的文件</span><br><span class="line">mocha --require should --require global-bootstrap.js --recursive tests</span><br></pre></td></tr></table></figure>
+<h3 id="其他方案">其他方案</h3><p>对于解决这个问题，还有两种方案：<strong>NODE_ENV方案（及其变种）</strong>和<strong>Symlink方案</strong>，你可以<a href="https://gist.github.com/branneman/8048520" target="_blank" rel="external">在这里</a>看到。</p>
+<p>我认为应该避免使用这两种方案。虽然这两种方案都可行，但是它们都会可能导致应用自身的目录名和node模块名冲突。例如，在下面的结构中，使用<code>require(&#39;request&#39;)</code>就很容易产生二义性。</p>
+<figure class="highlight vbscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── node_modules</span><br><span class="line">│   └── <span class="built_in">request</span></span><br><span class="line">└── <span class="built_in">request</span></span><br><span class="line">    └── index.js</span><br></pre></td></tr></table></figure>
+<h3 id="总结">总结</h3><p>我一直认为Node的模块引用方式的设计是有问题的，Dot Hell就很能说明这点。而Python相对而言就优雅很多，你可以直接通过路径的形式来导入包（在正确配置的情况下）。本文的解决方案允许我们用类似Python的方式去加载模块，你可以在我的项目<a href="https://github.com/tjwudi/webcraft" target="_blank" rel="external">webcraft</a>中看到其应用。</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>在Node应用中，我们使用<code>require</code>来加载模块。在目录层次相对复杂的应用中，总是会出现类似<code>require(&#39;../../../../../module&#39;)</code>的调用，我把它称之为Dot Hell。我用了一些时间研究现有的解决方案，并介绍我个人认为最好的方法。</p>]]>
+    
+    </summary>
+    
+      <category term="Engineering" scheme="http://blog.leapoahead.com/categories/Engineering/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[用自然语言的角度理解JavaScript中的this关键字]]></title>
+    <link href="http://blog.leapoahead.com/2015/08/31/understanding-js-this-keyword/"/>
+    <id>http://blog.leapoahead.com/2015/08/31/understanding-js-this-keyword/</id>
+    <published>2015-08-31T19:44:14.000Z</published>
+    <updated>2015-09-01T04:49:49.000Z</updated>
+    <content type="html"><![CDATA[<p>在编写JavaScript应用的时候，我们经常会使用<code>this</code>关键字。那么<code>this</code>关键字究竟是怎样工作的？它的设计有哪些好的地方，有哪些不好的地方？本文带大家全面系统地认识这个老朋友。</p>
+<img src="/2015/08/31/understanding-js-this-keyword/what_is_this.png" alt="WHAT IS THIS" title="WHAT IS THIS">
+<blockquote>
+<p>小明正在跑步，他看起来很开心</p>
+</blockquote>
+<p>这里的小明是<strong>主语</strong>，如果没有这个主语，那么后面的代词『他』将毫无意义。有了主语，代词才有了可以指代的事物。</p>
+<p>类比到JavaScript的世界中，我们在调用一个对象的方法的时候，需要先指明这个对象，再指明要调用的方法。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> xiaoming = &#123;</span><br><span class="line">  name: <span class="string">'Xiao Ming'</span>,</span><br><span class="line">  run: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;this.name&#125;</span> seems happy`</span>);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">xiaoming.run();</span><br></pre></td></tr></table></figure>
+<p><a href="http://jsbin.com/nawesuhoxu/edit?js,console" target="_blank" rel="external">在线演示</a></p>
+<p>在上面的例子中，第8行中的<code>xiaoming</code>指定了<code>run</code>方法运行时的主语。因此，在<code>run</code>中，我们才可以用<code>this</code>来代替<code>xiaoming</code>这个对象。可以看到<code>this</code>起了代词的作用。</p>
+<p>同样的，对于一个JavaScript类，在将它初始化之后，我们也可以用类似的方法来理解：类的实例在调用其方法的时候，将作为主语，其方法中的<code>this</code>就自然变成了指代主语的代词。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">People</span> </span>&#123;</span><br><span class="line">  constructor(name) &#123;</span><br><span class="line">    <span class="comment">// 在用new关键字实例化一个对象的时候，相当于在说，</span></span><br><span class="line">    <span class="comment">// “创建一个People类实例（主语），它（this）的name是……”</span></span><br><span class="line">    <span class="comment">// 所以这里的this就是新创建的People类实例</span></span><br><span class="line">    <span class="keyword">this</span>.name = name;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  run() &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;this.name&#125;</span> seems happy.`</span>)  </span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// new关键字实例化一个类</span></span><br><span class="line"><span class="keyword">var</span> xiaoming = <span class="keyword">new</span> People(<span class="string">'xiaoming'</span>);</span><br><span class="line">xiaoming.run();</span><br></pre></td></tr></table></figure>
+<p><a href="http://jsbin.com/nanujaheyu/edit?js,console" target="_blank" rel="external">在线演示</a></p>
+<p>这就是我认为this关键字设计得精彩的地方！如果将调用方法的语句（上面代码的第16行）和方法本身的代码连起来，像英语一样读，其实是完全通顺的。</p>
+<h3 id="this的绑定"><code>this</code>的绑定</h3><p>句子的主语是可以变的，例如在下面的场景中，<code>run</code>被赋值到小芳（<code>xiaofang</code>）身上之后，调用<code>xiaofang.run</code>，主语就变成了小芳！</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> xiaofang = &#123;</span><br><span class="line">  name: <span class="string">'Xiao Fang'</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> xiaoming = &#123;</span><br><span class="line">  name: <span class="string">'Xiao Ming'</span>,</span><br><span class="line">  run: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;this.name&#125;</span> seems happy`</span>);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">xiaofang.run = xiaoming.run;</span><br><span class="line"><span class="comment">// 主语变成了小芳</span></span><br><span class="line">xiaofang.run();</span><br></pre></td></tr></table></figure>
+<p><a href="http://jsbin.com/siherigulo/1/edit?js,console" target="_blank" rel="external">在线演示</a></p>
+<p>在这种情况下，句子还是通顺的。所以，非常完美！</p>
+<img src="/2015/08/31/understanding-js-this-keyword/this_is_perfect.png" alt="非常完美！" title="非常完美！">
+<p>但是如果小明很抠门，不愿意将<code>run</code>方法借给小芳以后，<code>this</code>就变成了小芳的话，那么小明要怎么做呢？他可以通过<a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Function/bind" target="_blank" rel="external">Function.prototype.bind</a>让<code>run</code>运行时候的<code>this</code>永远为小明自己。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> xiaofang = &#123;</span><br><span class="line">  name: <span class="string">'Xiao Fang'</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> xiaoming = &#123;</span><br><span class="line">  name: <span class="string">'Xiao Ming'</span>,</span><br><span class="line">  run: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;this.name&#125;</span> seems happy`</span>);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 将小明的run方法绑定（bind）后，返回的还是一个</span></span><br><span class="line"><span class="comment">// 函数，但是这个函数之后被调用的时候就算主语不是小明，</span></span><br><span class="line"><span class="comment">// 它的this依然是小明</span></span><br><span class="line">xiaoming.run = xiaoming.run.bind(xiaoming);</span><br><span class="line"></span><br><span class="line">xiaofang.run = xiaoming.run;</span><br><span class="line"><span class="comment">// 主语虽然是小芳，但是最后this还是小明</span></span><br><span class="line">xiaofang.run();</span><br></pre></td></tr></table></figure>
+<p><a href="http://jsbin.com/reforakoja/1/edit?js,console" target="_blank" rel="external">在线演示</a></p>
+<p>那么同一个函数被多次<code>bind</code>之后，到底<code>this</code>是哪一次<code>bind</code>的对象呢？你可以自己尝试看看。</p>
+<h3 id="call与apply"><code>call</code>与<code>apply</code></h3><p><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Function/call" target="_blank" rel="external">Function.prototype.call</a>允许你在调用一个函数的时候指定它的<code>this</code>的值。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> xiaoming = &#123;</span><br><span class="line">    name: <span class="string">'Xiao Ming'</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">run</span>(<span class="params">today, mood</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">`Today is <span class="subst">$&#123;today&#125;</span>, <span class="subst">$&#123;this.name&#125;</span> seems <span class="subst">$&#123;mood&#125;</span>`</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 函数的call方法第一个参数是this的值</span></span><br><span class="line"><span class="comment">// 后续只需按函数参数的顺序传参即可</span></span><br><span class="line">run.call(xiaoming, <span class="string">'Monday'</span>, <span class="string">'happy'</span>)</span><br></pre></td></tr></table></figure>
+<p><a href="http://jsbin.com/xuvugihuda/1/edit?js,console" target="_blank" rel="external">在线演示</a></p>
+<p><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Function/apply" target="_blank" rel="external">Function.prototype.apply</a>和<code>Function.prototype.call</code>的功能是一模一样的，区别进在于，<code>apply</code>里将函数调用所需的所有参数放到一个数组当中。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> xiaoming = &#123;</span><br><span class="line">    name: <span class="string">'Xiao Ming'</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">run</span>(<span class="params">today, mood</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">`Today is <span class="subst">$&#123;today&#125;</span>, <span class="subst">$&#123;this.name&#125;</span> seems <span class="subst">$&#123;mood&#125;</span>`</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// apply只接受两个参数</span></span><br><span class="line"><span class="comment">// 第二个参数是一个数组，这个数组的元素被按顺序</span></span><br><span class="line"><span class="comment">// 作为run调用的参数</span></span><br><span class="line">run.apply(xiaoming, [<span class="string">'Monday'</span>, <span class="string">'happy'</span>])</span><br></pre></td></tr></table></figure>
+<p><a href="http://jsbin.com/safupufuca/1/edit?js,console" target="_blank" rel="external">在线演示</a></p>
+<p>那么<code>call</code>/<code>apply</code>和上面的<code>bind</code>混用的时候是什么样的行为呢？这个也留给大家自行验证。但是在一般情况下，我们应该避免混用它们，否则会造成代码检查或者调试的时候难以跟踪<code>this</code>的值的问题。</p>
+<h3 id="当方法失去主语的时候，this不再有？">当方法失去主语的时候，<code>this</code>不再有？</h3><p>其实大家可以发现我的用词，当一个<code>function</code>被调用的时候是有主语的时候，它是一个<strong>方法</strong>；当一个<code>function</code>被调用的时候是没有主语的时候，它是一个<strong>函数</strong>。当一个函数运行的时候，它虽然没有主语，但是它的<code>this</code>的值会是全局对象。在浏览器里，那就是<code>window</code>。当然了，前提是函数没有被<code>bind</code>过，也不是被<code>apply</code>或<code>call</code>所调用。</p>
+<p>那么<code>function</code>作为函数的情景有哪些呢？</p>
+<p>首先，全局函数的调用就是最简单的一种。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">bar</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="keyword">this</span> === <span class="built_in">window</span>); <span class="comment">// 输出：true</span></span><br><span class="line">&#125;</span><br><span class="line">bar();</span><br></pre></td></tr></table></figure>
+<p>立即调用的函数表达式（IIFE，Immediately-Invoked Function Expression）也是没有主语的，所以它被调用的时候<code>this</code>也是全局对象。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="keyword">this</span> === <span class="built_in">window</span>); <span class="comment">// 输出：true</span></span><br><span class="line">&#125;)();</span><br></pre></td></tr></table></figure>
+<p><a href="http://jsbin.com/qavagatuya/1/edit?js,console" target="_blank" rel="external">在线演示（包含上面两个例子）</a></p>
+<p>但是，当函数被执行在严格模式（strict-mode）下的时候，函数的调用时的this就是<code>undefined</code>了。这是很值得注意的一点。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">bar</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line"><span class="pi">  'use strict'</span>;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'Case 2 '</span> + <span class="built_in">String</span>(<span class="keyword">this</span> === <span class="literal">undefined</span>)); <span class="comment">// 输出：undefined</span></span><br><span class="line">&#125;</span><br><span class="line">bar();</span><br></pre></td></tr></table></figure>
+<h3 id="不可见的调用">不可见的调用</h3><p>有时候，你没有办法看到你定义的函数是怎么被调用的。因此，你就没有办法知道它的主语。下面是一个用jQuery添加事件监听器的例子。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">window</span>.val = <span class="string">'window val'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> obj = &#123;</span><br><span class="line">  val: <span class="string">'obj val'</span>,</span><br><span class="line">  foo: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    $(<span class="string">'#text'</span>).bind(<span class="string">'click'</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="keyword">this</span>.val);</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">obj.foo();</span><br></pre></td></tr></table></figure>
+<p><a href="http://jsbin.com/yeweyoliva/1/edit?js,console,output" target="_blank" rel="external">在线演示</a></p>
+<p>在事件的回调函数（第6行开始定义的匿名函数）里面，<code>this</code>的值既不是<code>window</code>，又不是<code>obj</code>，而是页面上<code>id</code>为<code>text</code>的HTML元素。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> obj = &#123;</span><br><span class="line">  foo: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    $(<span class="string">'#text'</span>).bind(<span class="string">'click'</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="keyword">this</span> === <span class="built_in">document</span>.getElementById(<span class="string">'text'</span>)); <span class="comment">// 输出：true</span></span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">obj.foo();</span><br></pre></td></tr></table></figure>
+<p><a href="http://jsbin.com/vikayufiso/1/edit?js,console,output" target="_blank" rel="external">在线演示</a></p>
+<p>这是因为匿名函数是被jQuery内部调用的，我们不知道它调用的时候的主语是什么，或者是否被<code>bind</code>等函数修改过<code>this</code>的值。所以，当你将匿名函数交给程序的其他部分调用的时候，需要格外地谨慎。</p>
+<p>如果我们想要在上面的回调函数里面使用obj的<code>val</code>值，除了直接写<code>obj.val</code>之外，还可以在foo方法中用一个新的变量<code>that</code>来保存<code>foo</code>运行时<code>this</code>的值。这样说有些绕口，我们看下例子便知。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">window</span>.val = <span class="string">'window val'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> obj = &#123;</span><br><span class="line">  val: <span class="string">'obj val'</span>,</span><br><span class="line">  foo: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> that = <span class="keyword">this</span>; <span class="comment">// 保存this的引用到that，这里的this实际上就是obj</span></span><br><span class="line">    $(<span class="string">'#text'</span>).bind(<span class="string">'click'</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="built_in">console</span>.log(that.val); <span class="comment">// 输出：obj val</span></span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">obj.foo();</span><br></pre></td></tr></table></figure>
+<p><a href="http://jsbin.com/fefozitake/1/edit?js,console,output" target="_blank" rel="external">在线演示</a></p>
+<p>另外一种方法就是为该匿名函数<code>bind</code>了。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">window</span>.val = <span class="string">'window val'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> obj = &#123;</span><br><span class="line">  val: <span class="string">'obj val'</span>,</span><br><span class="line">  foo: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    $(<span class="string">'#text'</span>).bind(<span class="string">'click'</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="keyword">this</span>.val); <span class="comment">// 输出：obj val</span></span><br><span class="line">    &#125;.bind(<span class="keyword">this</span>));</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">obj.foo();</span><br></pre></td></tr></table></figure>
+<p><a href="http://jsbin.com/kodupitade/1/edit?js,console,output" target="_blank" rel="external">在线演示</a></p>
+<h3 id="总结">总结</h3><p>在JavaScript中<code>this</code>的用法的确是千奇百怪，但是如果利用自然语言的方式来理解，一切就顺理成章了。不知道你读完这篇文章时候理解了吗？还是睡着了？亲……醒醒……</p>
+<p>如果有任何疑问，欢迎在评论区讨论。<strong>另外，欢迎在下方订阅我的半月刊，我将为你分享有趣的技术、产品、设计的片段。</strong></p>
+<div style="width: 200px"><br>    <img src="/2015/08/31/understanding-js-this-keyword/oh_yeah.gif" alt="oh_yeah.gif" title=""><br></div>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>在编写JavaScript应用的时候，我们经常会使用<code>this</code>关键字。那么<code>this</code>关键字究竟是怎样工作的？它的设计有哪些好的地方，有哪些不好的地方？本文带大家全面系统地认识这个老朋友。</p>
+<img src="/2015]]>
+    </summary>
+    
+      <category term="Engineering" scheme="http://blog.leapoahead.com/categories/Engineering/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[当你打开网页的时候，世界都发生了什么（1）]]></title>
+    <link href="http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/"/>
+    <id>http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/</id>
+    <published>2015-08-31T03:47:04.000Z</published>
+    <updated>2015-08-31T04:55:14.000Z</updated>
+    <content type="html"><![CDATA[<p>你有没有好奇过，当你试图打开一个网页的时候，这个世界上都发生了一些什么事情？会不会因为你手气键落，产生了蝴蝶效应，指尖的风拂起千年后你梦中的那个女孩的刘海？咳，也不是没有可能。今天我就来告诉你会发生什么事情，你可以沏一壶茶，坐在躺椅上，慢慢品味……</p>
+<a id="more"></a>
+<blockquote>
+<p>时光倒流到你刚才打开这个页面的那一瞬间…</p>
+</blockquote>
+<p>Hi！大家好，我的名字叫做浏览器，我还有个很酷的英文名字叫做Browser！很高兴认识你！</p>
+<img src="/2015/08/30/what-happens-when-you-open-a-webpage/browser.png" alt="浏览器" title="浏览器">
+<p>什么，你想上百度？没问题！请你告诉我一下，百度的地址是什么？或者说，百度的<strong>URL</strong>是什么？</p>
+<p>对了，给你介绍一下URL，全称Unified Resource Locator，中文名为统一资源定位符，也就是我们俗称的<strong>网址</strong>。它就像互联网上的门牌一样，而浏览器就好像的士司机。你只要告诉浏览器你想要看的网页的URL，他就会把你载到那里啦！</p>
+<img src="/2015/08/30/what-happens-when-you-open-a-webpage/baidu-url.png" alt="浏览器：访问百度页面" title="浏览器：访问百度页面">
+<p>嗯，百度的地址是<code>http://baidu.com</code>是吧，好嘞！我现在就开始帮你去把这个网页给请过来。</p>
+<p>首先，我先要找到这个网页的家在哪里。网页的家有一个名字叫做<strong>服务器</strong>，它的英文名叫做Server。服务器本身其实也是一台电脑，跟你家中的电脑其实是非常相似的。只不过相比起来，服务器性能会比普通的电脑的性能来得强劲，因为它需要服务成千上万个人！</p>
+<img src="/2015/08/30/what-happens-when-you-open-a-webpage/many-servers.png" alt="互联网上的服务器" title="互联网上的服务器">
+<p>那么这么多的服务器，我怎么找到百度所在的那个服务器呢？就靠你刚才告诉我的URL了！URL只是服务器地址的一个比较好听的名字而已，我没有办法直接通过这个地址找到服务器。其实啊，在服务器的世界里面，他们还有一种更精确的地址表达方式，叫做IP地址。</p>
+<blockquote>
+<p>插一嘴：IP地址是什么，它是怎么工作的，恐怕可以写好几本书了。简单地说，IP地址就是形同<code>192.168.0.1</code>这种形式的数字和英文句号的组合。你可以把它当做相对URL来讲更加准确的地址。</p>
+</blockquote>
+<p>我找到IP地址的方式其实很简单，我只要请操作系统（OS, Operating System）帮忙就好了。所谓的操作系统，就是类似Windows、Mac OS一样的软件，你能够在它们上面安装各种各样的软件。其中Mac OS是苹果电脑专用的操作系统。</p>
+<img src="/2015/08/30/what-happens-when-you-open-a-webpage/dnslookup.png" alt="dnslookup.png" title="">
+<p>这个从URL到IP地址的过程叫做DNS查找，即DNS Lookup。天啊，又一个新名词！没关系，你不需要记住这个名词。你所需要知道的是，这里看似操作系统独自很快地完成了这个过程，但是其实它为此所做的事情相当复杂。我们今后将有专门的文章用来介绍这一过程。</p>
+<h3 id="建立连接和发送请求">建立连接和发送请求</h3><p>已经顺利拿到了服务器的IP地址，接下来我就要向他要东西啦！首先我希望它把baidu.com对应的网页传送给我。我们之间传输信息的方式比较特殊，不需要我坐地铁去找它然后搬回来，而是我会跟服务器建立一个<strong>连接</strong>。</p>
+<p>连接，英文名叫做Connection。实际上，它就像开辟了一个专用的通道，供我们互相之间传递信息。</p>
+<img src="/2015/08/30/what-happens-when-you-open-a-webpage/connection.png" alt="连接的建立" title="连接的建立">
+<p>接下来，我就会通过这个专用通道，向服务器发起一个请求（Request）。在这个请求里面，我会像服务器阐明我想要的资源是什么，例如在这里，我想要的资源就是百度的首页。</p>
+<p>那么具体这个资源的位置我是怎么告诉服务器的呢？还得回到刚才的URL来说！</p>
+<img src="/2015/08/30/what-happens-when-you-open-a-webpage/url.png" alt="URL的组成" title="URL的组成">
+<p>一个URL一般由六个部分组成，这里我们只介绍主机名（服务器名）和资源位置（或者说是资源路径）。一个服务器上可以有很多的资源，对应着不同的页面或者文件，例如<code>http://xxx.com/login</code>可以是某网站的登录页面，<code>http://xxx.com/register</code>则可以是某网站的注册页面。这里的<code>/login</code>和<code>/register</code>就代表了两个不同的资源（这里是页面）。<code>/</code>是比较特殊的资源路径，叫做“根路径”，通常就是网站的首页了。其实，这里的原理就和我们电脑上的文件夹是一模一样的。</p>
+<p>在知道了需要的资源的位置之后，我就会给服务器发送一个请求。这个请求实际上就是一系列的英文字符，就像一篇文章一样。</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="request">GET <span class="string">/</span> HTTP/1.1</span></span><br><span class="line"><span class="attribute">User-Agent</span>: <span class="string">curl/7.37.1</span></span><br><span class="line"><span class="attribute">Host</span>: <span class="string">baidu.com</span></span><br><span class="line"><span class="attribute">Accept</span>: <span class="string">*/*</span></span><br></pre></td></tr></table></figure>
+<p>怎么样，我也是很有文采的吧！在这里，你需要知道的是，<code>GET /</code>即代表，我现在要从服务器上拿下来一个资源，这个资源的位置是<code>/</code>。另外，<code>Host: baidu.com</code>代表我要请求的主机名叫做<code>baidu.com</code>。Host这个英文单词就是有主机的意思！</p>
+<p>好了，请求已经准备完毕了，我现在就通过之前建立的连接将这个请求直接送给服务器！</p>
+<h3 id="获得响应">获得响应</h3><p>当服务器获得请求之后，经过一系列的工作（可能是类似翻箱倒柜找材料之类的吧），最后将要送还给我的材料，包括网页的代码，全部打包起来形成一个<strong>响应</strong>（Response），通过连接返回给我。</p>
+<p>响应是和请求对应的，一个请求对应一个响应。这就好像问问题一样，一问一答。所以，响应本身其实也就是一系列的英文字符，就像这样：（下面的响应是被简化的版本）</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">HTTP/1.1 200 OK</span><br><span class="line">Date: Mon, 31 Aug 2015 03:06:34 GMT</span><br><span class="line">Server: Apache</span><br><span class="line"><span class="operator"><span class="keyword">Cache</span>-Control: <span class="keyword">max</span>-age=<span class="number">86400</span></span><br><span class="line">Expires: Tue, <span class="number">01</span> Sep <span class="number">2015</span> <span class="number">03</span>:<span class="number">06</span>:<span class="number">34</span> GMT</span><br><span class="line"><span class="keyword">Last</span>-Modified: Tue, <span class="number">12</span> Jan <span class="number">2010</span> <span class="number">13</span>:<span class="number">48</span>:<span class="number">00</span> GMT</span><br><span class="line">ETag: <span class="string">"51-4b4c7d90"</span></span><br><span class="line"><span class="keyword">Accept</span>-Ranges: <span class="keyword">bytes</span></span><br><span class="line"><span class="keyword">Content</span>-<span class="keyword">Length</span>: <span class="number">81</span></span><br><span class="line"><span class="keyword">Connection</span>: <span class="keyword">Keep</span>-Alive</span><br><span class="line"><span class="keyword">Content</span>-<span class="keyword">Type</span>: <span class="built_in">text</span>/html</span><br><span class="line"> </span><br><span class="line">&lt;html&gt;</span><br><span class="line">    .... 此处省略<span class="keyword">N</span>多行</span><br><span class="line">&lt;/html&gt;</span></span><br></pre></td></tr></table></figure>
+<p>你可以注意到，响应分为两个部分。在13行之上的部分称作响应头（Response Head），下面的部分称作响应主体（Response Body）。在这里，响应主体就是网页的代码了。</p>
+<img src="/2015/08/30/what-happens-when-you-open-a-webpage/req-res.png" alt="请求-响应" title="请求-响应">
+<p>好了，到目前为止，我已经拿到了网页的代码。</p>
+<h3 id="等等…啥是代码？">等等…啥是代码？</h3><p>好问题！</p>
+<p>网页本身其实是由一系列的英文字符编写成的，这些英文字符称作“代码”（Code）。这些英文字符和普通的英文文章看起来差不多，但是它们都是用一种我（浏览器）可以看得懂的格式写成的。我通过阅读这些英文字符，理解它，然后按照它的意思将你想要看的页面渲染出来。</p>
+<p>别急，关于这些，我们在接下来的文章中慢慢道来。</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>你有没有好奇过，当你试图打开一个网页的时候，这个世界上都发生了一些什么事情？会不会因为你手气键落，产生了蝴蝶效应，指尖的风拂起千年后你梦中的那个女孩的刘海？咳，也不是没有可能。今天我就来告诉你会发生什么事情，你可以沏一壶茶，坐在躺椅上，慢慢品味……</p>]]>
+    
+    </summary>
+    
+      <category term="Web Beginner" scheme="http://blog.leapoahead.com/categories/beginner/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[你所应该知道的A/B测试基础]]></title>
+    <link href="http://blog.leapoahead.com/2015/08/27/introduction-to-ab-testing/"/>
+    <id>http://blog.leapoahead.com/2015/08/27/introduction-to-ab-testing/</id>
+    <published>2015-08-28T04:56:52.000Z</published>
+    <updated>2015-08-31T01:20:40.000Z</updated>
+    <content type="html"><![CDATA[<p>在互联网行业里面工作，能给我带来的一个乐趣就是“快”。天下武功，唯快不破。我们可以轻易地做到一天三次以上的产品更新速度，这是和许多传统行业的区别之一。如何利用好这个优势，在我眼里成为了产品发展的关键所在。</p>
+<a id="more"></a>
+<h3 id="什么是A/B测试？">什么是A/B测试？</h3><p>在快速上线的过程中，A/B测试是一个帮助我们快速试错的一种<strong>实验的方法</strong>。在统计学上，其实是Hypothesis Testing（假设测试）的一种形式。它能够帮我们了解我们对产品的改动，例如一个新的功能，是否能够吸引更多用户、让用户更加喜欢、产生更大的效益等。</p>
+<p>A/B测试方法的基本概括就是，将用户分为两组，一组使用旧产品（或旧功能），一组使用新的。然后对比两个用户组，通过数据来分析，新的功能究竟是好是坏。没错，就跟小学的时候做的那些有控制组、实验组的自然科学实验一样一样的。</p>
+<p>A/B测试的具体实施方式有很多种。桌面应用、网站、手机应用都有一些不同的A/B测试方法。本文中以网站的A/B测试为例来介绍。</p>
+<p>我们以天猫的购物车为例，现在的天猫购物车中，结算按钮是在最下方的。这里我浏览器窗口的高度弄得比较小，所以看起来结算按钮和物品之间距离很近，但是实际上他们之间是有很大的距离的。</p>
+<img src="/2015/08/27/introduction-to-ab-testing/tmall-cart.png" alt="天猫购物车" title="天猫购物车">
+<p>现在我就可以提出一个想法，让我们试着把结算按钮移动到购物车的最上方，或许可以增加这个结算按钮的点击穿透率（CTR，Click Through Rate），从而可能提高转化率（CR，Conversion Rate）。</p>
+<blockquote>
+<p>小知识&amp;题外话：CTR简单说即点击该结算按钮的次数占该页面的总访问次数的百分比。例如，在2014年10月25日这一天，一共有200万人打开了这个购物车的页面，其中有20万人点击“结算”并成功到达了结算页面，那么这一天该按钮的CTR即为<strong>20万/200万乘以100%，即10%</strong>。<br>CR，简单来说就是实际进行了消费活动的顾客占总访客数量的百分比。</p>
+</blockquote>
+<img src="/2015/08/27/introduction-to-ab-testing/tmall-cart-new.png" alt="天猫购物车新设计" title="天猫购物车新设计">
+<p>现在，我们就有了两个版本的购物车。一个是现有版本，我们称之为A；一个是我新设计的版本，我们称之为B。我们的目标是想要知道，B的效果是否比A来得好。</p>
+<p>那么，为了衡量效果，我们就要明确我们要观测的数据。这里，我们选择CTR和CR作为我们的观测数据。如果新设计上线后，这两个数据如果有上升，那么就代表着这个新的设计是一个很好的改进。</p>
+<h3 id="按用户（流量）划分控制组和实验组">按用户（流量）划分控制组和实验组</h3><p>接下来我们将用户划分成用户组和实验组。按用户分组也称作按流量分组。例如，我们可以让50%来到天猫的用户看到旧的设计，另外50%来到天猫的用户看到新的设计。</p>
+<p>需要注意的是，我们必须尽量保证同一个用户在实验期间所能看到的是同一个设计。如果他刚才看到的结算按钮在下面，现在又看到结算按钮在上面了，那么对他而言一定是一件很困惑的事情。</p>
+<img src="/2015/08/27/introduction-to-ab-testing/request-bucketing.png" alt="请求分桶" title="请求分桶">
+<blockquote>
+<p>小知识：划分组的过程由服务器的特定算法完成，这类算法我们一般称之为分桶算法（Bucketing Algorithm）。分桶也就是分组，是一个概念。对网站请求进行分桶的那部分程序叫做请求分桶（Request Bucketer）。</p>
+</blockquote>
+<h3 id="按页面划分控制组和实验组">按页面划分控制组和实验组</h3><p>有的时候，按照用户分组会存在一些问题。例如，如果你的实验是关于搜索引擎优化（SEO）的，那么可能就需要按照页面来划分控制组和实验组。例如，对于50%的购物车<strong>页面</strong>，无论谁访问，都是看到原来的设计；对于其他50%的购物车页面，则是新的设计。</p>
+<p>SEO的基本目的就是让搜索引擎更好搜索到网站的页面，所以我们希望在实验期间每次对于同一个页面，搜索引擎看到的结果都是一致的。这样才可以对比两种不同设计的页面对于搜索引擎爬虫的效果孰优孰劣。</p>
+<img src="/2015/08/27/introduction-to-ab-testing/seo-bucketing.png" alt="页面分桶" title="页面分桶">
+<p>典型的SEO优化包括对标题的优化。例如，控制组中的页面标题是放入了商家的宝贝数量，例如“艾迪达斯旗舰店 - 1020件商品 - 上天猫，就购了！”；实验组中的页面标题是放入了商家上传的照片的数量，例如“艾迪达斯旗舰店 - 4558张照片 - 上天猫，就购了！”。别小看这样细小的变化，业界的确有不少成功的SEO优化就是由细小的变化所产生的。</p>
+<h3 id="按页面划分的细节问题">按页面划分的细节问题</h3><p>按页面划分的时候，如果仅仅划分为两个组，可能会出现一些问题。比如，如果对天猫商家页面进行按页面分组，如果在实验期间正好某商家自身发生了非常疯狂的大促，那么它所在的那一组的数据可能会直线飙升。这就可能引起我们的误解，我们可能以为这是由于实验本身造成的影响，于是造成了错误判断。</p>
+<p>简单的解决方法就是划分为四个组，而不是两个组：</p>
+<ul>
+<li>控制组1</li>
+<li>控制组2</li>
+<li>实验组1</li>
+<li>实验组2</li>
+</ul>
+<p>如果在实验组1里面的某个商家因为其自身原因，数据飙升，带动了整个实验组1的数据飙升。但是，实验组2的数据却没有什么很大的起色的话，那么说明是商家自身原因导致，而非新的功能带来的影响。</p>
+<h3 id="分组的比例分配">分组的比例分配</h3><p>分组的比例分配不一定要是50%：50%，因为有些新功能是很可能造成不好的影响的，特别是试用一些新技术。在流量或者页面很多的情况下，哪怕是99%：1%的比例分配也是可以的，因为在后面还有采样的过程。对于淘宝，就算是1%的流量也是非常巨大的，所以样本总量（population）够大，对1%流量采样和50%的流量采样一般是没什么区别的。</p>
+<h3 id="互斥实验">互斥实验</h3><p>有些实验之间是互斥的，可能会互相影响结果。例如，实验A的存在会让实验B的效果适得其反。</p>
+<p>简单的方法就是开辟“泳道”（swimlane）。就好像在游泳的时候，你在你的泳道游你的蛙泳，我在我的泳道游我的自由泳，咱们互不侵犯。拿按页面划分来举例，我们可以让实验A所用的所有页面占网站总页面的20%，实验B占据20%，并且实验A和实验B所涉及的页面互不相交（即互斥）。</p>
+<img src="/2015/08/27/introduction-to-ab-testing/swimlanes.png" alt="泳道划分" title="泳道划分">
+<h3 id="在A/B测试中要注意什么">在A/B测试中要注意什么</h3><p><strong>不要过早下定论</strong>。一个实验上线后，不能急着在两三天内就下定论。统计学上有一个概念叫做statistical confidence，有专门的方法可以用于计算。只有当计算出来的数据达到一定阀值的时候，我们才可以（从统计学上）说这个新的设计是成功或者失败的。我们可以用现成的<a href="https://vwo.com/ab-split-test-significance-calculator/" target="_blank" rel="external">计算器</a>来计算。</p>
+<p><strong>尽量减小偏差（bias）</strong>。例如，如果你对页面进行分组采用的方式是让卖拐杖的页面成为控制组、不卖拐杖的页面成为实验组，那这里面就会产生很大的偏差。因为一般买拐杖都是老年人在买，或者中年的子女在帮老人买，青少年不太可能去买。所以，两组之间就会产生很大的用户的性格的差异，对实验结果的影响就可能很不好了。</p>
+<h3 id="所有的产品都可以进行A/B测试">所有的产品都可以进行A/B测试</h3><p>A/B测试允许我们快速演进我们的产品。我认为，除了互联网行业之外，其他行业也应该学习快速进行A/B测试的思想，创造更好的、质量更高的产品。</p>
+<p>A/B测试的场景很多，不同的A/B测试方法每天都在帮我们创建更好的世界。建议大家可以上网搜索，并和身边的人一起讨论如何应用假设测试打造更好的产品。</p>
+<h3 id="推荐阅读">推荐阅读</h3><ul>
+<li><a href="http://www.smashingmagazine.com/2010/06/the-ultimate-guide-to-a-b-testing/" target="_blank" rel="external">The Ultimate Guide To A/B Testing</a></li>
+<li><a href="http://www.sitepoint.com/designers-guide-a-b-testing/" target="_blank" rel="external">The Designer’s Guide to A/B Testing</a></li>
+</ul>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>在互联网行业里面工作，能给我带来的一个乐趣就是“快”。天下武功，唯快不破。我们可以轻易地做到一天三次以上的产品更新速度，这是和许多传统行业的区别之一。如何利用好这个优势，在我眼里成为了产品发展的关键所在。</p>]]>
+    
+    </summary>
+    
+      <category term="Software Engineering" scheme="http://blog.leapoahead.com/categories/engineering/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[我是如何对待学习编程这件事的]]></title>
+    <link href="http://blog.leapoahead.com/2015/08/27/how-i-learn-as-a-software-engineer/"/>
+    <id>http://blog.leapoahead.com/2015/08/27/how-i-learn-as-a-software-engineer/</id>
+    <published>2015-08-28T04:10:09.000Z</published>
+    <updated>2015-08-28T04:14:38.000Z</updated>
+    <content type="html"><![CDATA[<p>十一年前，我在电脑爱好者论坛上面发布了自己的第一个软件，DocumentsManager。那是一个用C# 3.0编写的文档分类、索引软件，五脏不全，但麻雀不小。今天他还在<a href="http://bbs.cfan.com.cn/thread-688798-1-1.html" target="_blank" rel="external">精华索引</a>里面。不只是他，精华帖中Leap.ahead和ASUSTek发布的帖子都是我发的，总共有22个。</p>
+<p>对于我而言，不仅创造是一种乐趣，学习如何创造同样也是一种很大的乐趣。在我的学生生涯中，在不同的时段，我学习创造的方式也不同。这是一个需要时间来演进的过程，所以时间一长，也需要总结一下。今天难得有了总结的冲动，便简略地说说我的一些心得。</p>
+<h3 id="深入才能浅出">深入才能浅出</h3><p>学计算机的人都研究抽象。有句话是这样说的，所有的计算机科学问题都可以用抽象来解决，除了过多的抽象。</p>
+<p>由于接触了太多的“抽象”，我曾经有一种心态，那就是要学就学顶端的设计，要做架构师。我还问过我的一个大学学长，“学什么课才能成为架构师”？在那时的我心目中，架构师就是画图的，然后程序员实现就是了。</p>
+<p>但是在有了工作经历后，我发现实际上如果对底层没有很深入的了解，是根本没有办法对顶层设计做出好的判断的。可能我只是知道一些名词，诸如cache、CDN、负载均衡等。但是真的要到用到这些东西的时候，其实是只能用到最粗浅的那一层。连螺丝是怎么拧的都不知道的人，别人怎么放心让你去建桥呢？</p>
+<p>这就是所谓的“深入浅出”。深入到每一分每一毫，是为“深入”。然后再跳出来，纵观全局，是为“浅出”。</p>
+<h3 id="广撒网，但别做捞鱼的打算">广撒网，但别做捞鱼的打算</h3><p>既然要深入浅出，那么这个深入真的是要把一个具体的技术钻研得很深吗？这也是一直以来很受争议的地方：到底是学一个领域学得精通好，还是学很多领域好？</p>
+<p>我的答案是，能真的学得精的人必然学得广，能真的学得广的人必然能学得精，而且能学得很快。仔细想想，我们的时间真的有少得窘迫到一定要在广和精之间二选一吗？如果纠结于这个问题，那么一定是放错了重点。重点不在于选择广或是精，而是如何让自己变得更会学习。</p>
+<p>我在国内外的大公司实习，感觉到的明显区别就是，国内公司“专家”居多，国外公司“工程师”居多。国内把工程师的职责分得非常清楚，哪怕是一个五六个人的小团队，也得有个明确的后端、前端、算法工程师云云。而国外的定义基本上都是软件工程师，职责很宽泛，你随时可以做其他团队做的事情。</p>
+<p>关于公司的这种现象，可以写另一篇单独的文章出来聊聊。但是可以确定的是，不管是国外还是国内，都有很多成功的技术公司。从来没有听人抱怨过，“我们这儿的工程师都只会一两样东西，其他啥也不会”，或者是“我们这儿的工程师啥都会一点儿，但就是不精”。</p>
+<p>所以，广撒网是没有错的，但是别做捞鱼的打算。当你自己感兴趣的时候，你自然会深入去研究，做出自己想要的东西。</p>
+<h3 id="学习规则，但不要相信它们">学习规则，但不要相信它们</h3><p>我喜欢规则，但是也很讨厌规则。</p>
+<p>在学习技术的时候经常会遇到所谓的Best Practice（最佳实践）。面对最佳实践，有三种态度：</p>
+<ul>
+<li>我代码连跑都跑不通，还管你最佳实践？</li>
+<li>最佳实践是要遵守的，能让我们的代码更加如何如何……</li>
+<li>最佳实践值得学习，要打破的时候也要适当打破</li>
+</ul>
+<p>我认为，这三种态度没有谁对谁错，但是需要被理性地看待。诚然，最佳实践是一种规则。但是，我们在面对规则的时候，不要忘记了自己做选择的权利。</p>
+<p>其实做工程、技术就是做选择，而且选择一般都很明显。不像做研究，有时候你的选择可能非常难以被发现。规则应该是让我们变得更有主见的。我们应该把它们拿出来理解、讨论、思考，让它们千变万化。到最后，要我们做选择的时候，才有资本拿出来给别人看。</p>
+<p>除了最佳实践外，我还经常想：这门语言的这个语法简直是一个败笔、这个变量起的这个名字实在是糟透了……我们不应该做一个hater，见到什么都否定。但是只要我拿得出理由，哪怕理由本身是有问题的，那我都敢去质疑。</p>
+<h3 id="关于兴趣">关于兴趣</h3><p>最后我想简短地说说兴趣。</p>
+<p>我不相信兴趣是可以培养出来的，只不过需要一点时间去发现它而已。就好像胡子总是会长的，但是个姑娘那就没辙了。如果硬要做自己不喜欢的事情，那就是让姑娘变小伙子，想起来就羞羞的。</p>
+<img src="/2015/08/27/how-i-learn-as-a-software-engineer/engineering.jpeg" alt="engineering.jpeg" title="">]]></content>
+    <summary type="html">
+    <![CDATA[<p>十一年前，我在电脑爱好者论坛上面发布了自己的第一个软件，DocumentsManager。那是一个用C# 3.0编写的文档分类、索引软件，五脏不全，但麻雀不小。今天他还在<a href="http://bbs.cfan.com.cn/thread-688798-1-1.ht]]>
+    </summary>
+    
+      <category term="Life" scheme="http://blog.leapoahead.com/categories/life/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[First Week Intern at Yelp]]></title>
+    <link href="http://blog.leapoahead.com/2015/08/08/first-week-intern-at-yelp/"/>
+    <id>http://blog.leapoahead.com/2015/08/08/first-week-intern-at-yelp/</id>
+    <published>2015-08-09T05:03:00.000Z</published>
+    <updated>2015-08-27T03:13:57.000Z</updated>
+    <content type="html"><![CDATA[<p>This week is my first week @ Yelp, and I ❤ed it!</p>
+<a id="more"></a>
+<img src="/2015/08/08/first-week-intern-at-yelp/yelp-logo.png" alt="yelp-logo.png" title="">
+<p>[FIREWORKS !!!]</p>
+<p>[SCREAMING !!!]</p>
+<p>It was my first time being here in the US. I am here for internship @ Yelp as a Software Engineer Intern for six months.</p>
+<p>I was well-guided and firmly welcomed during the first week. The overall on-boarding process was quite mature.</p>
+<p>After exploring the Yelp HQ building with Krista — our Intern Program Manager and the New Engineer Orientation, I was introduced to my team, and also my mentor Andrew.</p>
+<p>My hands got dirty and busy at the very first day. I mean, really dirty. I even started writing python code on the first day. Besides that, Engineering Wiki is here to help me to go through the processes.</p>
+<p>Although some of the engineering processes are heavy, many automations are here to save your time. For example, there are many well-defined git hooks. My favourite part is marley — a bot build upon HUBOT on Yelp’s IRC channel. Marley knows everythings — traffic split, who is pushing code, etc. And he/she also does many funny things like sending your LOVE to someone else.</p>
+<p>Yelp seems like data-driven now, which I found really interesting. Data always makes me think, although I am not a Data Science expert.</p>
+<p>In a word, Yelp has a fantastic engineering culture. You are always welcomed to bring up your new ideas and just make it happen with your team. Which is highly appreciated.</p>
+<p>Tech stuff aside, Yelp HQ is a fantastic place for working. I actually would like to take it as living and playing funny stuff instead of working. They have in-house cafe which makes great cafe, and also a pingpong table here for people to play with. You get on-demand beverages and snacks on each floor, which is a privilege I am using carefully (oh, calories again!). I hope I can achieve a great work-life balance here</p>
+<p>My favorite part is the social gene of this company. @ Yelp, People chat and exchange ideas at lunch, talking about many interesting things. To be honest, I just didn’t get many things they were talking about at the beginning, but I think I am starting to catch up. And even though, I can still get many great ideas from other, even it was just five days!</p>
+<p>Hopefully everything will go pretty well and enjoyable in the coming weeks. Great thanks to my team and all my friends here @ Yelp.</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>This week is my first week @ Yelp, and I ❤ed it!</p>]]>
+    
+    </summary>
+    
+      <category term="Life" scheme="http://blog.leapoahead.com/categories/life/"/>
+    
+  </entry>
+  
+</feed>
