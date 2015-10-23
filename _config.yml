@@ -50,6 +50,7 @@ category_map:
     "Software Engineering": engineering
     "Web Beginner": beginner
     Tools: tools
+    DevOps: DevOps
 tag_map:
 
 # Date / Time format
