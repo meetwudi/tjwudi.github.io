@@ -4,7 +4,7 @@
   <subtitle><![CDATA[创造是我最大的兴趣]]></subtitle>
   <link href="/atom.xml" rel="self"/>
   <link href="http://blog.leapoahead.com/"/>
-  <updated>2015-10-23T07:44:59.000Z</updated>
+  <updated>2015-10-27T06:02:28.000Z</updated>
   <id>http://blog.leapoahead.com/</id>
   
   <author>
@@ -15,10 +15,31 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
+    <title><![CDATA[关于实现Chrome DevTools选择性Cache的提议]]></title>
+    <link href="http://blog.leapoahead.com/2015/10/26/chrome-devtools-selective-caching-proposal/"/>
+    <id>http://blog.leapoahead.com/2015/10/26/chrome-devtools-selective-caching-proposal/</id>
+    <published>2015-10-27T05:56:16.000Z</published>
+    <updated>2015-10-27T06:02:28.000Z</updated>
+    <content type="html"><![CDATA[<p>我们都爱Chrome DevTools！作为Web工程师，我们每天都使用DevTools。</p>
+<a id="more"></a>
+<p>在使用DevTools的过程中，我们会使用“Disable Cache (while DevTools is opened)”这个功能。在开发环境中，这个功能让我们在打开DevTools的时候，每次刷新都能获取到最新版本的静态资源。</p>
+<p>但是这个功能的弊端就是，当我们的页面在有过多静态资源的时候，就需要等非常之久。为了解决这个问题，我提出了选择性Cache的提议，可以在<a href="https://docs.google.com/document/d/19dkHl9fRbO_bN-jH_OSkbsNtq4MT4c2ZL8cqX7llY0U/edit#heading=h.3x8nyq2w3lbm" target="_blank" rel="external">这个Google Docs</a>上面看到。</p>
+<p>希望大家可以加入这里的讨论，让我们一起让DevTools变得更好！：）</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>我们都爱Chrome DevTools！作为Web工程师，我们每天都使用DevTools。</p>]]>
+    
+    </summary>
+    
+      <category term="Engineering" scheme="http://blog.leapoahead.com/categories/Engineering/"/>
+    
+  </entry>
+  
+  <entry>
     <title><![CDATA[Galley - 为基于Docker架构本地开发与测试提速]]></title>
     <link href="http://blog.leapoahead.com/2015/10/23/intro-to-galley/"/>
     <id>http://blog.leapoahead.com/2015/10/23/intro-to-galley/</id>
-    <published>2015-10-22T23:40:01.000Z</published>
+    <published>2015-10-23T07:40:01.000Z</published>
     <updated>2015-10-23T07:44:59.000Z</updated>
     <content type="html"><![CDATA[<p>（本文投稿于<a href="www.infoq.com/cn/">InfoQ</a>，无论其是否刊登，其他第三方转载请务必注明出处）</p>
 <p>现如今，Docker已经成为了很多公司部署应用、服务的首选方案。依靠容器技术，我们能在不同的体系结构之上轻松部署几乎任何种类的应用。在洛杉矶时间2015年10月21日于旧金山展开的Twitter Flight开发者大会上，来自Fabric的工程师Joan Smith再次谈到了这一点。</p>
@@ -66,7 +87,7 @@
     <title><![CDATA[我从开源项目中学习到的Docker经验]]></title>
     <link href="http://blog.leapoahead.com/2015/10/07/docker-lessons-learned-md/"/>
     <id>http://blog.leapoahead.com/2015/10/07/docker-lessons-learned-md/</id>
-    <published>2015-10-07T18:42:44.000Z</published>
+    <published>2015-10-08T02:42:44.000Z</published>
     <updated>2015-10-08T04:30:37.000Z</updated>
     <content type="html"><![CDATA[<p>最近几周从一个Web开发俨然摇身一变成了“运维”，在GitHub上面为<a href="https://github.com/EverythingMe/redash" target="_blank" rel="external">re:dash</a>做Docker化的支持。在整个Code Review的过程中汲取了一些Docker的经验。</p>
 <a id="more"></a>
@@ -104,7 +125,7 @@
     <title><![CDATA[“函数是一等公民”背后的含义]]></title>
     <link href="http://blog.leapoahead.com/2015/09/19/function-as-first-class-citizen/"/>
     <id>http://blog.leapoahead.com/2015/09/19/function-as-first-class-citizen/</id>
-    <published>2015-09-19T00:37:41.000Z</published>
+    <published>2015-09-19T08:37:41.000Z</published>
     <updated>2015-09-19T08:37:41.000Z</updated>
     <content type="html"><![CDATA[<p>在学习一些语言的时候，你经常会听到“函数是一等公民”这样的描述。那么究竟函数在这类语言中扮演着怎么样的一个角色？它和函数式编程、无状态设计、封装抽象有什么千丝万缕的联系？</p>
 <a id="more"></a>
@@ -225,7 +246,7 @@
     <title><![CDATA[JavaScript闭包的底层运行机制]]></title>
     <link href="http://blog.leapoahead.com/2015/09/15/js-closure/"/>
     <id>http://blog.leapoahead.com/2015/09/15/js-closure/</id>
-    <published>2015-09-15T20:17:24.000Z</published>
+    <published>2015-09-16T04:17:24.000Z</published>
     <updated>2015-09-16T04:17:41.000Z</updated>
     <content type="html"><![CDATA[<p>我研究JavaScript闭包（closure）已经有一段时间了。我之前只是学会了如何使用它们，而没有透彻地了解它们具体是如何运作的。那么，究竟什么是闭包？</p>
 <a id="more"></a>
@@ -335,7 +356,7 @@
     <title><![CDATA[5分钟内使用React、Webpack与ES6构建应用]]></title>
     <link href="http://blog.leapoahead.com/2015/09/12/react-es6-webpack-in-5-minutes/"/>
     <id>http://blog.leapoahead.com/2015/09/12/react-es6-webpack-in-5-minutes/</id>
-    <published>2015-09-12T10:54:02.000Z</published>
+    <published>2015-09-12T18:54:02.000Z</published>
     <updated>2015-09-12T18:54:02.000Z</updated>
     <content type="html"><![CDATA[<p>假设你想要非常快速地搭建一个React应用，或者你想快速地搭建用ES6学习React开发的环境，那么这篇文章你一定不想错过。</p>
 <a id="more"></a>
@@ -376,7 +397,7 @@
     <title><![CDATA[Workshop - 对Express中间件进行单元测试]]></title>
     <link href="http://blog.leapoahead.com/2015/09/09/unittesting-express-middlewares/"/>
     <id>http://blog.leapoahead.com/2015/09/09/unittesting-express-middlewares/</id>
-    <published>2015-09-09T18:21:33.000Z</published>
+    <published>2015-09-10T02:21:33.000Z</published>
     <updated>2015-09-10T04:36:15.000Z</updated>
     <content type="html"><![CDATA[<p>我最近围绕着Express构建应用，尝试用不同的方法来对Express的中间件进行单元测试。今天通过Workshop的形式，一步一步地向大家介绍我的测试方式。</p>
 <a id="more"></a>
@@ -466,7 +487,7 @@
     <title><![CDATA[八幅漫画理解使用JSON Web Token设计单点登录系统]]></title>
     <link href="http://blog.leapoahead.com/2015/09/07/user-authentication-with-jwt/"/>
     <id>http://blog.leapoahead.com/2015/09/07/user-authentication-with-jwt/</id>
-    <published>2015-09-07T21:43:19.000Z</published>
+    <published>2015-09-08T05:43:19.000Z</published>
     <updated>2015-09-08T06:31:10.000Z</updated>
     <content type="html"><![CDATA[<p>上次在<a href="/2015/09/06/understanding-jwt/">《JSON Web Token - 在Web应用间安全地传递信息》</a>中我提到了JSON Web Token可以用来设计单点登录系统。我尝试用八幅漫画先让大家理解如何设计正常的用户认证系统，然后再延伸到单点登录系统。</p>
 <a id="more"></a>
@@ -522,7 +543,7 @@
     <title><![CDATA[JSON Web Token - 在Web应用间安全地传递信息]]></title>
     <link href="http://blog.leapoahead.com/2015/09/06/understanding-jwt/"/>
     <id>http://blog.leapoahead.com/2015/09/06/understanding-jwt/</id>
-    <published>2015-09-06T19:25:36.000Z</published>
+    <published>2015-09-07T03:25:36.000Z</published>
     <updated>2015-09-07T03:25:36.000Z</updated>
     <content type="html"><![CDATA[<p>JSON Web Token（JWT）是一个非常轻巧的<a href="https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32" target="_blank" rel="external">规范</a>。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。</p>
 <a id="more"></a>
@@ -598,7 +619,7 @@
     <title><![CDATA[以Node应用为例谈如何管理Web应用的环境常量]]></title>
     <link href="http://blog.leapoahead.com/2015/09/04/managing-env-constants/"/>
     <id>http://blog.leapoahead.com/2015/09/04/managing-env-constants/</id>
-    <published>2015-09-03T23:33:51.000Z</published>
+    <published>2015-09-04T07:33:51.000Z</published>
     <updated>2015-09-04T07:33:51.000Z</updated>
     <content type="html"><![CDATA[<p>在程序员自己的小世界里，我们一直在和“量”打交道——变量和常量。可是常量真的是一成不变的吗？事实上，常量也分为两种，应用常量（application-specific constant）和环境常量（environment-specific constant）。</p>
 <a id="more"></a>
@@ -672,7 +693,7 @@
     <title><![CDATA[在Node应用中避免“Dot Hell”]]></title>
     <link href="http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/"/>
     <id>http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/</id>
-    <published>2015-09-02T23:38:51.000Z</published>
+    <published>2015-09-03T07:38:51.000Z</published>
     <updated>2015-09-03T07:38:51.000Z</updated>
     <content type="html"><![CDATA[<p>在Node应用中，我们使用<code>require</code>来加载模块。在目录层次相对复杂的应用中，总是会出现类似<code>require(&#39;../../../../../module&#39;)</code>的调用，我把它称之为Dot Hell。我用了一些时间研究现有的解决方案，并介绍我个人认为最好的方法。</p>
 <a id="more"></a>
@@ -708,7 +729,7 @@
     <title><![CDATA[用自然语言的角度理解JavaScript中的this关键字]]></title>
     <link href="http://blog.leapoahead.com/2015/08/31/understanding-js-this-keyword/"/>
     <id>http://blog.leapoahead.com/2015/08/31/understanding-js-this-keyword/</id>
-    <published>2015-08-31T11:44:14.000Z</published>
+    <published>2015-08-31T19:44:14.000Z</published>
     <updated>2015-09-01T04:49:49.000Z</updated>
     <content type="html"><![CDATA[<p>在编写JavaScript应用的时候，我们经常会使用<code>this</code>关键字。那么<code>this</code>关键字究竟是怎样工作的？它的设计有哪些好的地方，有哪些不好的地方？本文带大家全面系统地认识这个老朋友。</p>
 <img src="/2015/08/31/understanding-js-this-keyword/what_is_this.png" alt="WHAT IS THIS" title="WHAT IS THIS">
@@ -779,7 +800,7 @@
     <title><![CDATA[当你打开网页的时候，世界都发生了什么（1）]]></title>
     <link href="http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/"/>
     <id>http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/</id>
-    <published>2015-08-30T19:47:04.000Z</published>
+    <published>2015-08-31T03:47:04.000Z</published>
     <updated>2015-08-31T04:55:14.000Z</updated>
     <content type="html"><![CDATA[<p>你有没有好奇过，当你试图打开一个网页的时候，这个世界上都发生了一些什么事情？会不会因为你手气键落，产生了蝴蝶效应，指尖的风拂起千年后你梦中的那个女孩的刘海？咳，也不是没有可能。今天我就来告诉你会发生什么事情，你可以沏一壶茶，坐在躺椅上，慢慢品味……</p>
 <a id="more"></a>
@@ -835,7 +856,7 @@
     <title><![CDATA[你所应该知道的A/B测试基础]]></title>
     <link href="http://blog.leapoahead.com/2015/08/27/introduction-to-ab-testing/"/>
     <id>http://blog.leapoahead.com/2015/08/27/introduction-to-ab-testing/</id>
-    <published>2015-08-27T20:56:52.000Z</published>
+    <published>2015-08-28T04:56:52.000Z</published>
     <updated>2015-08-31T01:20:40.000Z</updated>
     <content type="html"><![CDATA[<p>在互联网行业里面工作，能给我带来的一个乐趣就是“快”。天下武功，唯快不破。我们可以轻易地做到一天三次以上的产品更新速度，这是和许多传统行业的区别之一。如何利用好这个优势，在我眼里成为了产品发展的关键所在。</p>
 <a id="more"></a>
@@ -896,7 +917,7 @@
     <title><![CDATA[我是如何对待学习编程这件事的]]></title>
     <link href="http://blog.leapoahead.com/2015/08/27/how-i-learn-as-a-software-engineer/"/>
     <id>http://blog.leapoahead.com/2015/08/27/how-i-learn-as-a-software-engineer/</id>
-    <published>2015-08-27T20:10:09.000Z</published>
+    <published>2015-08-28T04:10:09.000Z</published>
     <updated>2015-08-28T04:14:38.000Z</updated>
     <content type="html"><![CDATA[<p>十一年前，我在电脑爱好者论坛上面发布了自己的第一个软件，DocumentsManager。那是一个用C# 3.0编写的文档分类、索引软件，五脏不全，但麻雀不小。今天他还在<a href="http://bbs.cfan.com.cn/thread-688798-1-1.html" target="_blank" rel="external">精华索引</a>里面。不只是他，精华帖中Leap.ahead和ASUSTek发布的帖子都是我发的，总共有22个。</p>
 <p>对于我而言，不仅创造是一种乐趣，学习如何创造同样也是一种很大的乐趣。在我的学生生涯中，在不同的时段，我学习创造的方式也不同。这是一个需要时间来演进的过程，所以时间一长，也需要总结一下。今天难得有了总结的冲动，便简略地说说我的一些心得。</p>
@@ -934,7 +955,7 @@
     <title><![CDATA[First Week Intern at Yelp]]></title>
     <link href="http://blog.leapoahead.com/2015/08/08/first-week-intern-at-yelp/"/>
     <id>http://blog.leapoahead.com/2015/08/08/first-week-intern-at-yelp/</id>
-    <published>2015-08-08T22:03:00.000Z</published>
+    <published>2015-08-09T05:03:00.000Z</published>
     <updated>2015-08-27T03:13:57.000Z</updated>
     <content type="html"><![CDATA[<p>This week is my first week @ Yelp, and I ❤ed it!</p>
 <a id="more"></a>
