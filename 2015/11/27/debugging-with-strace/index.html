@@ -1,0 +1,417 @@
+
+<!DOCTYPE html>
+<html lang="zh_CN">
+    
+<head>
+    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="回田园 - John Wu&#39;s Engineering Blog">
+    <title>Debugging with strace - 回田园 - John Wu&#39;s Engineering Blog</title>
+    <meta name="author" content="John Wu">
+    
+    
+        <link rel="alternative" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <meta name="description" content="strace is a tool that helps to inspect system calls your application makes. I found it really useful this week when I debugging a complex python application. I am not going through my original problem">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="Debugging with strace">
+<meta property="og:url" content="http://blog.leapoahead.com/2015/11/27/debugging-with-strace/index.html">
+<meta property="og:site_name" content="回田园 - John Wu's Engineering Blog">
+<meta property="og:description" content="strace is a tool that helps to inspect system calls your application makes. I found it really useful this week when I debugging a complex python application. I am not going through my original problem">
+<meta property="og:updated_time" content="2015-11-27T09:20:47.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Debugging with strace">
+<meta name="twitter:description" content="strace is a tool that helps to inspect system calls your application makes. I found it really useful this week when I debugging a complex python application. I am not going through my original problem">
+<meta name="twitter:creator" content="@leapoahead">
+    
+    
+    
+        <meta property="og:image" content="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=640"/>
+    
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/font-awesome.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/jquery.fancybox.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/jquery.fancybox-thumbs.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/tranquilpeak.css" type="text/css">
+    <!--STYLES END-->
+    
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-50843289-7']);
+        _gaq.push(['_trackPageview']);
+        (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+
+</head>
+
+    <body>
+        <div id="blog">
+            <header id="header" data-behavior="2">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <h1 class="header-title">
+        <a class="header-title-link" href="/ ">回田园 - John Wu&#39;s Engineering Blog</a>
+    </h1>
+    
+        <a class="header-right-picture" href="/#about">
+            <img class="header-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90"/>
+        </a>
+    
+</header>
+            <nav id="sidebar" data-behavior="2">
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/ "
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-home"></i>
+                    <span class="sidebar-button-desc">Home</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/all-categories"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
+                    <span class="sidebar-button-desc">Categories</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://github.com/tjwudi" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-github"></i>
+                    <span class="sidebar-button-desc">GitHub</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://twitter.com/leapoahead" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-twitter"></i>
+                    <span class="sidebar-button-desc">Twitter</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://facebook.com/leapoahead" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-facebook"></i>
+                    <span class="sidebar-button-desc">Facebook</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-linkedin"></i>
+                    <span class="sidebar-button-desc">Linked In</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="mailto:webmaster@leapoahead.com" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-envelope-o"></i>
+                    <span class="sidebar-button-desc">Mail</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/atom.xml"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-rss"></i>
+                    <span class="sidebar-button-desc">RSS</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+</nav>
+
+            
+            <div id="main" data-behavior="2"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post" itemscope itemType="http://schema.org/BlogPosting">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title" itemprop="headline">
+            Debugging with strace
+        </h1>
+    
+    <div class="post-meta">
+    <time itemprop="datePublished" content="Fri Nov 27 2015 00:32:56 GMT-0800">
+	
+		    11月 27, 2015
+    	
+    </time>
+    
+        <span>in </span>
+        
+    <a class="category-link" href="/categories/tools/">Tools</a>
+
+
+    
+</div>
+</div>
+    
+    <div class="post-content markdown" itemprop="articleBody">
+        <div class="main-content-wrap">
+            <p><a href="http://linux.die.net/man/1/strace" target="_blank" rel="external">strace</a> is a tool that helps to inspect system calls your application makes. I found it really useful this week when I debugging a complex python application. I am not going through my original problem though, but will show you some typical examples as proof of concept.</p>
+<a id="more"></a>
+<p>Let’s start with a basic scenario, file I/O on local filesystem. Suppose we have a powerful python script <strong>traceme.py</strong>, whilst there isn’t a <strong>a.txt</strong>.</p>
+<figure class="highlight ocaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># traceme.py</span><br><span class="line"><span class="keyword">with</span> <span class="keyword">open</span>(<span class="symbol">'a</span>.txt') <span class="keyword">as</span> f:</span><br><span class="line">    f.readline<span class="literal">()</span></span><br></pre></td></tr></table></figure>
+<p>If we run it, not surprisingly you are getting <code>IOError</code>.</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Traceback (most recent <span class="operator"><span class="keyword">call</span> <span class="keyword">last</span>):</span><br><span class="line"><span class="keyword">File</span> <span class="string">"strace_me.py"</span>, line <span class="number">1</span>, <span class="keyword">in</span> &lt;<span class="keyword">module</span>&gt;</span><br><span class="line">  <span class="keyword">with</span> <span class="keyword">open</span>(<span class="string">'a.txt'</span>) <span class="keyword">as</span> <span class="keyword">f</span>:</span><br><span class="line">  IOError: [Errno <span class="number">2</span>] <span class="keyword">No</span> such <span class="keyword">file</span> <span class="keyword">or</span> <span class="keyword">directory</span>: <span class="string">'a.txt'</span></span></span><br></pre></td></tr></table></figure>
+<p>But let’s say for some reason, sometimes we don’t get the name of the missing file. That was what happened to me earlier this week, and I got so confusing just because I didn’t know what was missing out there.</p>
+<p>I then ended up using <strong>strace</strong>, trying to find out what system call my program made. The simplies use case of <strong>strace</strong> is barely prepending command <code>strace</code> to the command you want to debug.</p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ strace <span class="keyword">python</span> traceme.<span class="keyword">py</span></span><br></pre></td></tr></table></figure>
+<p>A bunch of blazing long message will be shown like following.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">mmap(<span class="literal">NULL</span>, <span class="number">4096</span>, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -<span class="number">1</span>, <span class="number">0</span>) = <span class="number">0x7f6f772e9000</span></span><br><span class="line">lseek(<span class="number">3</span>, <span class="number">0</span>, SEEK_CUR)                   = <span class="number">0</span></span><br><span class="line">read(<span class="number">3</span>, <span class="string">"with open('a.txt') as f:\n    f.r"</span>..., <span class="number">4096</span>) = <span class="number">42</span></span><br><span class="line">lseek(<span class="number">3</span>, <span class="number">42</span>, SEEK_SET)                  = <span class="number">42</span></span><br><span class="line">read(<span class="number">3</span>, <span class="string">""</span>, <span class="number">4096</span>)                       = <span class="number">0</span></span><br><span class="line">close(<span class="number">3</span>)                                = <span class="number">0</span></span><br><span class="line">munmap(<span class="number">0x7f6f772e9000</span>, <span class="number">4096</span>)            = <span class="number">0</span></span><br><span class="line">open(<span class="string">"a.txt"</span>, O_RDONLY)                 = -<span class="number">1</span> ENOENT (No such file or directory)</span><br><span class="line">write(<span class="number">2</span>, <span class="string">"Traceback (most recent call last"</span>..., <span class="number">35</span>Traceback (most recent call last):</span><br><span class="line">) = <span class="number">35</span></span><br><span class="line">write(<span class="number">2</span>, <span class="string">"  File \"traceme.py\", line 1, in "</span>..., <span class="number">41</span>  File <span class="string">"traceme.py"</span>, line <span class="number">1</span>, in &lt;module&gt;</span><br><span class="line">) = <span class="number">41</span></span><br><span class="line">open(<span class="string">"traceme.py"</span>, O_RDONLY)            = <span class="number">3</span></span><br><span class="line">fstat(<span class="number">3</span>, &#123;st_mode=S_IFREG|<span class="number">0644</span>, st_size=<span class="number">42</span>, ...&#125;) = <span class="number">0</span></span><br><span class="line">mmap(<span class="literal">NULL</span>, <span class="number">4096</span>, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -<span class="number">1</span>, <span class="number">0</span>) = <span class="number">0x7f6f772e9000</span></span><br><span class="line">read(<span class="number">3</span>, <span class="string">"with open('a.txt') as f:\n    f.r"</span>..., <span class="number">4096</span>) = <span class="number">42</span></span><br><span class="line">write(<span class="number">2</span>, <span class="string">"    "</span>, <span class="number">4</span>    )                     = <span class="number">4</span></span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>Those are all system calls your program made at runtime. Apparently, according the the following line, we can address the name of the missing file.</p>
+<figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">open</span>(<span class="string">"a.txt"</span>, O_RDONLY)                 = -<span class="number">1</span> ENOENT (No such <span class="built_in">file</span> <span class="operator">or</span> <span class="built_in">directory</span>)</span><br></pre></td></tr></table></figure>
+<p>It also told you that this file was supposed to be opened in readonly mode. You will find many system calls interesting if you are not very familiar with kernel level programming.</p>
+<p>You can make your life way more easier buy just tracing a specific kind of system calls. In our case, my point of interest should be <code>open</code>. Use <code>-e trace=&lt;comma-separated-list-of-system-call-categories&gt;</code> to designate that.</p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ strace -<span class="keyword">e</span> trace=<span class="keyword">open</span> <span class="keyword">python</span> traceme.<span class="keyword">py</span></span><br></pre></td></tr></table></figure>
+<p>Then hopefully we are getting a much simpler and cleaner output.</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">open</span><span class="params">(<span class="string">"/usr/lib/python2.7/encodings/ascii.py"</span>, O_RDONLY)</span></span> = <span class="number">3</span></span><br><span class="line"><span class="function"><span class="title">open</span><span class="params">(<span class="string">"/usr/lib/python2.7/encodings/ascii.pyc"</span>, O_RDONLY)</span></span> = <span class="number">4</span></span><br><span class="line"><span class="function"><span class="title">open</span><span class="params">(<span class="string">"traceme.py"</span>, O_RDONLY)</span></span>            = <span class="number">3</span></span><br><span class="line"><span class="function"><span class="title">open</span><span class="params">(<span class="string">"traceme.py"</span>, O_RDONLY)</span></span>            = <span class="number">3</span></span><br><span class="line"><span class="function"><span class="title">open</span><span class="params">(<span class="string">"a.txt"</span>, O_RDONLY)</span></span>                 = -<span class="number">1</span> ENOENT (No such file or directory)</span><br></pre></td></tr></table></figure>
+<p>You can also attach a <strong>strace</strong> session to a running process by setting <code>-p</code> parameter to the pid of process you are interested in. That will be super helpful when debugging your running web application.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">root@dev:~<span class="preprocessor"># strace -p <span class="number">15427</span></span></span><br><span class="line">Process <span class="number">15427</span> attached - <span class="function">interrupt to quit</span><br><span class="line"><span class="title">futex</span><span class="params">(<span class="number">0x402f4900</span>, FUTEX_WAIT, <span class="number">2</span>, <span class="literal">NULL</span>)</span> </span><br><span class="line">Process 15427 detached</span></span><br></pre></td></tr></table></figure>
+<p>You can even do profiling to all the system calls your code made by using <code>-c</code> parameter. I personally think <code>c</code> stands for collecting. It’s a really powerful tool for you to understand performance issues from a low-level ground.</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">% time     seconds  usecs/call     calls    errors syscall</span><br><span class="line">------ ----------- ----------- --------- --------- ----------------</span><br><span class="line"><span class="number">100.00</span>    <span class="number">0.000006</span>           <span class="number">0</span>        <span class="number">65</span>           close</span><br><span class="line">  <span class="number">0.00</span>    <span class="number">0.000000</span>           <span class="number">0</span>        <span class="number">98</span>           read</span><br><span class="line">  <span class="number">0.00</span>    <span class="number">0.000000</span>           <span class="number">0</span>         <span class="number">8</span>           write</span><br><span class="line">  <span class="number">0.00</span>    <span class="number">0.000000</span>           <span class="number">0</span>       <span class="number">222</span>       <span class="number">159</span> open</span><br><span class="line">  <span class="number">0.00</span>    <span class="number">0.000000</span>           <span class="number">0</span>        <span class="number">83</span>        <span class="number">57</span> stat</span><br><span class="line">  <span class="number">0.00</span>    <span class="number">0.000000</span>           <span class="number">0</span>        <span class="number">95</span>           fstat</span><br><span class="line">  <span class="number">0.00</span>    <span class="number">0.000000</span>           <span class="number">0</span>         <span class="number">5</span>           lstat</span><br><span class="line">  <span class="number">0.00</span>    <span class="number">0.000000</span>           <span class="number">0</span>         <span class="number">3</span>           lseek</span><br></pre></td></tr></table></figure>
+<p>You can tell from the result that <code>open</code> system call is obviously is the performance bottleneck of the powerful app we just wrote.</p>
+<p>I use <strong>strace</strong> whenever I don’t have enough context of what my app is doing with the operating system. You can even use it to debug internet connection by tracing <code>poll,select,connect,recvfrom,sendto</code> system calls, which is super handy :P.</p>
+
+            
+                
+
+            
+        </div>
+    </div>
+    
+    <div class="post-rmds main-content-wrap">
+        <h4>猜你想读</h4>
+        <ul>
+            
+            
+                <li><a href="http://blog.leapoahead.com/2015/10/26/chrome-devtools-selective-caching-proposal/">关于实现Chrome DevTools选择性Cache的提议</a></li>
+            
+        </ul>
+        
+    </div>
+
+    <div class="post-mailchimp">
+    <div class="main-content-wrap mailchimp-wrap">
+        <h3>让有趣易懂的知识主动找到你</h3>
+        <p>订阅我的Email半月刊，让我们共同学习、成长。绝无广告！</p>
+        <form action="//leapoahead.us8.list-manage.com/subscribe/post?u=f3a6e2f843ac1be03e00f7bed&amp;amp;id=58e28559b1" method="post" name="mc-embedded-subscribe-form" class="mailchimp-form" target="_blank" novalidate>
+            <label for="mce-EMAIL" style="display: none">Email地址</label>
+            <input type="email" value="" name="EMAIL" id="mce-EMAIL" placeholder="您常用的Email地址" class="mailchimp-input">
+            <input type="submit" value="订阅" name="subscribe" id="mc-embedded-subscribe" class="mailchimp-input mailchimp-subscribe">
+            <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+            <div style="position: absolute; left: -5000px;"><input type="text" name="b_f3a6e2f843ac1be03e00f7bed_58e28559b1" tabindex="-1" value=""></div>
+        </form>
+    </div>
+</div>
+    <div class="post-footer main-content-wrap">
+        
+        <div class="post-actions-wrap">
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
+                <i class="fa fa-share-alt"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/11/27/debugging-with-strace/">
+                <i class="fa fa-facebook-official"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/11/27/debugging-with-strace/">
+                <i class="fa fa-twitter"></i>
+            </a>
+        </li>
+        
+            <li class="post-action">
+                <a class="post-action-btn btn btn--default" href="#disqus_thread">
+                    <i class="fa fa-comment-o"></i>
+                </a>
+            </li>
+        
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default jiathis_button_tsina" href="http://www.jiathis.com/send/?webid=tsina&uid=1399172634630776&summary=&lt;p&gt;&lt;a href=&quot;http://linux.die.net/man/1/strace&quot;&gt;strace&lt;/a&gt; is a tool that helps to inspect system calls your application makes. I found it really useful this week when I debugging a complex python application. I am not going through my original problem though, but will show you some typical examples as proof of concept.&lt;/p&gt;&title=Debugging with strace&url=http://blog.leapoahead.com/2015/11/27/debugging-with-strace/" target="new">
+                <i class="fa fa-weibo"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+            <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2015 John Wu. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="2">
+                    <div class="post-actions-wrap">
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
+                <i class="fa fa-share-alt"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/11/27/debugging-with-strace/">
+                <i class="fa fa-facebook-official"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/11/27/debugging-with-strace/">
+                <i class="fa fa-twitter"></i>
+            </a>
+        </li>
+        
+            <li class="post-action">
+                <a class="post-action-btn btn btn--default" href="#disqus_thread">
+                    <i class="fa fa-comment-o"></i>
+                </a>
+            </li>
+        
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default jiathis_button_tsina" href="http://www.jiathis.com/send/?webid=tsina&uid=1399172634630776&summary=&lt;p&gt;&lt;a href=&quot;http://linux.die.net/man/1/strace&quot;&gt;strace&lt;/a&gt; is a tool that helps to inspect system calls your application makes. I found it really useful this week when I debugging a complex python application. I am not going through my original problem though, but will show you some typical examples as proof of concept.&lt;/p&gt;&title=Debugging with strace&url=http://blog.leapoahead.com/2015/11/27/debugging-with-strace/" target="new">
+                <i class="fa fa-weibo"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                <div id="share-options-bar" class="share-options-bar" data-behavior="2">
+    <ul class="share-options">
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/11/27/debugging-with-strace/">
+                <i class="fa fa-google-plus"></i><span class="">Share on Google Plus</span>
+            </a>
+        </li>
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/11/27/debugging-with-strace/">
+                <i class="fa fa-facebook-official"></i><span>Share on Facebook</span>
+            </a>
+        </li>
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/11/27/debugging-with-strace/">
+                <i class="fa fa-twitter"></i><span>Share on Twitter</span>
+            </a>
+        </li>
+    </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
+            
+        </div>
+        <div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-remove"></i>
+        </div>
+        
+            <img id="about-card-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=110"/>
+        
+            <h4 id="about-card-name">John Wu</h4>
+        
+            <h5 id="about-card-bio"><p>Life is all about A/B testing</p>
+</h5>
+        
+        
+            <h5 id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>Software Engineer Intern at Yelp</p>
+
+            </h5>
+        
+        
+            <h5 id="about-card-location">
+                <i class="fa fa-map-marker"></i>
+                <br/>
+                San Francisco, CA
+            </h5>
+        
+    </div>
+</div>
+
+        <div id="cover" style="background-image:url('http://res.cloudinary.com/tranquilpeak-hexo-theme/image/upload/v1438975482/v1.3.0-cover.jpg');"></div>
+    </body>
+    <!--SCRIPTS-->
+<script src="/assets/js/jquery.js" type="text/javascript"></script>
+<script src="/assets/js/jquery.fancybox.js" type="text/javascript"></script>
+<script src="/assets/js/jquery.fancybox-thumbs.js" type="text/javascript"></script>
+<script src="/assets/js/tranquilpeak.js" type="text/javascript"></script>
+<!--SCRIPTS END-->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'johnweng';
+        (function() {
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+
+
+
+</html>
