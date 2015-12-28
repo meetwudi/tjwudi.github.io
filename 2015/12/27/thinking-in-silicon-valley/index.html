@@ -1,0 +1,433 @@
+
+<!DOCTYPE html>
+<html lang="zh_CN">
+    
+<head>
+    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="回田园 - John Wu&#39;s Engineering Blog">
+    <title>硅谷夜谈 - 回田园 - John Wu&#39;s Engineering Blog</title>
+    <meta name="author" content="John Wu">
+    
+    
+        <link rel="alternative" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <meta name="description" content="旧金山严格意义上不算是硅谷的一部分，它其实坐落于硅谷以北。城市的占地面积不大，百分之九十是一马平川的居民区。东北角的Financial District是这里唯一高楼耸立的区域，人如川流，在他们之中不少都是科技工作者。贯穿整个Financial District的是Market Street，好似是旧金山的脊柱一般，撑着这个科技之都鲜活的躯体。
+
+随着越来越多的硅谷公司北上，旧金山其实和硅谷已然是">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="硅谷夜谈">
+<meta property="og:url" content="http://blog.leapoahead.com/2015/12/27/thinking-in-silicon-valley/index.html">
+<meta property="og:site_name" content="回田园 - John Wu's Engineering Blog">
+<meta property="og:description" content="旧金山严格意义上不算是硅谷的一部分，它其实坐落于硅谷以北。城市的占地面积不大，百分之九十是一马平川的居民区。东北角的Financial District是这里唯一高楼耸立的区域，人如川流，在他们之中不少都是科技工作者。贯穿整个Financial District的是Market Street，好似是旧金山的脊柱一般，撑着这个科技之都鲜活的躯体。
+
+随着越来越多的硅谷公司北上，旧金山其实和硅谷已然是">
+<meta property="og:image" content="http://blog.leapoahead.com/2015/12/27/thinking-in-silicon-valley/1.jpg">
+<meta property="og:image" content="http://blog.leapoahead.com/2015/12/27/thinking-in-silicon-valley/2.jpg">
+<meta property="og:image" content="http://blog.leapoahead.com/2015/12/27/thinking-in-silicon-valley/4.jpg">
+<meta property="og:image" content="http://blog.leapoahead.com/2015/12/27/thinking-in-silicon-valley/5.jpg">
+<meta property="og:image" content="http://blog.leapoahead.com/2015/12/27/thinking-in-silicon-valley/6.jpg">
+<meta property="og:image" content="http://blog.leapoahead.com/2015/12/27/thinking-in-silicon-valley/7.jpg">
+<meta property="og:image" content="http://blog.leapoahead.com/2015/12/27/thinking-in-silicon-valley/8.jpg">
+<meta property="og:updated_time" content="2015-12-28T09:27:12.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="硅谷夜谈">
+<meta name="twitter:description" content="旧金山严格意义上不算是硅谷的一部分，它其实坐落于硅谷以北。城市的占地面积不大，百分之九十是一马平川的居民区。东北角的Financial District是这里唯一高楼耸立的区域，人如川流，在他们之中不少都是科技工作者。贯穿整个Financial District的是Market Street，好似是旧金山的脊柱一般，撑着这个科技之都鲜活的躯体。
+
+随着越来越多的硅谷公司北上，旧金山其实和硅谷已然是">
+<meta name="twitter:creator" content="@leapoahead">
+    
+    
+    
+        <meta property="og:image" content="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=640"/>
+    
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/font-awesome.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/jquery.fancybox.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/jquery.fancybox-thumbs.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/tranquilpeak.css" type="text/css">
+    <!--STYLES END-->
+    
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-50843289-7']);
+        _gaq.push(['_trackPageview']);
+        (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+
+</head>
+
+    <body>
+        <div id="blog">
+            <header id="header" data-behavior="2">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <h1 class="header-title">
+        <a class="header-title-link" href="/ ">回田园 - John Wu&#39;s Engineering Blog</a>
+    </h1>
+    
+        <a class="header-right-picture" href="/#about">
+            <img class="header-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90"/>
+        </a>
+    
+</header>
+            <nav id="sidebar" data-behavior="2">
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/ "
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-home"></i>
+                    <span class="sidebar-button-desc">Home</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/all-categories"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
+                    <span class="sidebar-button-desc">Categories</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://github.com/tjwudi" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-github"></i>
+                    <span class="sidebar-button-desc">GitHub</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://twitter.com/leapoahead" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-twitter"></i>
+                    <span class="sidebar-button-desc">Twitter</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://facebook.com/leapoahead" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-facebook"></i>
+                    <span class="sidebar-button-desc">Facebook</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-linkedin"></i>
+                    <span class="sidebar-button-desc">Linked In</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="mailto:webmaster@leapoahead.com" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-envelope-o"></i>
+                    <span class="sidebar-button-desc">Mail</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/atom.xml"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-rss"></i>
+                    <span class="sidebar-button-desc">RSS</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+</nav>
+
+            
+            <div id="main" data-behavior="2"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post" itemscope itemType="http://schema.org/BlogPosting">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title" itemprop="headline">
+            硅谷夜谈
+        </h1>
+    
+    <div class="post-meta">
+    <time itemprop="datePublished" content="Sun Dec 27 2015 22:45:32 GMT-0800">
+	
+		    12月 27, 2015
+    	
+    </time>
+    
+        <span>in </span>
+        
+    <a class="category-link" href="/categories/life/">Life</a>
+
+
+    
+</div>
+</div>
+    
+    <div class="post-content markdown" itemprop="articleBody">
+        <div class="main-content-wrap">
+            <p>旧金山严格意义上不算是硅谷的一部分，它其实坐落于硅谷以北。城市的占地面积不大，百分之九十是一马平川的居民区。东北角的Financial District是这里唯一高楼耸立的区域，人如川流，在他们之中不少都是科技工作者。贯穿整个Financial District的是Market Street，好似是旧金山的脊柱一般，撑着这个科技之都鲜活的躯体。</p>
+<img src="/2015/12/27/thinking-in-silicon-valley/1.jpg" alt="Market Street" title="Market Street">
+<p>随着越来越多的硅谷公司北上，旧金山其实和硅谷已然是浑然不可分的一体了。我从今年的年中来到旧金山，我是吴迪，我来这里探寻我的新生活，开启我的黄金十年。</p>
+<p>丰富的想象力曾经让我以为旧金山是一个被繁华笼罩的城市，路边会有机器人行走，街上无人车穿梭，灯火明灭中传到耳轮里的都是忙碌的键盘声，满一副未来之城的景象。</p>
+<p>然而，这却是个安静平和的小城，没有任何大城市的架子。反之，旧金山的主题是绿色。从街上到处横冲直撞、违反交通规则的鸽子，还有在任何地方都可能和你同屏出现的宠物狗们，处处体现着这个城市对自然的尊敬。</p>
+<img src="/2015/12/27/thinking-in-silicon-valley/2.jpg" alt="旧金山的鸽子" title="旧金山的鸽子">
+<p>我在一家名为Yelp的公司工作，这是运行了十多年却依然保持创业文化的公司，这里有近三千人。公司的办公楼曾是一座邮政大楼，坐落在140 New Montgomery Street。New Montgomery Street的百年历史中，Yelp陪伴了它已经整整十一年。略有纽约帝国大厦之风的楼宇，门口赫然置有带着公司Logo的门牌。当我第一次到那里时，我感觉到会有很有趣的故事即将开始。</p>
+<img src="/2015/12/27/thinking-in-silicon-valley/4.jpg" alt="Yelp" title="Yelp">
+<p>今年的三月，我拿到了Yelp的Offer，于是来到了这家美国最大的商业点评网站的流量团队。这是一只除了我之外仅有五个人的团队，我们的共同目标是通过搜索引擎优化来提高Yelp的桌面端客户流量。整个Yelp的工程部门，含上英国伦敦和德国汉堡的团队，约有四百人上下。这在如今的科技公司中其实算是个很小的团队，和动辄上万工程师的巨兽们自然没法比。</p>
+<p>我有另外一篇文章（英文），专门描述了Yelp的工程文化，<a href="https://www.linkedin.com/pulse/inside-yelps-engineering-culture-john-wu?trk=prof-post" target="_blank" rel="external">题为《Inside Yelp’s Engineering Culture》</a>。一言以蔽之，在Yelp，人们总是关注着打磨（Polish）好产品。</p>
+<p>Yelp是一个速度相对较慢，在湾区的科技行业中具有独立的风格的公司。它在人们在外界所能看到的部分或许不如Google、Facebook等公司华丽，甚至一度被不断下挫的股价所饱受议论，但是从工程团队的角度讲，它是独特且出众的。对于我而言，是第一份工作的最好的选择。</p>
+<p>我经历了很多心态的变化。我不是很在意我能在工作中拿多少工资；我不在意我能在多有名的公司工作；我也不在意我日后必然来到的创业年华是否能让我功成名就……我在意的是，我是否能够将工作和生活调和得恰到好处；我是否每天都能学习到新东西；我是否能在自己一个人的世界中寻找到生活快乐。</p>
+<p>旧金山给我展现的，就是生活，而工作只是很小的一部分。走在街上，人们无论互相之间是否认识，都会互相微笑着打招呼，礼貌地问着“How is it going?”；到了周末，很少有人工作，他们希望将周末的时间留给自己的家人；父母们是孩子最好的导师，他们带孩子到博物馆一起学习最新的科学知识、和孩子一起到咖啡店看书、尽量认识孩子的每一个朋友，并和他们也成为朋友……</p>
+<p>我走过了纽约、华盛顿、波士顿、芝加哥、圣地亚哥、芝加哥、拉斯维加斯等美国的城市，没有一个城市如旧金山一样，是这样如此开心的城市。我经常和人感叹，”San Francisco is an incredibly happy city”。</p>
+<img src="/2015/12/27/thinking-in-silicon-valley/5.jpg" alt="Happy City" title="Happy City">
+<p>在旧金山生活的核心概念是<strong>社区</strong>。这一点从环境上面就能看出来。在很多AirBnB上出租的旧金山房屋中，都会贴有这样一则告示，“California is in a severe drought, please save every drop of water.”（加州正在经历着严重的干旱，请节约每一滴水）。当和人们谈起他们的社区，他们总是很有话说，有着自己的见解。</p>
+<p>不知道什么时候可以在寻常中国家庭、街道里面看到百姓自发地宣传，“我们的国家正在遭遇严重的空气污染危机，请尽量以步代车”，或者，“请及时对您的爱车进行尾气排放检查，对不合格的车进行尾气过滤处理”。</p>
+<img src="/2015/12/27/thinking-in-silicon-valley/6.jpg" alt="Community" title="Community">
+<p>社区的概念贯穿始终，在技术圈子依然如此。人们热衷于分享，分享对它们而言不是每日要执行的“任务”，而是源于自发的对技术的热爱。也因此，他们所分享的内容其实跟自己的工作公司大多没什么关系，而是一些自己的独到见解。这一点我很是喜欢。国内常见的“架构”、“业务”、“上亿”等等高屋建瓴的话题在这里很少见，人们关心的是技术具体如何运作，而不是如何帮助自己更好地赚钱。</p>
+<p>分享，发自的是内心的热爱，为的是社区的发展，投资的是公司的未来。开源亦是如此，这才是开放的信条。</p>
+<img src="/2015/12/27/thinking-in-silicon-valley/7.jpg" alt="分享" title="分享">
+<p>中国的科技公司喜欢自我感动，觉得他们快要赶超硅谷了，站上世界舞台了。可硅谷超越我们的远不止是科技，而是几乎每个不同的角度。这句话说起来一定让很多人嗤之以鼻，但却是我切身的感受。</p>
+<p>我希望我的国家，最终，也能够成为一个快乐的国家。少一点浮夸，多一些脚踏实地的快乐。</p>
+<p>不久之后我就会暂时离开这里，可这永远不是结束。我说过，这是属于我的黄金十年的开始。或许我半年之后还会选择回来，也或许我会选择直接在国内工作和生活。只要常怀感恩之心，感恩生活，这十年就不会怕火炼。</p>
+<p>感谢Bill给我这次赴美的机会；感谢在这几个月中曾经远道而来的老妈，我很高兴她在这里的十几天里面过得很快乐；特别感谢Cavaliers一家对我的照顾；感谢在湾区的新老朋友（特别是桢哥）；感谢我自己给自己做的每一个决定。</p>
+<img src="/2015/12/27/thinking-in-silicon-valley/8.jpg" alt="湾区俯瞰" title="湾区俯瞰">
+<p>草草收尾，朕累了。</p>
+
+            
+                
+
+            
+        </div>
+    </div>
+    
+    <div class="post-rmds main-content-wrap">
+        <h4>猜你想读</h4>
+        <ul>
+            
+            
+                <li><a href="http://blog.leapoahead.com/2015/11/27/debugging-with-strace/">Debugging with strace</a></li>
+            
+        </ul>
+        
+    </div>
+
+    <div class="post-mailchimp">
+    <div class="main-content-wrap mailchimp-wrap">
+        <h3>让有趣易懂的知识主动找到你</h3>
+        <p>订阅我的Email半月刊，让我们共同学习、成长。绝无广告！</p>
+        <form action="//leapoahead.us8.list-manage.com/subscribe/post?u=f3a6e2f843ac1be03e00f7bed&amp;amp;id=58e28559b1" method="post" name="mc-embedded-subscribe-form" class="mailchimp-form" target="_blank" novalidate>
+            <label for="mce-EMAIL" style="display: none">Email地址</label>
+            <input type="email" value="" name="EMAIL" id="mce-EMAIL" placeholder="您常用的Email地址" class="mailchimp-input">
+            <input type="submit" value="订阅" name="subscribe" id="mc-embedded-subscribe" class="mailchimp-input mailchimp-subscribe">
+            <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+            <div style="position: absolute; left: -5000px;"><input type="text" name="b_f3a6e2f843ac1be03e00f7bed_58e28559b1" tabindex="-1" value=""></div>
+        </form>
+    </div>
+</div>
+    <div class="post-footer main-content-wrap">
+        
+        <div class="post-actions-wrap">
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
+                <i class="fa fa-share-alt"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/12/27/thinking-in-silicon-valley/">
+                <i class="fa fa-facebook-official"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/12/27/thinking-in-silicon-valley/">
+                <i class="fa fa-twitter"></i>
+            </a>
+        </li>
+        
+            <li class="post-action">
+                <a class="post-action-btn btn btn--default" href="#disqus_thread">
+                    <i class="fa fa-comment-o"></i>
+                </a>
+            </li>
+        
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default jiathis_button_tsina" href="http://www.jiathis.com/send/?webid=tsina&uid=1399172634630776&summary=&title=硅谷夜谈&url=http://blog.leapoahead.com/2015/12/27/thinking-in-silicon-valley/" target="new">
+                <i class="fa fa-weibo"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+            <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2015 John Wu. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="2">
+                    <div class="post-actions-wrap">
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
+                <i class="fa fa-share-alt"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/12/27/thinking-in-silicon-valley/">
+                <i class="fa fa-facebook-official"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/12/27/thinking-in-silicon-valley/">
+                <i class="fa fa-twitter"></i>
+            </a>
+        </li>
+        
+            <li class="post-action">
+                <a class="post-action-btn btn btn--default" href="#disqus_thread">
+                    <i class="fa fa-comment-o"></i>
+                </a>
+            </li>
+        
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default jiathis_button_tsina" href="http://www.jiathis.com/send/?webid=tsina&uid=1399172634630776&summary=&title=硅谷夜谈&url=http://blog.leapoahead.com/2015/12/27/thinking-in-silicon-valley/" target="new">
+                <i class="fa fa-weibo"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                <div id="share-options-bar" class="share-options-bar" data-behavior="2">
+    <ul class="share-options">
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/12/27/thinking-in-silicon-valley/">
+                <i class="fa fa-google-plus"></i><span class="">Share on Google Plus</span>
+            </a>
+        </li>
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/12/27/thinking-in-silicon-valley/">
+                <i class="fa fa-facebook-official"></i><span>Share on Facebook</span>
+            </a>
+        </li>
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/12/27/thinking-in-silicon-valley/">
+                <i class="fa fa-twitter"></i><span>Share on Twitter</span>
+            </a>
+        </li>
+    </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
+            
+        </div>
+        <div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-remove"></i>
+        </div>
+        
+            <img id="about-card-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=110"/>
+        
+            <h4 id="about-card-name">John Wu</h4>
+        
+            <h5 id="about-card-bio"><p>Life is all about A/B testing</p>
+</h5>
+        
+        
+            <h5 id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>Software Engineer Intern at Yelp</p>
+
+            </h5>
+        
+        
+            <h5 id="about-card-location">
+                <i class="fa fa-map-marker"></i>
+                <br/>
+                San Francisco, CA
+            </h5>
+        
+    </div>
+</div>
+
+        <div id="cover" style="background-image:url('http://res.cloudinary.com/tranquilpeak-hexo-theme/image/upload/v1438975482/v1.3.0-cover.jpg');"></div>
+    </body>
+    <!--SCRIPTS-->
+<script src="/assets/js/jquery.js" type="text/javascript"></script>
+<script src="/assets/js/jquery.fancybox.js" type="text/javascript"></script>
+<script src="/assets/js/jquery.fancybox-thumbs.js" type="text/javascript"></script>
+<script src="/assets/js/tranquilpeak.js" type="text/javascript"></script>
+<!--SCRIPTS END-->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'johnweng';
+        (function() {
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+
+
+
+</html>
