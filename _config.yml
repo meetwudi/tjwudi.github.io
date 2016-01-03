@@ -82,3 +82,12 @@ deploy:
   type: git
   repo: git@github.com:tjwudi/tjwudi.github.io.git
   branch: master
+
+# Image Optimization
+imagemin:
+  enable     : true
+  interlaced : false
+  multipass  : false
+  optimizationLevel: 2
+  pngquant   : false
+  progressive: false
