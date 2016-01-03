@@ -1,0 +1,426 @@
+
+<!DOCTYPE html>
+<html lang="zh_CN">
+    
+<head>
+    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="回田园 - John Wu&#39;s Engineering Blog">
+    <title>迭代、递归与Tail Call Optimization - 回田园 - John Wu&#39;s Engineering Blog</title>
+    <meta name="author" content="John Wu">
+    
+    
+        <link rel="alternative" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <meta name="description" content="在程序设计的世界里面有两种很基本的设计模式，那就是迭代（iterative）和递归（recursive）。这两种模式之间存在着很强的一致性和对称性。">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="迭代、递归与Tail Call Optimization">
+<meta property="og:url" content="http://blog.leapoahead.com/2016/01/03/iterative-recursive-process/index.html">
+<meta property="og:site_name" content="回田园 - John Wu's Engineering Blog">
+<meta property="og:description" content="在程序设计的世界里面有两种很基本的设计模式，那就是迭代（iterative）和递归（recursive）。这两种模式之间存在着很强的一致性和对称性。">
+<meta property="og:image" content="http://blog.leapoahead.com/2016/01/03/iterative-recursive-process/1.jpg">
+<meta property="og:image" content="http://blog.leapoahead.com/2016/01/03/iterative-recursive-process/2.jpg">
+<meta property="og:updated_time" content="2016-01-03T11:44:49.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="迭代、递归与Tail Call Optimization">
+<meta name="twitter:description" content="在程序设计的世界里面有两种很基本的设计模式，那就是迭代（iterative）和递归（recursive）。这两种模式之间存在着很强的一致性和对称性。">
+<meta name="twitter:creator" content="@leapoahead">
+    
+    
+    
+        <meta property="og:image" content="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=640"/>
+    
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/font-awesome.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/jquery.fancybox.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/jquery.fancybox-thumbs.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/tranquilpeak.css" type="text/css">
+    <!--STYLES END-->
+    
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-50843289-7']);
+        _gaq.push(['_trackPageview']);
+        (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+
+</head>
+
+    <body>
+        <div id="blog">
+            <header id="header" data-behavior="2">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <h1 class="header-title">
+        <a class="header-title-link" href="/ ">回田园 - John Wu&#39;s Engineering Blog</a>
+    </h1>
+    
+        <a class="header-right-picture" href="/#about">
+            <img class="header-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90"/>
+        </a>
+    
+</header>
+            <nav id="sidebar" data-behavior="2">
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/ "
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-home"></i>
+                    <span class="sidebar-button-desc">Home</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/all-categories"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
+                    <span class="sidebar-button-desc">Categories</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://github.com/tjwudi" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-github"></i>
+                    <span class="sidebar-button-desc">GitHub</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://twitter.com/leapoahead" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-twitter"></i>
+                    <span class="sidebar-button-desc">Twitter</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://facebook.com/leapoahead" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-facebook"></i>
+                    <span class="sidebar-button-desc">Facebook</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-linkedin"></i>
+                    <span class="sidebar-button-desc">Linked In</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="mailto:webmaster@leapoahead.com" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-envelope-o"></i>
+                    <span class="sidebar-button-desc">Mail</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/atom.xml"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-rss"></i>
+                    <span class="sidebar-button-desc">RSS</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+</nav>
+
+            
+            <div id="main" data-behavior="2"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post" itemscope itemType="http://schema.org/BlogPosting">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title" itemprop="headline">
+            迭代、递归与Tail Call Optimization
+        </h1>
+    
+    <div class="post-meta">
+    <time itemprop="datePublished" content="Sun Jan 03 2016 17:59:13 GMT+0800">
+	
+		    1月 03, 2016
+    	
+    </time>
+    
+        <span>in </span>
+        
+    <a class="category-link" href="/categories/Engineering/">Engineering</a>
+
+
+    
+</div>
+</div>
+    
+    <div class="post-content markdown" itemprop="articleBody">
+        <div class="main-content-wrap">
+            <p>在程序设计的世界里面有两种很基本的设计模式，那就是迭代（iterative）和递归（recursive）。这两种模式之间存在着很强的一致性和对称性。</p>
+<a id="more"></a>
+<p>现在让我来设计一段程序，计算<code>n!</code>，<strong>不能使用任何循环结构</strong>。我们把这个过程封装成一个函数<code>calc</code>，假设<code>n=4</code>，整个计算的<strong>过程（Process）</strong>是这样的。</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">calc</span><span class="params">(<span class="number">4</span>)</span></span>=<span class="number">4</span>*<span class="function"><span class="title">calc</span><span class="params">(<span class="number">3</span>)</span></span></span><br><span class="line"><span class="function"><span class="title">calc</span><span class="params">(<span class="number">3</span>)</span></span>=<span class="number">3</span>*<span class="function"><span class="title">calc</span><span class="params">(<span class="number">2</span>)</span></span></span><br><span class="line"><span class="function"><span class="title">calc</span><span class="params">(<span class="number">2</span>)</span></span>=<span class="number">2</span>*<span class="function"><span class="title">calc</span><span class="params">(<span class="number">1</span>)</span></span></span><br><span class="line"><span class="function"><span class="title">calc</span><span class="params">(<span class="number">1</span>)</span></span>=<span class="number">1</span>*<span class="function"><span class="title">calc</span><span class="params">(<span class="number">0</span>)</span></span></span><br><span class="line"><span class="function"><span class="title">calc</span><span class="params">(<span class="number">0</span>)</span></span>=<span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p>对应的<strong>程序（Procedure）</strong>可以被写成：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">calc</span><span class="params">(n)</span>:</span></span><br><span class="line">    <span class="string">"""</span><br><span class="line">    Calculate n!</span><br><span class="line"></span><br><span class="line">    :param n: N</span><br><span class="line">    """</span></span><br><span class="line">    <span class="keyword">if</span> n == <span class="number">0</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span></span><br><span class="line">    <span class="keyword">if</span> n &lt; <span class="number">0</span>:</span><br><span class="line">        <span class="keyword">raise</span> ValueError</span><br><span class="line">    <span class="keyword">return</span> n * calc(n - <span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+<p>我在上面特别强调了过程和程序的差别，这对后文很重要。Procedure一般也被翻译成过程，为了避免冲突，我将它翻译成程序。过程实际上是一个数学的模型，用文字表述，是比较抽象的；而程序相对而言就是具象化的。程序可以用来实现过程。</p>
+<p>将上面的过程展开后可以变成下面这样，我们将之称作<strong>过程A</strong>。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">calc(<span class="number">4</span>)=<span class="number">4</span>*calc(<span class="number">3</span>)</span><br><span class="line">=<span class="number">4</span>*(<span class="number">3</span>*calc(<span class="number">2</span>))</span><br><span class="line">=<span class="number">4</span>*(<span class="number">3</span>*(<span class="number">2</span>*calc(<span class="number">1</span>)))</span><br><span class="line">=<span class="number">4</span>*(<span class="number">3</span>*(<span class="number">2</span>*(<span class="number">1</span>*calc(<span class="number">0</span>))))</span><br><span class="line">=<span class="number">4</span>*(<span class="number">3</span>*(<span class="number">2</span>*(<span class="number">1</span>*<span class="number">1</span>)))</span><br><span class="line">=<span class="number">4</span>*(<span class="number">3</span>*(<span class="number">2</span>*<span class="number">1</span>))</span><br><span class="line">=<span class="number">4</span>*(<span class="number">3</span>*<span class="number">2</span>)</span><br><span class="line">=<span class="number">4</span>*<span class="number">6</span></span><br><span class="line"><span class="number">24</span></span><br></pre></td></tr></table></figure>
+<p>计算<code>n!</code>的过程不止一种。我们还可以想到另外一种计算过程来计算<code>4!</code>。设<code>result</code>为最后的结果。</p>
+<figure class="highlight nimrod"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="literal">result</span>=<span class="number">1</span></span><br><span class="line">n=<span class="number">4</span></span><br><span class="line"></span><br><span class="line"><span class="literal">result</span>=<span class="literal">result</span>*n=<span class="number">4</span></span><br><span class="line">n=n-<span class="number">1</span>=<span class="number">3</span></span><br><span class="line"><span class="literal">result</span>=<span class="literal">result</span>*n=<span class="number">12</span></span><br><span class="line">n=n-<span class="number">1</span>=<span class="number">2</span></span><br><span class="line"><span class="literal">result</span>=<span class="literal">result</span>*n=<span class="number">24</span></span><br><span class="line">n=n-<span class="number">1</span>=<span class="number">1</span></span><br><span class="line"><span class="literal">result</span>=<span class="literal">result</span>*n=<span class="number">24</span></span><br><span class="line">n=n-<span class="number">1</span>=<span class="number">0</span></span><br></pre></td></tr></table></figure>
+<p>相应的程序实现可以为</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">calc</span><span class="params">(n)</span>:</span></span><br><span class="line">    <span class="string">"""</span><br><span class="line">    Calculate n!</span><br><span class="line">    """</span></span><br><span class="line">    <span class="keyword">if</span> n &lt; <span class="number">0</span>:</span><br><span class="line">        <span class="keyword">raise</span> ValueError</span><br><span class="line">    <span class="keyword">return</span> calc_iter(n, <span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">calc_iter</span><span class="params">(n, result)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> n == <span class="number">0</span>:</span><br><span class="line">        <span class="keyword">return</span> result</span><br><span class="line">    <span class="keyword">return</span> calc_iter(n - <span class="number">1</span>, result * n)</span><br></pre></td></tr></table></figure>
+<p>整个过程展开就变成了</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">calc</span><span class="params">(<span class="number">4</span>)</span></span>=<span class="function"><span class="title">calc_iter</span><span class="params">(<span class="number">4</span>, <span class="number">1</span>)</span></span></span><br><span class="line"><span class="function"><span class="title">calc_iter</span><span class="params">(<span class="number">4</span>, <span class="number">1</span>)</span></span></span><br><span class="line"><span class="function"><span class="title">calc_iter</span><span class="params">(<span class="number">3</span>, <span class="number">4</span>)</span></span></span><br><span class="line"><span class="function"><span class="title">calc_iter</span><span class="params">(<span class="number">2</span>, <span class="number">12</span>)</span></span></span><br><span class="line"><span class="function"><span class="title">calc_iter</span><span class="params">(<span class="number">1</span>, <span class="number">24</span>)</span></span></span><br><span class="line"><span class="function"><span class="title">calc_iter</span><span class="params">(<span class="number">0</span>, <span class="number">24</span>)</span></span></span><br></pre></td></tr></table></figure>
+<p>这个展开后的过程我们称之为<strong>过程B</strong>。</p>
+<h3 id="递归与迭代">递归与迭代</h3><p>对比过程A和B，过程A看起来比较“浪费空间”，至少我得打更多的字表达它。它们之间最大的区别是，在过程A中，前一次计算的结果要靠后一次计算的结果以及它本身的参数结合才能得出来。例如在计算<code>calc(4)=4*calc(3)</code>的时候，<code>calc(3)</code>就是下一次计算的结果，而<code>4</code>是<code>calc(4)</code>本身的参数。</p>
+<p>反之，在过程B中，前一次计算的结果和后一次计算的结果都通过参数传递。每次计算的参数就是这次计算所需的所有<strong>状态</strong>。如果你读过我写的<a href="http://blog.leapoahead.com/2015/09/19/function-as-first-class-citizen/">“函数是一等公民”背后的含义</a>，你就会发现这是函数式编程里面纯函数的特性。</p>
+<p>过程A，这类前一次计算依赖于自身状态和后一次计算的结果的过程我们就称之为递归过程（Recursive Process），因为它最后总要回到之前的计算中才能获得最后结果；而过程B，这类每次计算结果仅依赖于自身状态的过程我们就称之为迭代过程（Iterative Process）。</p>
+<h3 id="Tail_Call_Optimization_(TCO)">Tail Call Optimization (TCO)</h3><p>如果我们观察上面的第二段程序，我们会说这是一个递归函数，因为它用了函数的递归调用。但是我们已经提到了，它实际上是一个迭代过程，而不是递归过程。因为每一次调用<code>calc_iter</code>的时候，本次计算的结果都能由自身状态得出来。它完全可以被重写为</p>
+<figure class="highlight nimrod"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">def calc(n):</span><br><span class="line">    <span class="string">"""</span><br><span class="line">    Calculate n!</span><br><span class="line">    """</span></span><br><span class="line">    <span class="keyword">if</span> n &lt; <span class="number">0</span>:</span><br><span class="line">        <span class="keyword">raise</span> <span class="type">ValueError</span></span><br><span class="line">    <span class="literal">result</span> = <span class="number">1</span></span><br><span class="line">    <span class="keyword">while</span> n &gt; <span class="number">0</span>:</span><br><span class="line">        <span class="literal">result</span>, n = <span class="literal">result</span> * n, n - <span class="number">1</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">result</span></span><br></pre></td></tr></table></figure>
+<p>因此，尽管有些函数被写成了递归的形式，它依然可能是表示一个迭代的过程。很有趣的是，尽管它是迭代过程，但是它还是占用了栈空间。如果<code>n</code>足够大的话，这个迭代过程依然可能跟传统的递归函数实现一样产生栈溢出。</p>
+<img src="/2016/01/03/iterative-recursive-process/1.jpg" alt="Stack Overflow" title="Stack Overflow">
+<p>既然每次计算都包含着本次计算所需的所有状态，那就说明我们实际上没有必要把前面一次计算的函数调用推入栈中。因为无论如何，我们都不会再用到之前的调用了。这种不将前一次函数调用推入栈中的优化就被称作Tail Call Optimization。之所以叫Tail Call是因为在用递归函数实现迭代过程的时候，对下一次计算过程的调用都在尾部。理由很简单，因为我们不再需要回到这个函数，所以在递归调用之后就不需要有其他的逻辑了。</p>
+<h3 id="TCO的实现">TCO的实现</h3><p>目前TCO的实现还局限在一些纯函数式编程语言例如Common Lisp。大部分常用的语言并没有实现TCO，但是认识到TCO可以帮助我们更好地理解我们所设计的迭代或者递归过程。</p>
+<p>Python、Java之类的非纯函数式编程语言没有实现TCO的表面原因是因为Stack trace。如果实现了TCO，那么在执行被TCO的函数期间遇到错误的时候就无法打印出Stack trace，因为这样的函数执行时不存在推入Stack的说法。</p>
+<img src="/2016/01/03/iterative-recursive-process/2.jpg" alt="Stack trace - Java" title="Stack trace - Java">
+<p><a href="https://www.quora.com/Why-is-tail-recursion-optimisation-not-implemented-in-languages-like-Python-Ruby-and-Clojure-Is-it-just-difficult-or-impossible" target="_blank" rel="external">图片来源</a></p>
+<h3 id="阅读书目">阅读书目</h3><ul>
+<li>Structure and Interpretation of Computer Program, Chapter 1</li>
+</ul>
+
+            
+                
+
+            
+        </div>
+    </div>
+    
+    <div class="post-rmds main-content-wrap">
+        <h4>猜你想读</h4>
+        <ul>
+            
+            
+                <li><a href="http://blog.leapoahead.com/2015/12/27/thinking-in-silicon-valley/">硅谷夜谈</a></li>
+            
+        </ul>
+        
+    </div>
+
+    <div class="post-mailchimp">
+    <div class="main-content-wrap mailchimp-wrap">
+        <h3>让有趣易懂的知识主动找到你</h3>
+        <p>订阅我的Email半月刊，让我们共同学习、成长。绝无广告！</p>
+        <form action="//leapoahead.us8.list-manage.com/subscribe/post?u=f3a6e2f843ac1be03e00f7bed&amp;amp;id=58e28559b1" method="post" name="mc-embedded-subscribe-form" class="mailchimp-form" target="_blank" novalidate>
+            <label for="mce-EMAIL" style="display: none">Email地址</label>
+            <input type="email" value="" name="EMAIL" id="mce-EMAIL" placeholder="您常用的Email地址" class="mailchimp-input">
+            <input type="submit" value="订阅" name="subscribe" id="mc-embedded-subscribe" class="mailchimp-input mailchimp-subscribe">
+            <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+            <div style="position: absolute; left: -5000px;"><input type="text" name="b_f3a6e2f843ac1be03e00f7bed_58e28559b1" tabindex="-1" value=""></div>
+        </form>
+    </div>
+</div>
+    <div class="post-footer main-content-wrap">
+        
+        <div class="post-actions-wrap">
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
+                <i class="fa fa-share-alt"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2016/01/03/iterative-recursive-process/">
+                <i class="fa fa-facebook-official"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2016/01/03/iterative-recursive-process/">
+                <i class="fa fa-twitter"></i>
+            </a>
+        </li>
+        
+            <li class="post-action">
+                <a class="post-action-btn btn btn--default" href="#disqus_thread">
+                    <i class="fa fa-comment-o"></i>
+                </a>
+            </li>
+        
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default jiathis_button_tsina" href="http://www.jiathis.com/send/?webid=tsina&uid=1399172634630776&summary=&lt;p&gt;在程序设计的世界里面有两种很基本的设计模式，那就是迭代（iterative）和递归（recursive）。这两种模式之间存在着很强的一致性和对称性。&lt;/p&gt;&title=迭代、递归与Tail Call Optimization&url=http://blog.leapoahead.com/2016/01/03/iterative-recursive-process/" target="new">
+                <i class="fa fa-weibo"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+            <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2016 John Wu. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="2">
+                    <div class="post-actions-wrap">
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
+                <i class="fa fa-share-alt"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2016/01/03/iterative-recursive-process/">
+                <i class="fa fa-facebook-official"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2016/01/03/iterative-recursive-process/">
+                <i class="fa fa-twitter"></i>
+            </a>
+        </li>
+        
+            <li class="post-action">
+                <a class="post-action-btn btn btn--default" href="#disqus_thread">
+                    <i class="fa fa-comment-o"></i>
+                </a>
+            </li>
+        
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default jiathis_button_tsina" href="http://www.jiathis.com/send/?webid=tsina&uid=1399172634630776&summary=&lt;p&gt;在程序设计的世界里面有两种很基本的设计模式，那就是迭代（iterative）和递归（recursive）。这两种模式之间存在着很强的一致性和对称性。&lt;/p&gt;&title=迭代、递归与Tail Call Optimization&url=http://blog.leapoahead.com/2016/01/03/iterative-recursive-process/" target="new">
+                <i class="fa fa-weibo"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                <div id="share-options-bar" class="share-options-bar" data-behavior="2">
+    <ul class="share-options">
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2016/01/03/iterative-recursive-process/">
+                <i class="fa fa-google-plus"></i><span class="">Share on Google Plus</span>
+            </a>
+        </li>
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2016/01/03/iterative-recursive-process/">
+                <i class="fa fa-facebook-official"></i><span>Share on Facebook</span>
+            </a>
+        </li>
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2016/01/03/iterative-recursive-process/">
+                <i class="fa fa-twitter"></i><span>Share on Twitter</span>
+            </a>
+        </li>
+    </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
+            
+        </div>
+        <div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-remove"></i>
+        </div>
+        
+            <img id="about-card-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=110"/>
+        
+            <h4 id="about-card-name">John Wu</h4>
+        
+            <h5 id="about-card-bio"><p>Life is all about A/B testing</p>
+</h5>
+        
+        
+            <h5 id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>Software Engineer Intern at Yelp</p>
+
+            </h5>
+        
+        
+            <h5 id="about-card-location">
+                <i class="fa fa-map-marker"></i>
+                <br/>
+                San Francisco, CA
+            </h5>
+        
+    </div>
+</div>
+
+        <div id="cover" style="background-image:url('http://res.cloudinary.com/tranquilpeak-hexo-theme/image/upload/v1438975482/v1.3.0-cover.jpg');"></div>
+    </body>
+    <!--SCRIPTS-->
+<script src="/assets/js/jquery.js" type="text/javascript"></script>
+<script src="/assets/js/jquery.fancybox.js" type="text/javascript"></script>
+<script src="/assets/js/jquery.fancybox-thumbs.js" type="text/javascript"></script>
+<script src="/assets/js/tranquilpeak.js" type="text/javascript"></script>
+<!--SCRIPTS END-->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'johnweng';
+        (function() {
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+
+
+
+</html>

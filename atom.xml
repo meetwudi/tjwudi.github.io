@@ -4,7 +4,7 @@
   <subtitle><![CDATA[创造是我最大的兴趣]]></subtitle>
   <link href="/atom.xml" rel="self"/>
   <link href="http://blog.leapoahead.com/"/>
-  <updated>2015-12-28T09:27:45.000Z</updated>
+  <updated>2016-01-03T11:44:49.000Z</updated>
   <id>http://blog.leapoahead.com/</id>
   
   <author>
@@ -15,10 +15,57 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
+    <title><![CDATA[迭代、递归与Tail Call Optimization]]></title>
+    <link href="http://blog.leapoahead.com/2016/01/03/iterative-recursive-process/"/>
+    <id>http://blog.leapoahead.com/2016/01/03/iterative-recursive-process/</id>
+    <published>2016-01-03T09:59:13.000Z</published>
+    <updated>2016-01-03T11:44:49.000Z</updated>
+    <content type="html"><![CDATA[<p>在程序设计的世界里面有两种很基本的设计模式，那就是迭代（iterative）和递归（recursive）。这两种模式之间存在着很强的一致性和对称性。</p>
+<a id="more"></a>
+<p>现在让我来设计一段程序，计算<code>n!</code>，<strong>不能使用任何循环结构</strong>。我们把这个过程封装成一个函数<code>calc</code>，假设<code>n=4</code>，整个计算的<strong>过程（Process）</strong>是这样的。</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">calc</span><span class="params">(<span class="number">4</span>)</span></span>=<span class="number">4</span>*<span class="function"><span class="title">calc</span><span class="params">(<span class="number">3</span>)</span></span></span><br><span class="line"><span class="function"><span class="title">calc</span><span class="params">(<span class="number">3</span>)</span></span>=<span class="number">3</span>*<span class="function"><span class="title">calc</span><span class="params">(<span class="number">2</span>)</span></span></span><br><span class="line"><span class="function"><span class="title">calc</span><span class="params">(<span class="number">2</span>)</span></span>=<span class="number">2</span>*<span class="function"><span class="title">calc</span><span class="params">(<span class="number">1</span>)</span></span></span><br><span class="line"><span class="function"><span class="title">calc</span><span class="params">(<span class="number">1</span>)</span></span>=<span class="number">1</span>*<span class="function"><span class="title">calc</span><span class="params">(<span class="number">0</span>)</span></span></span><br><span class="line"><span class="function"><span class="title">calc</span><span class="params">(<span class="number">0</span>)</span></span>=<span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p>对应的<strong>程序（Procedure）</strong>可以被写成：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">calc</span><span class="params">(n)</span>:</span></span><br><span class="line">    <span class="string">"""</span><br><span class="line">    Calculate n!</span><br><span class="line"></span><br><span class="line">    :param n: N</span><br><span class="line">    """</span></span><br><span class="line">    <span class="keyword">if</span> n == <span class="number">0</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span></span><br><span class="line">    <span class="keyword">if</span> n &lt; <span class="number">0</span>:</span><br><span class="line">        <span class="keyword">raise</span> ValueError</span><br><span class="line">    <span class="keyword">return</span> n * calc(n - <span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+<p>我在上面特别强调了过程和程序的差别，这对后文很重要。Procedure一般也被翻译成过程，为了避免冲突，我将它翻译成程序。过程实际上是一个数学的模型，用文字表述，是比较抽象的；而程序相对而言就是具象化的。程序可以用来实现过程。</p>
+<p>将上面的过程展开后可以变成下面这样，我们将之称作<strong>过程A</strong>。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">calc(<span class="number">4</span>)=<span class="number">4</span>*calc(<span class="number">3</span>)</span><br><span class="line">=<span class="number">4</span>*(<span class="number">3</span>*calc(<span class="number">2</span>))</span><br><span class="line">=<span class="number">4</span>*(<span class="number">3</span>*(<span class="number">2</span>*calc(<span class="number">1</span>)))</span><br><span class="line">=<span class="number">4</span>*(<span class="number">3</span>*(<span class="number">2</span>*(<span class="number">1</span>*calc(<span class="number">0</span>))))</span><br><span class="line">=<span class="number">4</span>*(<span class="number">3</span>*(<span class="number">2</span>*(<span class="number">1</span>*<span class="number">1</span>)))</span><br><span class="line">=<span class="number">4</span>*(<span class="number">3</span>*(<span class="number">2</span>*<span class="number">1</span>))</span><br><span class="line">=<span class="number">4</span>*(<span class="number">3</span>*<span class="number">2</span>)</span><br><span class="line">=<span class="number">4</span>*<span class="number">6</span></span><br><span class="line"><span class="number">24</span></span><br></pre></td></tr></table></figure>
+<p>计算<code>n!</code>的过程不止一种。我们还可以想到另外一种计算过程来计算<code>4!</code>。设<code>result</code>为最后的结果。</p>
+<figure class="highlight nimrod"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="literal">result</span>=<span class="number">1</span></span><br><span class="line">n=<span class="number">4</span></span><br><span class="line"></span><br><span class="line"><span class="literal">result</span>=<span class="literal">result</span>*n=<span class="number">4</span></span><br><span class="line">n=n-<span class="number">1</span>=<span class="number">3</span></span><br><span class="line"><span class="literal">result</span>=<span class="literal">result</span>*n=<span class="number">12</span></span><br><span class="line">n=n-<span class="number">1</span>=<span class="number">2</span></span><br><span class="line"><span class="literal">result</span>=<span class="literal">result</span>*n=<span class="number">24</span></span><br><span class="line">n=n-<span class="number">1</span>=<span class="number">1</span></span><br><span class="line"><span class="literal">result</span>=<span class="literal">result</span>*n=<span class="number">24</span></span><br><span class="line">n=n-<span class="number">1</span>=<span class="number">0</span></span><br></pre></td></tr></table></figure>
+<p>相应的程序实现可以为</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">calc</span><span class="params">(n)</span>:</span></span><br><span class="line">    <span class="string">"""</span><br><span class="line">    Calculate n!</span><br><span class="line">    """</span></span><br><span class="line">    <span class="keyword">if</span> n &lt; <span class="number">0</span>:</span><br><span class="line">        <span class="keyword">raise</span> ValueError</span><br><span class="line">    <span class="keyword">return</span> calc_iter(n, <span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">calc_iter</span><span class="params">(n, result)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> n == <span class="number">0</span>:</span><br><span class="line">        <span class="keyword">return</span> result</span><br><span class="line">    <span class="keyword">return</span> calc_iter(n - <span class="number">1</span>, result * n)</span><br></pre></td></tr></table></figure>
+<p>整个过程展开就变成了</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">calc</span><span class="params">(<span class="number">4</span>)</span></span>=<span class="function"><span class="title">calc_iter</span><span class="params">(<span class="number">4</span>, <span class="number">1</span>)</span></span></span><br><span class="line"><span class="function"><span class="title">calc_iter</span><span class="params">(<span class="number">4</span>, <span class="number">1</span>)</span></span></span><br><span class="line"><span class="function"><span class="title">calc_iter</span><span class="params">(<span class="number">3</span>, <span class="number">4</span>)</span></span></span><br><span class="line"><span class="function"><span class="title">calc_iter</span><span class="params">(<span class="number">2</span>, <span class="number">12</span>)</span></span></span><br><span class="line"><span class="function"><span class="title">calc_iter</span><span class="params">(<span class="number">1</span>, <span class="number">24</span>)</span></span></span><br><span class="line"><span class="function"><span class="title">calc_iter</span><span class="params">(<span class="number">0</span>, <span class="number">24</span>)</span></span></span><br></pre></td></tr></table></figure>
+<p>这个展开后的过程我们称之为<strong>过程B</strong>。</p>
+<h3 id="递归与迭代">递归与迭代</h3><p>对比过程A和B，过程A看起来比较“浪费空间”，至少我得打更多的字表达它。它们之间最大的区别是，在过程A中，前一次计算的结果要靠后一次计算的结果以及它本身的参数结合才能得出来。例如在计算<code>calc(4)=4*calc(3)</code>的时候，<code>calc(3)</code>就是下一次计算的结果，而<code>4</code>是<code>calc(4)</code>本身的参数。</p>
+<p>反之，在过程B中，前一次计算的结果和后一次计算的结果都通过参数传递。每次计算的参数就是这次计算所需的所有<strong>状态</strong>。如果你读过我写的<a href="http://blog.leapoahead.com/2015/09/19/function-as-first-class-citizen/">“函数是一等公民”背后的含义</a>，你就会发现这是函数式编程里面纯函数的特性。</p>
+<p>过程A，这类前一次计算依赖于自身状态和后一次计算的结果的过程我们就称之为递归过程（Recursive Process），因为它最后总要回到之前的计算中才能获得最后结果；而过程B，这类每次计算结果仅依赖于自身状态的过程我们就称之为迭代过程（Iterative Process）。</p>
+<h3 id="Tail_Call_Optimization_(TCO)">Tail Call Optimization (TCO)</h3><p>如果我们观察上面的第二段程序，我们会说这是一个递归函数，因为它用了函数的递归调用。但是我们已经提到了，它实际上是一个迭代过程，而不是递归过程。因为每一次调用<code>calc_iter</code>的时候，本次计算的结果都能由自身状态得出来。它完全可以被重写为</p>
+<figure class="highlight nimrod"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">def calc(n):</span><br><span class="line">    <span class="string">"""</span><br><span class="line">    Calculate n!</span><br><span class="line">    """</span></span><br><span class="line">    <span class="keyword">if</span> n &lt; <span class="number">0</span>:</span><br><span class="line">        <span class="keyword">raise</span> <span class="type">ValueError</span></span><br><span class="line">    <span class="literal">result</span> = <span class="number">1</span></span><br><span class="line">    <span class="keyword">while</span> n &gt; <span class="number">0</span>:</span><br><span class="line">        <span class="literal">result</span>, n = <span class="literal">result</span> * n, n - <span class="number">1</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">result</span></span><br></pre></td></tr></table></figure>
+<p>因此，尽管有些函数被写成了递归的形式，它依然可能是表示一个迭代的过程。很有趣的是，尽管它是迭代过程，但是它还是占用了栈空间。如果<code>n</code>足够大的话，这个迭代过程依然可能跟传统的递归函数实现一样产生栈溢出。</p>
+<img src="/2016/01/03/iterative-recursive-process/1.jpg" alt="Stack Overflow" title="Stack Overflow">
+<p>既然每次计算都包含着本次计算所需的所有状态，那就说明我们实际上没有必要把前面一次计算的函数调用推入栈中。因为无论如何，我们都不会再用到之前的调用了。这种不将前一次函数调用推入栈中的优化就被称作Tail Call Optimization。之所以叫Tail Call是因为在用递归函数实现迭代过程的时候，对下一次计算过程的调用都在尾部。理由很简单，因为我们不再需要回到这个函数，所以在递归调用之后就不需要有其他的逻辑了。</p>
+<h3 id="TCO的实现">TCO的实现</h3><p>目前TCO的实现还局限在一些纯函数式编程语言例如Common Lisp。大部分常用的语言并没有实现TCO，但是认识到TCO可以帮助我们更好地理解我们所设计的迭代或者递归过程。</p>
+<p>Python、Java之类的非纯函数式编程语言没有实现TCO的表面原因是因为Stack trace。如果实现了TCO，那么在执行被TCO的函数期间遇到错误的时候就无法打印出Stack trace，因为这样的函数执行时不存在推入Stack的说法。</p>
+<img src="/2016/01/03/iterative-recursive-process/2.jpg" alt="Stack trace - Java" title="Stack trace - Java">
+<p><a href="https://www.quora.com/Why-is-tail-recursion-optimisation-not-implemented-in-languages-like-Python-Ruby-and-Clojure-Is-it-just-difficult-or-impossible" target="_blank" rel="external">图片来源</a></p>
+<h3 id="阅读书目">阅读书目</h3><ul>
+<li>Structure and Interpretation of Computer Program, Chapter 1</li>
+</ul>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>在程序设计的世界里面有两种很基本的设计模式，那就是迭代（iterative）和递归（recursive）。这两种模式之间存在着很强的一致性和对称性。</p>]]>
+    
+    </summary>
+    
+      <category term="Engineering" scheme="http://blog.leapoahead.com/categories/Engineering/"/>
+    
+  </entry>
+  
+  <entry>
     <title><![CDATA[硅谷夜谈]]></title>
     <link href="http://blog.leapoahead.com/2015/12/27/thinking-in-silicon-valley/"/>
     <id>http://blog.leapoahead.com/2015/12/27/thinking-in-silicon-valley/</id>
-    <published>2015-12-28T06:45:32.000Z</published>
+    <published>2015-12-27T14:45:32.000Z</published>
     <updated>2015-12-28T09:27:45.000Z</updated>
     <content type="html"><![CDATA[<p>旧金山严格意义上不算是硅谷的一部分，它其实坐落于硅谷以北。城市的占地面积不大，百分之九十是一马平川的居民区。东北角的Financial District是这里唯一高楼耸立的区域，人如川流，在他们之中不少都是科技工作者。贯穿整个Financial District的是Market Street，好似是旧金山的脊柱一般，撑着这个科技之都鲜活的躯体。</p>
 <img src="/2015/12/27/thinking-in-silicon-valley/1.jpg" alt="Market Street" title="Market Street">
@@ -60,7 +107,7 @@
     <title><![CDATA[Debugging with strace]]></title>
     <link href="http://blog.leapoahead.com/2015/11/27/debugging-with-strace/"/>
     <id>http://blog.leapoahead.com/2015/11/27/debugging-with-strace/</id>
-    <published>2015-11-27T08:32:56.000Z</published>
+    <published>2015-11-26T16:32:56.000Z</published>
     <updated>2015-11-27T09:20:47.000Z</updated>
     <content type="html"><![CDATA[<p><a href="http://linux.die.net/man/1/strace" target="_blank" rel="external">strace</a> is a tool that helps to inspect system calls your application makes. I found it really useful this week when I debugging a complex python application. I am not going through my original problem though, but will show you some typical examples as proof of concept.</p>
 <a id="more"></a>
@@ -100,7 +147,7 @@
     <title><![CDATA[关于实现Chrome DevTools选择性Cache的提议]]></title>
     <link href="http://blog.leapoahead.com/2015/10/26/chrome-devtools-selective-caching-proposal/"/>
     <id>http://blog.leapoahead.com/2015/10/26/chrome-devtools-selective-caching-proposal/</id>
-    <published>2015-10-27T05:56:16.000Z</published>
+    <published>2015-10-26T14:56:16.000Z</published>
     <updated>2015-10-27T06:02:28.000Z</updated>
     <content type="html"><![CDATA[<p>我们都爱Chrome DevTools！作为Web工程师，我们每天都使用DevTools。</p>
 <a id="more"></a>
@@ -121,7 +168,7 @@
     <title><![CDATA[Galley - 为基于Docker架构本地开发与测试提速]]></title>
     <link href="http://blog.leapoahead.com/2015/10/23/intro-to-galley/"/>
     <id>http://blog.leapoahead.com/2015/10/23/intro-to-galley/</id>
-    <published>2015-10-23T07:40:01.000Z</published>
+    <published>2015-10-22T16:40:01.000Z</published>
     <updated>2015-10-23T07:44:59.000Z</updated>
     <content type="html"><![CDATA[<p>（本文投稿于<a href="www.infoq.com/cn/">InfoQ</a>，无论其是否刊登，其他第三方转载请务必注明出处）</p>
 <p>现如今，Docker已经成为了很多公司部署应用、服务的首选方案。依靠容器技术，我们能在不同的体系结构之上轻松部署几乎任何种类的应用。在洛杉矶时间2015年10月21日于旧金山展开的Twitter Flight开发者大会上，来自Fabric的工程师Joan Smith再次谈到了这一点。</p>
@@ -169,7 +216,7 @@
     <title><![CDATA[我从开源项目中学习到的Docker经验]]></title>
     <link href="http://blog.leapoahead.com/2015/10/07/docker-lessons-learned-md/"/>
     <id>http://blog.leapoahead.com/2015/10/07/docker-lessons-learned-md/</id>
-    <published>2015-10-08T02:42:44.000Z</published>
+    <published>2015-10-07T11:42:44.000Z</published>
     <updated>2015-10-08T04:30:37.000Z</updated>
     <content type="html"><![CDATA[<p>最近几周从一个Web开发俨然摇身一变成了“运维”，在GitHub上面为<a href="https://github.com/EverythingMe/redash" target="_blank" rel="external">re:dash</a>做Docker化的支持。在整个Code Review的过程中汲取了一些Docker的经验。</p>
 <a id="more"></a>
@@ -207,7 +254,7 @@
     <title><![CDATA[“函数是一等公民”背后的含义]]></title>
     <link href="http://blog.leapoahead.com/2015/09/19/function-as-first-class-citizen/"/>
     <id>http://blog.leapoahead.com/2015/09/19/function-as-first-class-citizen/</id>
-    <published>2015-09-19T08:37:41.000Z</published>
+    <published>2015-09-18T17:37:41.000Z</published>
     <updated>2015-09-19T08:37:41.000Z</updated>
     <content type="html"><![CDATA[<p>在学习一些语言的时候，你经常会听到“函数是一等公民”这样的描述。那么究竟函数在这类语言中扮演着怎么样的一个角色？它和函数式编程、无状态设计、封装抽象有什么千丝万缕的联系？</p>
 <a id="more"></a>
@@ -328,7 +375,7 @@
     <title><![CDATA[JavaScript闭包的底层运行机制]]></title>
     <link href="http://blog.leapoahead.com/2015/09/15/js-closure/"/>
     <id>http://blog.leapoahead.com/2015/09/15/js-closure/</id>
-    <published>2015-09-16T04:17:24.000Z</published>
+    <published>2015-09-15T13:17:24.000Z</published>
     <updated>2015-09-16T04:17:41.000Z</updated>
     <content type="html"><![CDATA[<p>我研究JavaScript闭包（closure）已经有一段时间了。我之前只是学会了如何使用它们，而没有透彻地了解它们具体是如何运作的。那么，究竟什么是闭包？</p>
 <a id="more"></a>
@@ -438,7 +485,7 @@
     <title><![CDATA[5分钟内使用React、Webpack与ES6构建应用]]></title>
     <link href="http://blog.leapoahead.com/2015/09/12/react-es6-webpack-in-5-minutes/"/>
     <id>http://blog.leapoahead.com/2015/09/12/react-es6-webpack-in-5-minutes/</id>
-    <published>2015-09-12T18:54:02.000Z</published>
+    <published>2015-09-12T03:54:02.000Z</published>
     <updated>2015-09-12T18:54:02.000Z</updated>
     <content type="html"><![CDATA[<p>假设你想要非常快速地搭建一个React应用，或者你想快速地搭建用ES6学习React开发的环境，那么这篇文章你一定不想错过。</p>
 <a id="more"></a>
@@ -479,7 +526,7 @@
     <title><![CDATA[Workshop - 对Express中间件进行单元测试]]></title>
     <link href="http://blog.leapoahead.com/2015/09/09/unittesting-express-middlewares/"/>
     <id>http://blog.leapoahead.com/2015/09/09/unittesting-express-middlewares/</id>
-    <published>2015-09-10T02:21:33.000Z</published>
+    <published>2015-09-09T11:21:33.000Z</published>
     <updated>2015-09-10T04:36:15.000Z</updated>
     <content type="html"><![CDATA[<p>我最近围绕着Express构建应用，尝试用不同的方法来对Express的中间件进行单元测试。今天通过Workshop的形式，一步一步地向大家介绍我的测试方式。</p>
 <a id="more"></a>
@@ -569,7 +616,7 @@
     <title><![CDATA[八幅漫画理解使用JSON Web Token设计单点登录系统]]></title>
     <link href="http://blog.leapoahead.com/2015/09/07/user-authentication-with-jwt/"/>
     <id>http://blog.leapoahead.com/2015/09/07/user-authentication-with-jwt/</id>
-    <published>2015-09-08T05:43:19.000Z</published>
+    <published>2015-09-07T14:43:19.000Z</published>
     <updated>2015-09-08T06:31:10.000Z</updated>
     <content type="html"><![CDATA[<p>上次在<a href="/2015/09/06/understanding-jwt/">《JSON Web Token - 在Web应用间安全地传递信息》</a>中我提到了JSON Web Token可以用来设计单点登录系统。我尝试用八幅漫画先让大家理解如何设计正常的用户认证系统，然后再延伸到单点登录系统。</p>
 <a id="more"></a>
@@ -625,7 +672,7 @@
     <title><![CDATA[JSON Web Token - 在Web应用间安全地传递信息]]></title>
     <link href="http://blog.leapoahead.com/2015/09/06/understanding-jwt/"/>
     <id>http://blog.leapoahead.com/2015/09/06/understanding-jwt/</id>
-    <published>2015-09-07T03:25:36.000Z</published>
+    <published>2015-09-06T12:25:36.000Z</published>
     <updated>2015-09-07T03:25:36.000Z</updated>
     <content type="html"><![CDATA[<p>JSON Web Token（JWT）是一个非常轻巧的<a href="https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32" target="_blank" rel="external">规范</a>。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。</p>
 <a id="more"></a>
@@ -701,7 +748,7 @@
     <title><![CDATA[以Node应用为例谈如何管理Web应用的环境常量]]></title>
     <link href="http://blog.leapoahead.com/2015/09/04/managing-env-constants/"/>
     <id>http://blog.leapoahead.com/2015/09/04/managing-env-constants/</id>
-    <published>2015-09-04T07:33:51.000Z</published>
+    <published>2015-09-03T16:33:51.000Z</published>
     <updated>2015-09-04T07:33:51.000Z</updated>
     <content type="html"><![CDATA[<p>在程序员自己的小世界里，我们一直在和“量”打交道——变量和常量。可是常量真的是一成不变的吗？事实上，常量也分为两种，应用常量（application-specific constant）和环境常量（environment-specific constant）。</p>
 <a id="more"></a>
@@ -775,7 +822,7 @@
     <title><![CDATA[在Node应用中避免“Dot Hell”]]></title>
     <link href="http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/"/>
     <id>http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/</id>
-    <published>2015-09-03T07:38:51.000Z</published>
+    <published>2015-09-02T16:38:51.000Z</published>
     <updated>2015-09-03T07:38:51.000Z</updated>
     <content type="html"><![CDATA[<p>在Node应用中，我们使用<code>require</code>来加载模块。在目录层次相对复杂的应用中，总是会出现类似<code>require(&#39;../../../../../module&#39;)</code>的调用，我把它称之为Dot Hell。我用了一些时间研究现有的解决方案，并介绍我个人认为最好的方法。</p>
 <a id="more"></a>
@@ -811,7 +858,7 @@
     <title><![CDATA[用自然语言的角度理解JavaScript中的this关键字]]></title>
     <link href="http://blog.leapoahead.com/2015/08/31/understanding-js-this-keyword/"/>
     <id>http://blog.leapoahead.com/2015/08/31/understanding-js-this-keyword/</id>
-    <published>2015-08-31T19:44:14.000Z</published>
+    <published>2015-08-31T04:44:14.000Z</published>
     <updated>2015-09-01T04:49:49.000Z</updated>
     <content type="html"><![CDATA[<p>在编写JavaScript应用的时候，我们经常会使用<code>this</code>关键字。那么<code>this</code>关键字究竟是怎样工作的？它的设计有哪些好的地方，有哪些不好的地方？本文带大家全面系统地认识这个老朋友。</p>
 <img src="/2015/08/31/understanding-js-this-keyword/what_is_this.png" alt="WHAT IS THIS" title="WHAT IS THIS">
@@ -882,7 +929,7 @@
     <title><![CDATA[当你打开网页的时候，世界都发生了什么（1）]]></title>
     <link href="http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/"/>
     <id>http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/</id>
-    <published>2015-08-31T03:47:04.000Z</published>
+    <published>2015-08-30T12:47:04.000Z</published>
     <updated>2015-08-31T04:55:14.000Z</updated>
     <content type="html"><![CDATA[<p>你有没有好奇过，当你试图打开一个网页的时候，这个世界上都发生了一些什么事情？会不会因为你手气键落，产生了蝴蝶效应，指尖的风拂起千年后你梦中的那个女孩的刘海？咳，也不是没有可能。今天我就来告诉你会发生什么事情，你可以沏一壶茶，坐在躺椅上，慢慢品味……</p>
 <a id="more"></a>
@@ -938,7 +985,7 @@
     <title><![CDATA[你所应该知道的A/B测试基础]]></title>
     <link href="http://blog.leapoahead.com/2015/08/27/introduction-to-ab-testing/"/>
     <id>http://blog.leapoahead.com/2015/08/27/introduction-to-ab-testing/</id>
-    <published>2015-08-28T04:56:52.000Z</published>
+    <published>2015-08-27T13:56:52.000Z</published>
     <updated>2015-08-31T01:20:40.000Z</updated>
     <content type="html"><![CDATA[<p>在互联网行业里面工作，能给我带来的一个乐趣就是“快”。天下武功，唯快不破。我们可以轻易地做到一天三次以上的产品更新速度，这是和许多传统行业的区别之一。如何利用好这个优势，在我眼里成为了产品发展的关键所在。</p>
 <a id="more"></a>
@@ -999,7 +1046,7 @@
     <title><![CDATA[我是如何对待学习编程这件事的]]></title>
     <link href="http://blog.leapoahead.com/2015/08/27/how-i-learn-as-a-software-engineer/"/>
     <id>http://blog.leapoahead.com/2015/08/27/how-i-learn-as-a-software-engineer/</id>
-    <published>2015-08-28T04:10:09.000Z</published>
+    <published>2015-08-27T13:10:09.000Z</published>
     <updated>2015-08-28T04:14:38.000Z</updated>
     <content type="html"><![CDATA[<p>十一年前，我在电脑爱好者论坛上面发布了自己的第一个软件，DocumentsManager。那是一个用C# 3.0编写的文档分类、索引软件，五脏不全，但麻雀不小。今天他还在<a href="http://bbs.cfan.com.cn/thread-688798-1-1.html" target="_blank" rel="external">精华索引</a>里面。不只是他，精华帖中Leap.ahead和ASUSTek发布的帖子都是我发的，总共有22个。</p>
 <p>对于我而言，不仅创造是一种乐趣，学习如何创造同样也是一种很大的乐趣。在我的学生生涯中，在不同的时段，我学习创造的方式也不同。这是一个需要时间来演进的过程，所以时间一长，也需要总结一下。今天难得有了总结的冲动，便简略地说说我的一些心得。</p>
@@ -1037,7 +1084,7 @@
     <title><![CDATA[First Week Intern at Yelp]]></title>
     <link href="http://blog.leapoahead.com/2015/08/08/first-week-intern-at-yelp/"/>
     <id>http://blog.leapoahead.com/2015/08/08/first-week-intern-at-yelp/</id>
-    <published>2015-08-09T05:03:00.000Z</published>
+    <published>2015-08-08T14:03:00.000Z</published>
     <updated>2015-08-27T03:13:57.000Z</updated>
     <content type="html"><![CDATA[<p>This week is my first week @ Yelp, and I ❤ed it!</p>
 <a id="more"></a>
