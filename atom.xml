@@ -4,7 +4,7 @@
   <subtitle><![CDATA[创造是我最大的兴趣]]></subtitle>
   <link href="/atom.xml" rel="self"/>
   <link href="http://blog.leapoahead.com/"/>
-  <updated>2016-01-03T11:44:49.000Z</updated>
+  <updated>2016-01-03T11:46:27.000Z</updated>
   <id>http://blog.leapoahead.com/</id>
   
   <author>
@@ -19,7 +19,7 @@
     <link href="http://blog.leapoahead.com/2016/01/03/iterative-recursive-process/"/>
     <id>http://blog.leapoahead.com/2016/01/03/iterative-recursive-process/</id>
     <published>2016-01-03T09:59:13.000Z</published>
-    <updated>2016-01-03T11:44:49.000Z</updated>
+    <updated>2016-01-03T11:46:27.000Z</updated>
     <content type="html"><![CDATA[<p>在程序设计的世界里面有两种很基本的设计模式，那就是迭代（iterative）和递归（recursive）。这两种模式之间存在着很强的一致性和对称性。</p>
 <a id="more"></a>
 <p>现在让我来设计一段程序，计算<code>n!</code>，<strong>不能使用任何循环结构</strong>。我们把这个过程封装成一个函数<code>calc</code>，假设<code>n=4</code>，整个计算的<strong>过程（Process）</strong>是这样的。</p>
