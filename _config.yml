@@ -3,10 +3,10 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: 回田园 - John Wu's Engineering Blog
+title: 回田园 - 子回的私人创作
 subtitle: 创造是我最大的兴趣
 description: "这里写满了有关我和编程、设计和产品的所有故事"
-author: John Wu
+author: 子回
 language: zh_CN
 timezone:
 
@@ -51,6 +51,7 @@ category_map:
     "Web Beginner": beginner
     Tools: tools
     DevOps: DevOps
+    Reading: reading
 tag_map:
 
 # Date / Time format
