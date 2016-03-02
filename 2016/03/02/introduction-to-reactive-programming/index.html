@@ -1,0 +1,512 @@
+
+<!DOCTYPE html>
+<html lang="zh_CN">
+    
+<head>
+    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="回田园 - 子回的私人创作">
+    <title>指路Reactive Programming - 回田园 - 子回的私人创作</title>
+    <meta name="author" content="子回">
+    
+    
+        <link rel="alternative" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <meta name="description" content="我在工作中采用Reactive Programming（RP）已经有一年了，对于这个“新鲜”的辞藻或许有一些人还不甚熟悉，这里就和大家说说关于RP我的理解。希望在读完本文后，你能够用Reactive Extension进行RP。">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="指路Reactive Programming">
+<meta property="og:url" content="http://blog.leapoahead.com/2016/03/02/introduction-to-reactive-programming/index.html">
+<meta property="og:site_name" content="回田园 - 子回的私人创作">
+<meta property="og:description" content="我在工作中采用Reactive Programming（RP）已经有一年了，对于这个“新鲜”的辞藻或许有一些人还不甚熟悉，这里就和大家说说关于RP我的理解。希望在读完本文后，你能够用Reactive Extension进行RP。">
+<meta property="og:image" content="http://blog.leapoahead.com/2016/03/02/introduction-to-reactive-programming/1.png">
+<meta property="og:image" content="http://blog.leapoahead.com/2016/03/02/introduction-to-reactive-programming/2.png">
+<meta property="og:image" content="http://blog.leapoahead.com/2016/03/02/introduction-to-reactive-programming/3.png">
+<meta property="og:image" content="http://blog.leapoahead.com/2016/03/02/introduction-to-reactive-programming/4.png">
+<meta property="og:image" content="http://blog.leapoahead.com/2016/03/02/introduction-to-reactive-programming/5.png">
+<meta property="og:image" content="http://blog.leapoahead.com/2016/03/02/introduction-to-reactive-programming/6.png">
+<meta property="og:image" content="http://blog.leapoahead.com/2016/03/02/introduction-to-reactive-programming/7.png">
+<meta property="og:updated_time" content="2016-03-02T15:51:49.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="指路Reactive Programming">
+<meta name="twitter:description" content="我在工作中采用Reactive Programming（RP）已经有一年了，对于这个“新鲜”的辞藻或许有一些人还不甚熟悉，这里就和大家说说关于RP我的理解。希望在读完本文后，你能够用Reactive Extension进行RP。">
+<meta name="twitter:creator" content="@leapoahead">
+    
+    
+    
+        <meta property="og:image" content="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=640"/>
+    
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/font-awesome.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/jquery.fancybox.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/jquery.fancybox-thumbs.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/tranquilpeak.css" type="text/css">
+    <!--STYLES END-->
+    
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-50843289-7']);
+        _gaq.push(['_trackPageview']);
+        (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+
+</head>
+
+    <body>
+        <div id="blog">
+            <header id="header" data-behavior="2">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <h1 class="header-title">
+        <a class="header-title-link" href="/ ">回田园 - 子回的私人创作</a>
+    </h1>
+    
+        <a class="header-right-picture" href="/#about">
+            <img class="header-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90"/>
+        </a>
+    
+</header>
+            <nav id="sidebar" data-behavior="2">
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/ "
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-home"></i>
+                    <span class="sidebar-button-desc">Home</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/all-categories"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
+                    <span class="sidebar-button-desc">Categories</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://github.com/tjwudi" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-github"></i>
+                    <span class="sidebar-button-desc">GitHub</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://twitter.com/leapoahead" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-twitter"></i>
+                    <span class="sidebar-button-desc">Twitter</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://facebook.com/leapoahead" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-facebook"></i>
+                    <span class="sidebar-button-desc">Facebook</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-linkedin"></i>
+                    <span class="sidebar-button-desc">Linked In</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="mailto:webmaster@leapoahead.com" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-envelope-o"></i>
+                    <span class="sidebar-button-desc">Mail</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/atom.xml"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-rss"></i>
+                    <span class="sidebar-button-desc">RSS</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+</nav>
+
+            
+            <div id="main" data-behavior="2"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post" itemscope itemType="http://schema.org/BlogPosting">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title" itemprop="headline">
+            指路Reactive Programming
+        </h1>
+    
+    <div class="post-meta">
+    <time itemprop="datePublished" content="Wed Mar 02 2016 19:58:21 GMT+0800">
+	
+		    3月 02, 2016
+    	
+    </time>
+    
+        <span>in </span>
+        
+    <a class="category-link" href="/categories/Engineering/">Engineering</a>
+
+
+    
+</div>
+</div>
+    
+    <div class="post-content markdown" itemprop="articleBody">
+        <div class="main-content-wrap">
+            <p>我在工作中采用Reactive Programming（RP）已经有一年了，对于这个“新鲜”的辞藻或许有一些人还不甚熟悉，这里就和大家说说关于RP我的理解。希望在读完本文后，你能够用Reactive Extension进行RP。</p>
+<a id="more"></a>
+<p>需要说明的是，我实在不知道如何翻译Reactive Programming这个词组，所以在本文中均用RP代替，而不是什么“响应式编程”、“反应式编程”。本文假定你对JavaScript及HTML5有初步的了解，如果有使用过，那么就再好不过了。</p>
+<p>让我们首先来想象一个很常见的交互场景。当用户点击一个页面上的按钮，程序开始在后台执行一些工作（例如从网络获取数据）。在获取数据期间，按钮不能再被点击，而会显示成灰色的”disabled”状态。当加载完成后，页面展现数据，而后按钮又可以再次使用。（如下面例子的这个load按钮）</p>
+<p><a class="jsbin-embed" href="http://jsbin.com/wurite/embed?js,output" target="_blank" rel="external">JS Bin on jsbin.com</a></p>
+<p>在这里我使用jQuery编写了按钮的逻辑，具体的代码是这样的。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> loading = <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">$(<span class="string">'.load'</span>).click(<span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">  loading = <span class="literal">true</span>;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">var</span> $btn = $(<span class="keyword">this</span>);</span><br><span class="line">  </span><br><span class="line">  $btn.prop(<span class="string">'disabled'</span>, loading);</span><br><span class="line">  $btn.text(<span class="string">'Loading ...'</span>);</span><br><span class="line">  </span><br><span class="line">  $.getJSON(<span class="string">'https://www.reddit.com/r/cats.json'</span>)</span><br><span class="line">    .done(<span class="function"><span class="keyword">function</span> (<span class="params">data</span>) </span>&#123;</span><br><span class="line">      loading = <span class="literal">false</span>;</span><br><span class="line">      $btn.prop(<span class="string">'disabled'</span>, loading);</span><br><span class="line">      $btn.text(<span class="string">'Load'</span>);</span><br><span class="line">    </span><br><span class="line">      $(<span class="string">'#result'</span>).text(<span class="string">"Got "</span> + data.data.children.length + <span class="string">" results"</span>);</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>对应的HTML：</p>
+<figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&lt;button <span class="type">class</span>=<span class="string">"load"</span>&gt;Load&lt;/button&gt;</span><br><span class="line">&lt;<span class="keyword">div</span> <span class="property">id</span>=<span class="string">"result"</span>&gt;&lt;/<span class="keyword">div</span>&gt;</span><br></pre></td></tr></table></figure>
+<p>不知道你有没有注意到，在这里<code>loading</code>变量其实是完全可以不用存在的。而我写出<code>loading</code>变量，就是为了抓住你的眼球。<code>loading</code>代表的是一个状态，意思是“我的程序现在有没有在后台加载程序”。</p>
+<p>另外还有几个不是很明显的状态。比如按钮的<code>disabled</code>状态（由<code>$btn.prop(&#39;disabled&#39;)</code>获得），以及按钮的文字。在加载的时候，也就是<code>loading === true</code>的时候，按钮的<code>disable</code>状态会是<code>true</code>，而文字会是<code>Loading ...</code>；在不加载的时候，<code>loading === false</code>成立，按钮的<code>disabled</code>状态就应该为<code>false</code>，而文字就是<code>Load</code>。</p>
+<p>现在让我们用静态的图来描述用户点击一次按钮的过程。</p>
+<img src="/2016/03/02/introduction-to-reactive-programming/1.png" alt="用户点击一次按钮的过程" title="用户点击一次按钮的过程">
+<p>如果用户点击很多次的按钮的话，那么<code>loading</code>的值的变化将是这样的。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">loading: <span class="literal">false</span> -&gt; <span class="literal">true</span> -&gt; <span class="literal">false</span> -&gt; <span class="literal">true</span> -&gt; <span class="literal">false</span> -&gt; <span class="literal">true</span> -&gt; ...</span><br></pre></td></tr></table></figure>
+<p>类似像<code>loading</code>这样的<strong>状态（state）</strong>在应用程序中随处可见，而且其值的变化可以不局限于两个值。举个栗子，假如我们现在设计微博的前端，一条微博的JSON数据形式如下：</p>
+<figure class="highlight actionscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> aWeibo = &#123;</span><br><span class="line">    user: <span class="number">1</span>,</span><br><span class="line">    text: <span class="string">'我今天好高兴啊！'</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>另外有一个<code>weiboList</code>数组，存储当前用户所看到的微博。</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">var weiboList = [</span><br><span class="line">    &#123;<span class="string">user:</span> <span class="number">1</span>, <span class="string">text:</span> <span class="string">'今天又出去玩了'</span>&#125;,</span><br><span class="line">    &#123;<span class="string">user:</span> <span class="number">2</span>, <span class="string">text:</span> <span class="string">'人有多大胆，地有多大产！'</span>&#125;，</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+<p>这当然是个极度精简的模型了，真实的微博应用一定比这个复杂许多。但是有一个和<code>loading</code>状态很类似的就是<code>weiboList</code>，因为我们都知道每过一段时间微博就会自动刷新，也就是说<code>weiboList</code>也在一直经历着变化。</p>
+<figure class="highlight prolog"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="atom">weiboList</span>: [一些微博] -&gt; [旧的微博，和一些新的微博] -&gt; [更多的微博] -&gt; ...</span><br></pre></td></tr></table></figure>
+<p>再次强调，无论是<code>weiboList</code>还是<code>loading</code>，它们都是应用程序的状态。上面的用箭头组成的示意图仅仅是我们对状态变化的一种展现形式（或者说建模）。然而，我们其实还可以用更加简单的模型来表现它，而这个模型我们都熟悉 —— 数组。</p>
+<h3 id="如果它们都只是数组">如果它们都只是数组</h3><p>如果说<code>loading</code>变化的过程就是一个数组，那么不妨把它写作：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> loadingProcess = [<span class="literal">false</span>, <span class="literal">true</span>, <span class="literal">false</span>, <span class="literal">true</span>, <span class="literal">false</span>, ...]</span><br></pre></td></tr></table></figure>
+<p>为了表现出这是一个过程，我们将其重新命名为<code>loadingProcess</code>。不过它没有什么不同，它是一个数组。而且我们还可以注意到，按钮的<code>disabled</code>状态的变化过程和<code>loadingProcess</code>的变化过程是一模一样的。我们将<code>disabled</code>的变化过程命名为<code>disabledProcess</code>。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> disabledProcess = [<span class="literal">false</span>, <span class="literal">true</span>, <span class="literal">false</span>, <span class="literal">true</span>, <span class="literal">false</span>, ...]</span><br></pre></td></tr></table></figure>
+<p>那么如果将<code>loadingProcess</code>做下面的处理，我们将得到什么呢？</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> textProcess = loadingProcess.map(<span class="function"><span class="keyword">function</span>(<span class="params">loading</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> loading ? <span class="string">"Loading ..."</span> : <span class="string">"Load"</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>我们得到的将是按钮上文字的状态变化过程，也就是<code>$btn.text()</code>的值。我们将其命名为<code>textProcess</code>。在有了<code>textProcess</code>和<code>disabledProcess</code>之后，就可以直接对UI进行更新。在这里，我们不再需要使用到<code>loadingProcess</code>了。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">disabledProcess.forEach(<span class="function"><span class="keyword">function</span> (<span class="params">disabled</span>) </span>&#123;</span><br><span class="line">    $btn.prop(<span class="string">'disabled'</span>, disabled);</span><br><span class="line">&#125;);</span><br><span class="line">textProcess.forEach(<span class="function"><span class="keyword">function</span> (<span class="params">text</span>) </span>&#123;</span><br><span class="line">    $btn.text(text);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>这个变换的过程看起来就像下图。</p>
+<img src="/2016/03/02/introduction-to-reactive-programming/2.png" alt="变换过程1" title="变换过程1">
+<p>在YY了那么久之后，你可能会说，不对啊！状态的变化是<strong>一段时间内</strong>发生的事情，在程序一开始怎么可能就知道之后的全部状态，并全部放到一个数组里面呢？是的，我们在之前刻意省略掉了一个重要的元素，也就是<strong>时间（time）</strong>。</p>
+<h3 id="时间都去哪儿啦？">时间都去哪儿啦？</h3><p><code>loadingProcess</code>是如何得出的？当用户触发按钮的点击事件的时候，<code>loadingProcess</code>会被置为<code>false</code>；而当HTTP请求完成的时候，我们将其置为<code>true</code>。在这里，用户触发点击事件，和HTTP请求完成都是一个需要时间的过程。用户的两次点击之间必定要有时间，就像这样：</p>
+<blockquote>
+<p>clickEvent … clickEvent …… clickEvent ….. clickEvent</p>
+</blockquote>
+<p>两个clickEvent之间一个点我们假设代表一秒钟，用户点击的事件之间是由长度不同的时间间隔开的。</p>
+<p>如果我们再尝试用刚才的方法，把click事件表示成一个数组，就会觉得特别的古怪：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable"><span class="keyword">var</span> clickEventProcess</span> = [ clickEvent, clickEvent, clickEvent, clickEvent, clickEvent, ... ]</span><br></pre></td></tr></table></figure>
+<p>你会想，古怪之处在于，这里没了时间的概念。其实不一定是这样的。你觉得这里少了时间，只是因为你被我刚才的例子所迷惑了。你的脑袋里面可能是在想下面的这段代码：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 代码A</span></span><br><span class="line">clickEventProcess.forEach(<span class="function"><span class="keyword">function</span> (<span class="params">clickEvent</span>) </span>&#123;</span><br><span class="line">   <span class="comment">// ... </span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>如果是下面这段代码，我相信你再熟悉不过了，你还会觉得奇怪吗？</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 代码B</span></span><br><span class="line"><span class="built_in">document</span>.querySelector(<span class="string">'.load'</span>).addEventListener(<span class="string">'click'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">clickEvent</span>) </span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>代码A中，我们所看到的是迭代器模式（Iterative Pattern）。所谓迭代器模式是对遍历一个集合的算法所进行的抽象。对于一个数组、一个二叉树和一个链表的遍历算法各不相同，但我都可以用统一的一个接口来获取遍历的结果。<code>forEach</code>就是一个例子。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">数组.forEach(<span class="function"><span class="keyword">function</span> (<span class="params">元素</span>) </span>&#123; <span class="comment">/* ... */</span>&#125;);</span><br><span class="line">二叉树.forEach(<span class="function"><span class="keyword">function</span> (<span class="params">元素</span>) </span>&#123; <span class="comment">/* ... */</span>&#125;);</span><br><span class="line">链表.forEach(<span class="function"><span class="keyword">function</span> (<span class="params">元素</span>) </span>&#123; <span class="comment">/* ... */</span>&#125;);</span><br></pre></td></tr></table></figure>
+<p>虽然每个<code>forEach</code>的实现方式一定不同，但是只要接口（即<code>forEach</code>这个名字以及<code>元素</code>这个参数）一致，我就可以遍历它们之中任何的一个，不管是数组、二叉树还是二郎神。只要它们都是实现了<code>forEach</code>的集合。</p>
+<p>下面这句话希望你仔细品味：</p>
+<blockquote>
+<p>迭代器模式的一个最大的特点就是，数据是由你向集合索要过来的。</p>
+</blockquote>
+<p>在使用迭代器的时候，我们其实就是在向集合要数据，而且每次都企图一次性要完。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>].forEach(<span class="function"><span class="keyword">function</span> (<span class="params">num</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(num); </span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>这就好像在对集合说，你把那五个数字给我吧，快点儿，一个接一个一次性给完。在生活中，就好像蛋糕店的服务员帮你切蛋糕一样。你总是在和服务员说，麻烦你再给我下一块，再给我下一块……</p>
+<img src="/2016/03/02/introduction-to-reactive-programming/3.png" alt="切蛋糕-迭代器" title="切蛋糕-迭代器">
+<p>而代码B是截然相反的。在代码B中，我们是在等待着数据被<strong>推送</strong>过来。又拿切蛋糕为例，这次就好像是你一言不发，而服务员一直跟你说，“这块切好了，给你！”。</p>
+<img src="/2016/03/02/introduction-to-reactive-programming/4.png" alt="切蛋糕-推送" title="切蛋糕-推送">
+<p>如果你对设计模式熟悉的话，你应该知道代码B的模式叫做观察者模式（Observer Pattern）。所谓观察者模式，就是你观察集合，当集合告诉你它有元素要给你的时候，你就可以拿到元素。<code>addEventListener</code>本身就是一个很好的观察者模式的例子。</p>
+<p>在切蛋糕的例子中，当你双目注视的服务员，耳朵竖得高高的，你就是在对服务员进行观察。每当服务员告诉你，有一块新的蛋糕切好了，你就过去拿。</p>
+<h3 id="迭代器和观察者的对立和统一">迭代器和观察者的对立和统一</h3><p>迭代器模式和观察者模式本质上是对称的。它们相同的地方在于：</p>
+<ol>
+<li>都是对集合的遍历（都是那块大蛋糕）</li>
+<li>每次都只获得一个元素</li>
+</ol>
+<p>他们完全相反的地方只有一个：迭代器模式是你主动去要数据，而观察者模式是数据的提供方（切蛋糕的服务员）把数据推给你。他们其实完全可以用同样的接口来实现，例如前面的例子中的代码A，我们来回顾一下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 代码A</span></span><br><span class="line">clickEventProcess.forEach(<span class="function"><span class="keyword">function</span> (<span class="params">clickEvent</span>) </span>&#123;</span><br><span class="line">   <span class="comment">// ... </span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>对于代码B，我们可以进行如下的改写</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 代码B</span></span><br><span class="line">clickEventProcess.forEach = <span class="function"><span class="keyword">function</span>(<span class="params">fn</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>._fn = fn; </span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">clickEventProcess.onNext = <span class="function"><span class="keyword">function</span>(<span class="params">clickEvent</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>._fn(clickEvent);  </span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="built_in">document</span>.querySelector(<span class="string">'.load'</span>).addEventListener(<span class="string">'click'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">clickEvent</span>) </span>&#123;</span><br><span class="line">    clickEventProcess.onNext(clickEvent);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">clickEventProcess.forEach(<span class="function"><span class="keyword">function</span> (<span class="params">clickEvent</span>) </span>&#123;</span><br><span class="line">   <span class="comment">// ... </span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>我们解读一下修改过的代码B。</p>
+<ol>
+<li><code>clickEventProcess.forEach</code>: 它接受一个回调函数作为参数，并存储在<code>this._fn</code>里面。这是为了将来在<code>clickEventProcess.onNext</code>里面调用</li>
+<li>当clickEvent触发的时候，调用<code>clickEventProcess.onNext(clickEvent)</code>，将<code>clickEvent</code>传给了<code>clickEventProcess</code></li>
+<li><code>clickEventProcess.onNext</code>将<code>clickEvent</code>传给了<code>this._fn</code>，也就是之前我们所存储的回调函数</li>
+<li>回调函数正确地接收到新的点击事件</li>
+</ol>
+<p>来看看现在发生了什么……迭代器模式和观察者模式用了同样的接口（API）实现了！因为，它们本质上就是对称的，能用同样的API将两件原本对称的事物给统一起来，这是可以做到的。</p>
+<p>迭代器模式，英文叫做Iterative，由你去迭代数据；而观察者模式，要求你对数据来源的事件做出反应（react），所以其实也可以称作是Reactive（能做出反应的）。Iterative和Reactive，互相对称，相爱不相杀。</p>
+<blockquote>
+<p>话外音：在这里我没有明确提及，实际上在观察者模式中数据就是以流（stream）的形式出现。而所谓数组，不过就是无需等待，马上就可以获得所有元素的流而已。从流的角度来理解Iterative和Reactive的对称性也可以，这里我们不多加阐述。</p>
+</blockquote>
+<h3 id="Reactive_Extension">Reactive Extension</h3><p>上面代码B中我们最后获得了一个新的<code>clickEventProcess</code>，它不是一个真正意义上的集合，却被我们抽象成了一个集合，一个被时间所间隔开的集合。 <a href="https://github.com/Reactive-Extensions/RxJS" target="_blank" rel="external">Rx.js，也称作Reactive Extension</a>提供给了抽象出这样集合的能力，它把这种集合命名为<code>Observable</code>（可观察的）。</p>
+<p>添加Rx.js及其插件Rx-DOM.js。我们需要Rx-DOM.js，因为它提供网络通讯相关的Observable抽象，稍后我们就会看到。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">script</span> <span class="attribute">src</span>=<span class="value">"https://cdn.rawgit.com/Reactive-Extensions/RxJS/master/dist/rx.all.min.js"</span>&gt;</span><span class="undefined"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="title">script</span> <span class="attribute">src</span>=<span class="value">"https://cdn.rawgit.com/Reactive-Extensions/RxJS-DOM/master/dist/rx.dom.min.js"</span>&gt;</span><span class="undefined"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>只需要很简单的一句工厂函数（factory method）就可以将鼠标点击的事件抽象成一个<code>Observable</code>。Rx.js提供一个全局对象<code>Rx</code>，<code>Rx.Observable</code>就是Observable的类。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> loadButton = <span class="built_in">document</span>.querySelector(<span class="string">'.load'</span>);</span><br><span class="line"><span class="keyword">var</span> resultPanel = <span class="built_in">document</span>.getElementById(<span class="string">'result'</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> click$ = Rx.Observable.fromEvent(loadButton, <span class="string">'click'</span>);</span><br></pre></td></tr></table></figure>
+<p><code>click$</code>就是前面的<code>clickEventProcess</code>，在这里我们将所有的Observable变量名结尾都添加<code>$</code>。点击事件是像下面这样子的：</p>
+<figure class="highlight lasso"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">[</span>click <span class="attribute">...</span> click <span class="attribute">...</span><span class="attribute">...</span><span class="built_in">.. </span>click <span class="built_in">.. </span>click <span class="attribute">...</span><span class="built_in">.. </span>click <span class="attribute">...</span><span class="attribute">...</span><span class="attribute">...</span><span class="built_in">.</span><span class="preprocessor">]</span><span class="markup"></span></span><br></pre></td></tr></table></figure>
+<p>每个点击事件后应该发起一个网络请求。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> response$$ = click$.map(<span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">   <span class="comment">// 为了不处理跨域问题，这里换了个地址，返回和前面是一样的</span></span><br><span class="line">   <span class="keyword">return</span> Rx.DOM.get(<span class="string">'http://output.jsbin.com/tafulo.json'</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p><code>Rx.DOM.ajax.get</code>会发起HTTP GET请求，并返回响应（Response）的Observable。因为每次请求只会有一个响应，所以响应的Observable实际上只会有一个元素。它将会是这样的：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[...[.....response].......[........response]......[....response]...........[....response]......[....response]]</span><br></pre></td></tr></table></figure>
+<p>由于这是Observable的Observable，就好像二维数组一样，所以在变量名末尾是<code>$$</code>。 若将click$和response$$的对应关系勾勒出来，会更加清晰。</p>
+<img src="/2016/03/02/introduction-to-reactive-programming/5.png" alt="5.png" title="">
+<p>然而，我们更希望的是直接获得Response的Observble，而不是Response的Observble的Observble。Rx.js提供了<code>.flatMap</code>方法，可以将二维的Observable“摊平”成一维。你可以参考<a href="http://underscorejs.org/#flatten" target="_blank" rel="external">underscore.js里面的<code>flatten</code>方法</a>，只不过它是将普通数组摊平，而非将Observable摊平。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> response$ = click$.flatMap(<span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">   <span class="keyword">return</span> Rx.DOM.get(<span class="string">'http://output.jsbin.com/tafulo.json'</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>图示：</p>
+<img src="/2016/03/02/introduction-to-reactive-programming/6.png" alt="6.png" title="">
+<p>对于每一个click事件，我们都想将<code>loading</code>置为<code>true</code>；而对于每次HTTP请求返回，则置为<code>false</code>。于是，我们可以将<code>click$</code>映射成一个纯粹的只含有<code>true</code>的Observable，但其每个<code>true</code>到达的事件都和点击事件到达的时间一样；对于<code>response$</code>，同样，将其映射呈只含有<code>false</code>的Observable。最后，我们将两个Observable结合在一起（用<code>Rx.Observable.merge</code>），最终就可以形成<code>loading$</code>，也就是刚才我们的<code>loadingProcess</code>。</p>
+<p>此外，<code>$loading</code>还应有一个初始值，可以用<code>startWith</code>方法来指定。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> loading$ = Rx.Observable.merge(</span><br><span class="line">    click$.map(<span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123; <span class="keyword">return</span> <span class="literal">true</span>; &#125;),</span><br><span class="line">    response$.map(<span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123; <span class="keyword">return</span> <span class="literal">false</span>; &#125;)</span><br><span class="line">).startWith(<span class="literal">false</span>);</span><br></pre></td></tr></table></figure>
+<p>整个结合的过程如图所示</p>
+<img src="/2016/03/02/introduction-to-reactive-programming/7.png" alt="7.png" title="">
+<p>有了<code>loading$</code>之后，我们很快就能得出刚才我们所想要的<code>textProcess</code>和<code>enabledProcess</code>。<code>enabledProcess</code>和<code>loading$</code>是一致的，就无需再生成，只要生成<code>textProcess</code>即可（命名为<code>text$</code>）。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> text$ = loading$.map(<span class="function"><span class="keyword">function</span> (<span class="params">loading</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> loading ? <span class="string">'Loading ...'</span> : <span class="string">'Load'</span>;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>在Rx.js中没有<code>forEach</code>方法，但有一个更好名字的方法，和<code>forEach</code>效用一样，叫做<code>subscribe</code>。这样我们就可以更新按钮的样式了。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">text$.subscribe(<span class="function"><span class="keyword">function</span> (<span class="params">text</span>) </span>&#123;</span><br><span class="line">  $loadButton.text(text);</span><br><span class="line">&#125;);</span><br><span class="line">loading$.subscribe(<span class="function"><span class="keyword">function</span> (<span class="params">loading</span>) </span>&#123;</span><br><span class="line">  $loadButton.prop(<span class="string">'disabled'</span>, loading);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// response$ 还可以拿来更新#result的内容</span></span><br><span class="line">response$.subscribe(<span class="function"><span class="keyword">function</span> (<span class="params">data</span>) </span>&#123;</span><br><span class="line">  $resultPanel.text(<span class="string">'Got '</span> + <span class="built_in">JSON</span>.parse(data.response).data.children.length + <span class="string">' items'</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>这样就用完全Reactive的方式重构了之前我们的例子。</p>
+<p><a class="jsbin-embed" href="http://jsbin.com/wurite/embed?html,js,output" target="_blank" rel="external">JS Bin on jsbin.com</a></p>
+<p>在我们重构后的方案中，消灭了所有的状态。状态都被Observable抽象了出去。于是，这样的代码如果放在一个函数里面，这个函数将是没有副作用的纯函数。关于纯函数、函数式编程，可以阅读我的文章<a href="http://blog.leapoahead.com/2015/09/19/function-as-first-class-citizen/">《“函数是一等公民”背后的含义》</a>。</p>
+<h3 id="总结">总结</h3><p>本文从应用的角度入手解释了Reactive Programming的思路。Observable作为对状态的抽象，统一了Iterative和Reactive，淡化了两者之间的边界。当然，最大的好处就是我们用抽象的形式将烦人的状态赶出了视野，取而代之的是可组合的、可变换的Observable。</p>
+<p>事物之间的对立统一通常很难找到。实际上，即使是在《设计模式》这本书中，作者们也未曾看到迭代器模式和观察者模式之间存在的对称关系。在UI设计领域，我们更多地和用户驱动、通信驱动出来的事件打交道，这才促成了这两个模式的合并。</p>
+<script src="http://static.jsbin.com/js/embed.min.js?3.35.9"></script>
+
+            
+                
+
+            
+        </div>
+    </div>
+    
+    <div class="post-rmds main-content-wrap">
+        <h4>猜你想读</h4>
+        <ul>
+            
+            
+                <li><a href="http://blog.leapoahead.com/2016/02/27/book-of-2016-the-inevitable/">《必然》—— 对变革如数家珍</a></li>
+            
+        </ul>
+        
+    </div>
+
+    <div class="post-mailchimp">
+    <div class="main-content-wrap mailchimp-wrap">
+        <h3>让有趣易懂的知识主动找到你</h3>
+        <p>订阅我的Email半月刊，让我们共同学习、成长。绝无广告！</p>
+        <form action="//leapoahead.us8.list-manage.com/subscribe/post?u=f3a6e2f843ac1be03e00f7bed&amp;amp;id=58e28559b1" method="post" name="mc-embedded-subscribe-form" class="mailchimp-form" target="_blank" novalidate>
+            <label for="mce-EMAIL" style="display: none">Email地址</label>
+            <input type="email" value="" name="EMAIL" id="mce-EMAIL" placeholder="您常用的Email地址" class="mailchimp-input">
+            <input type="submit" value="订阅" name="subscribe" id="mc-embedded-subscribe" class="mailchimp-input mailchimp-subscribe">
+            <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+            <div style="position: absolute; left: -5000px;"><input type="text" name="b_f3a6e2f843ac1be03e00f7bed_58e28559b1" tabindex="-1" value=""></div>
+        </form>
+    </div>
+</div>
+    <div class="post-footer main-content-wrap">
+        
+        <div class="post-actions-wrap">
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
+                <i class="fa fa-share-alt"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2016/03/02/introduction-to-reactive-programming/">
+                <i class="fa fa-facebook-official"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2016/03/02/introduction-to-reactive-programming/">
+                <i class="fa fa-twitter"></i>
+            </a>
+        </li>
+        
+            <li class="post-action">
+                <a class="post-action-btn btn btn--default" href="#disqus_thread">
+                    <i class="fa fa-comment-o"></i>
+                </a>
+            </li>
+        
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default jiathis_button_tsina" href="http://www.jiathis.com/send/?webid=tsina&uid=1399172634630776&summary=&lt;p&gt;我在工作中采用Reactive Programming（RP）已经有一年了，对于这个“新鲜”的辞藻或许有一些人还不甚熟悉，这里就和大家说说关于RP我的理解。希望在读完本文后，你能够用Reactive Extension进行RP。&lt;/p&gt;&title=指路Reactive Programming&url=http://blog.leapoahead.com/2016/03/02/introduction-to-reactive-programming/" target="new">
+                <i class="fa fa-weibo"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+            <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2016 子回. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="2">
+                    <div class="post-actions-wrap">
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
+                <i class="fa fa-share-alt"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2016/03/02/introduction-to-reactive-programming/">
+                <i class="fa fa-facebook-official"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2016/03/02/introduction-to-reactive-programming/">
+                <i class="fa fa-twitter"></i>
+            </a>
+        </li>
+        
+            <li class="post-action">
+                <a class="post-action-btn btn btn--default" href="#disqus_thread">
+                    <i class="fa fa-comment-o"></i>
+                </a>
+            </li>
+        
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default jiathis_button_tsina" href="http://www.jiathis.com/send/?webid=tsina&uid=1399172634630776&summary=&lt;p&gt;我在工作中采用Reactive Programming（RP）已经有一年了，对于这个“新鲜”的辞藻或许有一些人还不甚熟悉，这里就和大家说说关于RP我的理解。希望在读完本文后，你能够用Reactive Extension进行RP。&lt;/p&gt;&title=指路Reactive Programming&url=http://blog.leapoahead.com/2016/03/02/introduction-to-reactive-programming/" target="new">
+                <i class="fa fa-weibo"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                <div id="share-options-bar" class="share-options-bar" data-behavior="2">
+    <ul class="share-options">
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2016/03/02/introduction-to-reactive-programming/">
+                <i class="fa fa-google-plus"></i><span class="">Share on Google Plus</span>
+            </a>
+        </li>
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2016/03/02/introduction-to-reactive-programming/">
+                <i class="fa fa-facebook-official"></i><span>Share on Facebook</span>
+            </a>
+        </li>
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2016/03/02/introduction-to-reactive-programming/">
+                <i class="fa fa-twitter"></i><span>Share on Twitter</span>
+            </a>
+        </li>
+    </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
+            
+        </div>
+        <div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-remove"></i>
+        </div>
+        
+            <img id="about-card-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=110"/>
+        
+            <h4 id="about-card-name">子回</h4>
+        
+            <h5 id="about-card-bio"><p>Life is all about A/B testing</p>
+</h5>
+        
+        
+            <h5 id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>Software Engineer Intern at Yelp</p>
+
+            </h5>
+        
+        
+            <h5 id="about-card-location">
+                <i class="fa fa-map-marker"></i>
+                <br/>
+                San Francisco, CA
+            </h5>
+        
+    </div>
+</div>
+
+        <div id="cover" style="background-image:url('http://res.cloudinary.com/tranquilpeak-hexo-theme/image/upload/v1438975482/v1.3.0-cover.jpg');"></div>
+    </body>
+    <!--SCRIPTS-->
+<script src="/assets/js/jquery.js" type="text/javascript"></script>
+<script src="/assets/js/jquery.fancybox.js" type="text/javascript"></script>
+<script src="/assets/js/jquery.fancybox-thumbs.js" type="text/javascript"></script>
+<script src="/assets/js/tranquilpeak.js" type="text/javascript"></script>
+<!--SCRIPTS END-->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'johnweng';
+        (function() {
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+
+
+
+</html>
