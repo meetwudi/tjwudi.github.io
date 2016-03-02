@@ -4,7 +4,7 @@
   <subtitle><![CDATA[创造是我最大的兴趣]]></subtitle>
   <link href="/atom.xml" rel="self"/>
   <link href="http://blog.leapoahead.com/"/>
-  <updated>2016-03-02T15:51:49.000Z</updated>
+  <updated>2016-03-02T15:54:13.000Z</updated>
   <id>http://blog.leapoahead.com/</id>
   
   <author>
@@ -18,8 +18,8 @@
     <title><![CDATA[指路Reactive Programming]]></title>
     <link href="http://blog.leapoahead.com/2016/03/02/introduction-to-reactive-programming/"/>
     <id>http://blog.leapoahead.com/2016/03/02/introduction-to-reactive-programming/</id>
-    <published>2016-03-02T11:58:21.000Z</published>
-    <updated>2016-03-02T15:51:49.000Z</updated>
+    <published>2016-03-02T19:58:21.000Z</published>
+    <updated>2016-03-02T15:54:13.000Z</updated>
     <content type="html"><![CDATA[<p>我在工作中采用Reactive Programming（RP）已经有一年了，对于这个“新鲜”的辞藻或许有一些人还不甚熟悉，这里就和大家说说关于RP我的理解。希望在读完本文后，你能够用Reactive Extension进行RP。</p>
 <a id="more"></a>
 <p>需要说明的是，我实在不知道如何翻译Reactive Programming这个词组，所以在本文中均用RP代替，而不是什么“响应式编程”、“反应式编程”。本文假定你对JavaScript及HTML5有初步的了解，如果有使用过，那么就再好不过了。</p>
@@ -146,7 +146,7 @@
     <title><![CDATA[《必然》—— 对变革如数家珍]]></title>
     <link href="http://blog.leapoahead.com/2016/02/27/book-of-2016-the-inevitable/"/>
     <id>http://blog.leapoahead.com/2016/02/27/book-of-2016-the-inevitable/</id>
-    <published>2016-02-27T01:52:04.000Z</published>
+    <published>2016-02-27T09:52:04.000Z</published>
     <updated>2016-02-27T02:48:21.000Z</updated>
     <content type="html"><![CDATA[<p>我曾和别人讨论，Google、Facebook等科技巨人之后，下一家革命性的公司会是做什么的？我还问过Google前员工，“你觉得Google能活几年”？</p>
 <a id="more"></a>
@@ -176,7 +176,7 @@
     <title><![CDATA[《Hooked》 - 用户行为操纵的技术]]></title>
     <link href="http://blog.leapoahead.com/2016/02/13/book-of-2016-hooked-how-to-build-habit-forming-products/"/>
     <id>http://blog.leapoahead.com/2016/02/13/book-of-2016-hooked-how-to-build-habit-forming-products/</id>
-    <published>2016-02-13T04:13:29.000Z</published>
+    <published>2016-02-13T12:13:29.000Z</published>
     <updated>2016-02-13T05:01:55.000Z</updated>
     <content type="html"><![CDATA[<blockquote>
 <p>Start-ups are grueling and only the most fortunate persevere before finding success. If you only build for fame or fortune, you will likely find neither. Build for meaning, though, and you can’t go wrong. （创业是极其艰辛的，只有那些最幸运的人才能在找到成功之前一直坚持下去。如果你是为了追求财富和名望去创业，那么你几乎是两者都无法得到的。反之，为了一个使命的意义去奋斗，那就没错了）</p>
@@ -230,7 +230,7 @@
     <title><![CDATA[《蔡康永的说话之道》—— 成人的说话法则]]></title>
     <link href="http://blog.leapoahead.com/2016/01/23/book-of-2016-caikangyong/"/>
     <id>http://blog.leapoahead.com/2016/01/23/book-of-2016-caikangyong/</id>
-    <published>2016-01-23T05:45:21.000Z</published>
+    <published>2016-01-23T13:45:21.000Z</published>
     <updated>2016-01-23T06:50:55.000Z</updated>
     <content type="html"><![CDATA[<blockquote>
 <p>练习关心别人，而且表现出你的关心，我觉得是非常值得的，因为你生命中必须有你最在乎的人，你才会活得有滋味。 —— 蔡康永的说话之道</p>
@@ -275,7 +275,7 @@
     <title><![CDATA[迭代、递归与Tail Call Optimization]]></title>
     <link href="http://blog.leapoahead.com/2016/01/03/iterative-recursive-process/"/>
     <id>http://blog.leapoahead.com/2016/01/03/iterative-recursive-process/</id>
-    <published>2016-01-03T09:59:13.000Z</published>
+    <published>2016-01-03T17:59:13.000Z</published>
     <updated>2016-01-03T11:46:27.000Z</updated>
     <content type="html"><![CDATA[<p>在程序设计的世界里面有两种很基本的设计模式，那就是迭代（iterative）和递归（recursive）。这两种模式之间存在着很强的一致性和对称性。</p>
 <a id="more"></a>
@@ -322,7 +322,7 @@
     <title><![CDATA[硅谷夜谈]]></title>
     <link href="http://blog.leapoahead.com/2015/12/27/thinking-in-silicon-valley/"/>
     <id>http://blog.leapoahead.com/2015/12/27/thinking-in-silicon-valley/</id>
-    <published>2015-12-27T14:45:32.000Z</published>
+    <published>2015-12-27T22:45:32.000Z</published>
     <updated>2015-12-28T09:27:45.000Z</updated>
     <content type="html"><![CDATA[<p>旧金山严格意义上不算是硅谷的一部分，它其实坐落于硅谷以北。城市的占地面积不大，百分之九十是一马平川的居民区。东北角的Financial District是这里唯一高楼耸立的区域，人如川流，在他们之中不少都是科技工作者。贯穿整个Financial District的是Market Street，好似是旧金山的脊柱一般，撑着这个科技之都鲜活的躯体。</p>
 <img src="/2015/12/27/thinking-in-silicon-valley/1.jpg" alt="Market Street" title="Market Street">
@@ -364,7 +364,7 @@
     <title><![CDATA[Debugging with strace]]></title>
     <link href="http://blog.leapoahead.com/2015/11/27/debugging-with-strace/"/>
     <id>http://blog.leapoahead.com/2015/11/27/debugging-with-strace/</id>
-    <published>2015-11-26T16:32:56.000Z</published>
+    <published>2015-11-27T00:32:56.000Z</published>
     <updated>2015-11-27T09:20:47.000Z</updated>
     <content type="html"><![CDATA[<p><a href="http://linux.die.net/man/1/strace" target="_blank" rel="external">strace</a> is a tool that helps to inspect system calls your application makes. I found it really useful this week when I debugging a complex python application. I am not going through my original problem though, but will show you some typical examples as proof of concept.</p>
 <a id="more"></a>
@@ -404,7 +404,7 @@
     <title><![CDATA[关于实现Chrome DevTools选择性Cache的提议]]></title>
     <link href="http://blog.leapoahead.com/2015/10/26/chrome-devtools-selective-caching-proposal/"/>
     <id>http://blog.leapoahead.com/2015/10/26/chrome-devtools-selective-caching-proposal/</id>
-    <published>2015-10-26T14:56:16.000Z</published>
+    <published>2015-10-26T22:56:16.000Z</published>
     <updated>2015-10-27T06:02:28.000Z</updated>
     <content type="html"><![CDATA[<p>我们都爱Chrome DevTools！作为Web工程师，我们每天都使用DevTools。</p>
 <a id="more"></a>
@@ -425,7 +425,7 @@
     <title><![CDATA[Galley - 为基于Docker架构本地开发与测试提速]]></title>
     <link href="http://blog.leapoahead.com/2015/10/23/intro-to-galley/"/>
     <id>http://blog.leapoahead.com/2015/10/23/intro-to-galley/</id>
-    <published>2015-10-22T16:40:01.000Z</published>
+    <published>2015-10-23T00:40:01.000Z</published>
     <updated>2015-10-23T07:44:59.000Z</updated>
     <content type="html"><![CDATA[<p>（本文投稿于<a href="www.infoq.com/cn/">InfoQ</a>，无论其是否刊登，其他第三方转载请务必注明出处）</p>
 <p>现如今，Docker已经成为了很多公司部署应用、服务的首选方案。依靠容器技术，我们能在不同的体系结构之上轻松部署几乎任何种类的应用。在洛杉矶时间2015年10月21日于旧金山展开的Twitter Flight开发者大会上，来自Fabric的工程师Joan Smith再次谈到了这一点。</p>
@@ -473,7 +473,7 @@
     <title><![CDATA[我从开源项目中学习到的Docker经验]]></title>
     <link href="http://blog.leapoahead.com/2015/10/07/docker-lessons-learned-md/"/>
     <id>http://blog.leapoahead.com/2015/10/07/docker-lessons-learned-md/</id>
-    <published>2015-10-07T11:42:44.000Z</published>
+    <published>2015-10-07T19:42:44.000Z</published>
     <updated>2015-10-08T04:30:37.000Z</updated>
     <content type="html"><![CDATA[<p>最近几周从一个Web开发俨然摇身一变成了“运维”，在GitHub上面为<a href="https://github.com/EverythingMe/redash" target="_blank" rel="external">re:dash</a>做Docker化的支持。在整个Code Review的过程中汲取了一些Docker的经验。</p>
 <a id="more"></a>
@@ -511,7 +511,7 @@
     <title><![CDATA[“函数是一等公民”背后的含义]]></title>
     <link href="http://blog.leapoahead.com/2015/09/19/function-as-first-class-citizen/"/>
     <id>http://blog.leapoahead.com/2015/09/19/function-as-first-class-citizen/</id>
-    <published>2015-09-18T17:37:41.000Z</published>
+    <published>2015-09-19T01:37:41.000Z</published>
     <updated>2015-09-19T08:37:41.000Z</updated>
     <content type="html"><![CDATA[<p>在学习一些语言的时候，你经常会听到“函数是一等公民”这样的描述。那么究竟函数在这类语言中扮演着怎么样的一个角色？它和函数式编程、无状态设计、封装抽象有什么千丝万缕的联系？</p>
 <a id="more"></a>
@@ -632,7 +632,7 @@
     <title><![CDATA[JavaScript闭包的底层运行机制]]></title>
     <link href="http://blog.leapoahead.com/2015/09/15/js-closure/"/>
     <id>http://blog.leapoahead.com/2015/09/15/js-closure/</id>
-    <published>2015-09-15T13:17:24.000Z</published>
+    <published>2015-09-15T21:17:24.000Z</published>
     <updated>2015-09-16T04:17:41.000Z</updated>
     <content type="html"><![CDATA[<p>我研究JavaScript闭包（closure）已经有一段时间了。我之前只是学会了如何使用它们，而没有透彻地了解它们具体是如何运作的。那么，究竟什么是闭包？</p>
 <a id="more"></a>
@@ -742,7 +742,7 @@
     <title><![CDATA[5分钟内使用React、Webpack与ES6构建应用]]></title>
     <link href="http://blog.leapoahead.com/2015/09/12/react-es6-webpack-in-5-minutes/"/>
     <id>http://blog.leapoahead.com/2015/09/12/react-es6-webpack-in-5-minutes/</id>
-    <published>2015-09-12T03:54:02.000Z</published>
+    <published>2015-09-12T11:54:02.000Z</published>
     <updated>2015-09-12T18:54:02.000Z</updated>
     <content type="html"><![CDATA[<p>假设你想要非常快速地搭建一个React应用，或者你想快速地搭建用ES6学习React开发的环境，那么这篇文章你一定不想错过。</p>
 <a id="more"></a>
@@ -783,7 +783,7 @@
     <title><![CDATA[Workshop - 对Express中间件进行单元测试]]></title>
     <link href="http://blog.leapoahead.com/2015/09/09/unittesting-express-middlewares/"/>
     <id>http://blog.leapoahead.com/2015/09/09/unittesting-express-middlewares/</id>
-    <published>2015-09-09T11:21:33.000Z</published>
+    <published>2015-09-09T19:21:33.000Z</published>
     <updated>2015-09-10T04:36:15.000Z</updated>
     <content type="html"><![CDATA[<p>我最近围绕着Express构建应用，尝试用不同的方法来对Express的中间件进行单元测试。今天通过Workshop的形式，一步一步地向大家介绍我的测试方式。</p>
 <a id="more"></a>
@@ -873,7 +873,7 @@
     <title><![CDATA[八幅漫画理解使用JSON Web Token设计单点登录系统]]></title>
     <link href="http://blog.leapoahead.com/2015/09/07/user-authentication-with-jwt/"/>
     <id>http://blog.leapoahead.com/2015/09/07/user-authentication-with-jwt/</id>
-    <published>2015-09-07T14:43:19.000Z</published>
+    <published>2015-09-07T22:43:19.000Z</published>
     <updated>2015-09-08T06:31:10.000Z</updated>
     <content type="html"><![CDATA[<p>上次在<a href="/2015/09/06/understanding-jwt/">《JSON Web Token - 在Web应用间安全地传递信息》</a>中我提到了JSON Web Token可以用来设计单点登录系统。我尝试用八幅漫画先让大家理解如何设计正常的用户认证系统，然后再延伸到单点登录系统。</p>
 <a id="more"></a>
@@ -929,7 +929,7 @@
     <title><![CDATA[JSON Web Token - 在Web应用间安全地传递信息]]></title>
     <link href="http://blog.leapoahead.com/2015/09/06/understanding-jwt/"/>
     <id>http://blog.leapoahead.com/2015/09/06/understanding-jwt/</id>
-    <published>2015-09-06T12:25:36.000Z</published>
+    <published>2015-09-06T20:25:36.000Z</published>
     <updated>2015-09-07T03:25:36.000Z</updated>
     <content type="html"><![CDATA[<p>JSON Web Token（JWT）是一个非常轻巧的<a href="https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32" target="_blank" rel="external">规范</a>。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。</p>
 <a id="more"></a>
@@ -1005,7 +1005,7 @@
     <title><![CDATA[以Node应用为例谈如何管理Web应用的环境常量]]></title>
     <link href="http://blog.leapoahead.com/2015/09/04/managing-env-constants/"/>
     <id>http://blog.leapoahead.com/2015/09/04/managing-env-constants/</id>
-    <published>2015-09-03T16:33:51.000Z</published>
+    <published>2015-09-04T00:33:51.000Z</published>
     <updated>2015-09-04T07:33:51.000Z</updated>
     <content type="html"><![CDATA[<p>在程序员自己的小世界里，我们一直在和“量”打交道——变量和常量。可是常量真的是一成不变的吗？事实上，常量也分为两种，应用常量（application-specific constant）和环境常量（environment-specific constant）。</p>
 <a id="more"></a>
@@ -1079,7 +1079,7 @@
     <title><![CDATA[在Node应用中避免“Dot Hell”]]></title>
     <link href="http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/"/>
     <id>http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/</id>
-    <published>2015-09-02T16:38:51.000Z</published>
+    <published>2015-09-03T00:38:51.000Z</published>
     <updated>2015-09-03T07:38:51.000Z</updated>
     <content type="html"><![CDATA[<p>在Node应用中，我们使用<code>require</code>来加载模块。在目录层次相对复杂的应用中，总是会出现类似<code>require(&#39;../../../../../module&#39;)</code>的调用，我把它称之为Dot Hell。我用了一些时间研究现有的解决方案，并介绍我个人认为最好的方法。</p>
 <a id="more"></a>
@@ -1115,7 +1115,7 @@
     <title><![CDATA[用自然语言的角度理解JavaScript中的this关键字]]></title>
     <link href="http://blog.leapoahead.com/2015/08/31/understanding-js-this-keyword/"/>
     <id>http://blog.leapoahead.com/2015/08/31/understanding-js-this-keyword/</id>
-    <published>2015-08-31T04:44:14.000Z</published>
+    <published>2015-08-31T12:44:14.000Z</published>
     <updated>2015-09-01T04:49:49.000Z</updated>
     <content type="html"><![CDATA[<p>在编写JavaScript应用的时候，我们经常会使用<code>this</code>关键字。那么<code>this</code>关键字究竟是怎样工作的？它的设计有哪些好的地方，有哪些不好的地方？本文带大家全面系统地认识这个老朋友。</p>
 <img src="/2015/08/31/understanding-js-this-keyword/what_is_this.png" alt="WHAT IS THIS" title="WHAT IS THIS">
@@ -1186,7 +1186,7 @@
     <title><![CDATA[当你打开网页的时候，世界都发生了什么（1）]]></title>
     <link href="http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/"/>
     <id>http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/</id>
-    <published>2015-08-30T12:47:04.000Z</published>
+    <published>2015-08-30T20:47:04.000Z</published>
     <updated>2015-08-31T04:55:14.000Z</updated>
     <content type="html"><![CDATA[<p>你有没有好奇过，当你试图打开一个网页的时候，这个世界上都发生了一些什么事情？会不会因为你手气键落，产生了蝴蝶效应，指尖的风拂起千年后你梦中的那个女孩的刘海？咳，也不是没有可能。今天我就来告诉你会发生什么事情，你可以沏一壶茶，坐在躺椅上，慢慢品味……</p>
 <a id="more"></a>
