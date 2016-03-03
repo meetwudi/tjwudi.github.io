@@ -25,7 +25,7 @@
 <meta property="og:image" content="http://blog.leapoahead.com/2016/03/02/introduction-to-reactive-programming/5.png">
 <meta property="og:image" content="http://blog.leapoahead.com/2016/03/02/introduction-to-reactive-programming/6.png">
 <meta property="og:image" content="http://blog.leapoahead.com/2016/03/02/introduction-to-reactive-programming/7.png">
-<meta property="og:updated_time" content="2016-03-02T15:54:13.000Z">
+<meta property="og:updated_time" content="2016-03-03T01:23:48.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="指路Reactive Programming">
 <meta name="twitter:description" content="我在工作中采用Reactive Programming（RP）已经有一年了，对于这个“新鲜”的辞藻或许有一些人还不甚熟悉，这里就和大家说说关于RP我的理解。希望在读完本文后，你能够用Reactive Extension进行RP。">
@@ -188,7 +188,7 @@
         </h1>
     
     <div class="post-meta">
-    <time itemprop="datePublished" content="Wed Mar 02 2016 19:58:21 GMT+0000">
+    <time itemprop="datePublished" content="Wed Mar 02 2016 19:58:21 GMT+0800">
 	
 		    3月 02, 2016
     	
@@ -209,7 +209,7 @@
 <a id="more"></a>
 <p>需要说明的是，我实在不知道如何翻译Reactive Programming这个词组，所以在本文中均用RP代替，而不是什么“响应式编程”、“反应式编程”。本文假定你对JavaScript及HTML5有初步的了解，如果有使用过，那么就再好不过了。</p>
 <p>让我们首先来想象一个很常见的交互场景。当用户点击一个页面上的按钮，程序开始在后台执行一些工作（例如从网络获取数据）。在获取数据期间，按钮不能再被点击，而会显示成灰色的”disabled”状态。当加载完成后，页面展现数据，而后按钮又可以再次使用。（如下面例子的这个load按钮）</p>
-<p><a class="jsbin-embed" href="http://jsbin.com/wurite/embed?js,output" target="_blank" rel="external">JS Bin on jsbin.com</a></p>
+<p><a class="jsbin-embed" href="http://jsbin.com/yaneve/embed?js,output" target="_blank" rel="external">JS Bin on jsbin.com</a></p>
 <p>在这里我使用jQuery编写了按钮的逻辑，具体的代码是这样的。</p>
 <figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> loading = <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">$(<span class="string">'.load'</span>).click(<span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">  loading = <span class="literal">true</span>;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">var</span> $btn = $(<span class="keyword">this</span>);</span><br><span class="line">  </span><br><span class="line">  $btn.prop(<span class="string">'disabled'</span>, loading);</span><br><span class="line">  $btn.text(<span class="string">'Loading ...'</span>);</span><br><span class="line">  </span><br><span class="line">  $.getJSON(<span class="string">'https://www.reddit.com/r/cats.json'</span>)</span><br><span class="line">    .done(<span class="function"><span class="keyword">function</span> (<span class="params">data</span>) </span>&#123;</span><br><span class="line">      loading = <span class="literal">false</span>;</span><br><span class="line">      $btn.prop(<span class="string">'disabled'</span>, loading);</span><br><span class="line">      $btn.text(<span class="string">'Load'</span>);</span><br><span class="line">    </span><br><span class="line">      $(<span class="string">'#result'</span>).text(<span class="string">"Got "</span> + data.data.children.length + <span class="string">" results"</span>);</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 <p>对应的HTML：</p>
