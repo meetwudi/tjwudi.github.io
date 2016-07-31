@@ -1,0 +1,465 @@
+
+<!DOCTYPE html>
+<html lang="zh_CN">
+    
+<head>
+    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="回田园 - 子回的私人创作">
+    <title>Node.js与Docker从开发到生产（1） - 回田园 - 子回的私人创作</title>
+    <meta name="author" content="子回">
+    
+    
+        <link rel="alternative" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <meta name="description" content="Docker在前几天发布了Mac和Windows的版本，从此Mac用户可以无需安装VirtualBox使用Docker。这给更多对Docker只闻其名但未曾尝试的朋友更方便地动手尝试的机会。本文将带你了解Docker，并一步步使用Docker将一个Node.js应用部署到生产环境中。">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="Node.js与Docker从开发到生产（1）">
+<meta property="og:url" content="http://blog.leapoahead.com/2016/07/30/nodejs-docker-from-scratch-to-production/index.html">
+<meta property="og:site_name" content="回田园 - 子回的私人创作">
+<meta property="og:description" content="Docker在前几天发布了Mac和Windows的版本，从此Mac用户可以无需安装VirtualBox使用Docker。这给更多对Docker只闻其名但未曾尝试的朋友更方便地动手尝试的机会。本文将带你了解Docker，并一步步使用Docker将一个Node.js应用部署到生产环境中。">
+<meta property="og:updated_time" content="2016-07-31T06:14:43.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Node.js与Docker从开发到生产（1）">
+<meta name="twitter:description" content="Docker在前几天发布了Mac和Windows的版本，从此Mac用户可以无需安装VirtualBox使用Docker。这给更多对Docker只闻其名但未曾尝试的朋友更方便地动手尝试的机会。本文将带你了解Docker，并一步步使用Docker将一个Node.js应用部署到生产环境中。">
+<meta name="twitter:creator" content="@leapoahead">
+    
+    
+    
+        <meta property="og:image" content="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=640"/>
+    
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/font-awesome.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/jquery.fancybox.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/jquery.fancybox-thumbs.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/tranquilpeak.css" type="text/css">
+    <!--STYLES END-->
+    
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-50843289-7']);
+        _gaq.push(['_trackPageview']);
+        (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+
+</head>
+
+    <body>
+        <div id="blog">
+            <header id="header" data-behavior="2">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <h1 class="header-title">
+        <a class="header-title-link" href="/ ">回田园 - 子回的私人创作</a>
+    </h1>
+    
+        <a class="header-right-picture" href="/#about">
+            <img class="header-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90"/>
+        </a>
+    
+</header>
+            <nav id="sidebar" data-behavior="2">
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/ "
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-home"></i>
+                    <span class="sidebar-button-desc">Home</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/all-categories"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
+                    <span class="sidebar-button-desc">Categories</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://github.com/tjwudi" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-github"></i>
+                    <span class="sidebar-button-desc">GitHub</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://twitter.com/leapoahead" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-twitter"></i>
+                    <span class="sidebar-button-desc">Twitter</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://facebook.com/leapoahead" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-facebook"></i>
+                    <span class="sidebar-button-desc">Facebook</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-linkedin"></i>
+                    <span class="sidebar-button-desc">Linked In</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link " href="mailto:webmaster@leapoahead.com" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-envelope-o"></i>
+                    <span class="sidebar-button-desc">Mail</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/atom.xml"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-rss"></i>
+                    <span class="sidebar-button-desc">RSS</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+</nav>
+
+            
+            <div id="main" data-behavior="2"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post" itemscope itemType="http://schema.org/BlogPosting">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title" itemprop="headline">
+            Node.js与Docker从开发到生产（1）
+        </h1>
+    
+    <div class="post-meta">
+    <time itemprop="datePublished" content="Sat Jul 30 2016 11:19:53 GMT+0800">
+	
+		    7月 30, 2016
+    	
+    </time>
+    
+        <span>in </span>
+        
+    <a class="category-link" href="/categories/Engineering/">Engineering</a>
+
+
+    
+</div>
+</div>
+    
+    <div class="post-content markdown" itemprop="articleBody">
+        <div class="main-content-wrap">
+            <p>Docker在前几天发布了Mac和Windows的版本，从此Mac用户可以无需安装VirtualBox使用Docker。这给更多对Docker只闻其名但未曾尝试的朋友更方便地动手尝试的机会。本文将带你了解Docker，并一步步使用Docker将一个Node.js应用部署到生产环境中。</p>
+<a id="more"></a>
+<h3 id="什么是Docker">什么是Docker</h3><p>为了让更多读者能够跟随本文的步伐，我有必要阐述什么是Docker。如果你已经有所了解，或者想立刻动手实践，可以直接跳到第2节。</p>
+<p>我们从真实的生产环境说起。当一个应用刚上线的时候，或许一台服务器还是够用的。但随着活跃用户数的增长，一台服务器不够用了，我们可能需要两台、十台甚至几百台的服务器来支撑一个应用。</p>
+<p>在这几百台服务器中，每台服务器的系统配置都是可以能有细微差异的。尽管一开始安装系统的时候采用的是同一种系统、同一个版本，但是在接下来可能有几台机器进行了自动升级、有几台机器上某个软件包被自动更新了等等的问题。当服务器产生差异，应用就有可能在一些机器上崩溃。<strong>维护集群软硬件状态的一致性是一个很重要的任务，也是一个棘手的问题</strong>。</p>
+<p>用于管理一致性的配置管理工具有不少，比较流行的有puppet、ansible和chef。它们通过由管理员配置的方式，对所有机器进行统一管理，例如安装、删除软件等。</p>
+<p>另外一种方式就是采用虚拟化（Virtualization）。虚拟化这个词可能你会陌生，但是虚拟机这个词你肯定熟悉。虚拟机本身就是一种虚拟化技术，它通过用软件模拟硬件环境，让你可以在任何地方运行同一个虚拟机镜像。在Windows 8上，你可以用虚拟机运行两个Ubuntu系统；在Mac上，你也可以运行同样的Ubuntu系统，使用同一个镜像。这是传统的虚拟机虚拟化技术。</p>
+<p>Docker是一种轻量级的虚拟化技术。它通过创建镜像，为应用提供一个一致的运行环境。在部署应用的时候，我们不再将应用本身部署到服务器上，而是直接在服务器上运行这个镜像。</p>
+<p>我们在本文中不详细聊应用Docker的好处，而是通过一步步操作了解如何部署一个Docker应用。</p>
+<h3 id="安装Docker">安装Docker</h3><p>首先需要在你的机器上安装Docker，你可以在自己的Mac、Linux或者Windows下安装。<a href="https://docs.docker.com/engine/installation/mac/" target="_blank" rel="external">Mac安装点这里</a>、<a href="https://docs.docker.com/engine/installation/windows/" target="_blank" rel="external">Windows安装点这里</a>、<a href="https://docs.docker.com/engine/installation/linux/ubuntulinux/" target="_blank" rel="external">Linux安装点这里</a>。</p>
+<p>这里以Mac为例，验证安装的方法是在终端里面用<code>docker version</code>命令。若正确安装，你将得到类似下面的信息。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">$ docker version</span><br><span class="line">Client:</span><br><span class="line"> Version:      <span class="number">1.12</span><span class="number">.0</span></span><br><span class="line"> API version:  <span class="number">1.24</span></span><br><span class="line"> Go version:   go1<span class="number">.6</span><span class="number">.3</span></span><br><span class="line"> Git commit:   <span class="number">8</span>eab29e</span><br><span class="line"> Built:        Thu Jul <span class="number">28</span> <span class="number">21</span>:<span class="number">15</span>:<span class="number">28</span> <span class="number">2016</span></span><br><span class="line"> OS/Arch:      darwin/amd64</span><br><span class="line"></span><br><span class="line">Server:</span><br><span class="line"> Version:      <span class="number">1.12</span><span class="number">.0</span></span><br><span class="line"> API version:  <span class="number">1.24</span></span><br><span class="line"> Go version:   go1<span class="number">.6</span><span class="number">.3</span></span><br><span class="line"> Git commit:   <span class="number">8</span>eab29e</span><br><span class="line"> Built:        Thu Jul <span class="number">28</span> <span class="number">21</span>:<span class="number">15</span>:<span class="number">28</span> <span class="number">2016</span></span><br><span class="line"> OS/Arch:      linux/amd64</span><br></pre></td></tr></table></figure>
+<p>本文是在7月30号写的，可以看到这个版本是新鲜出炉的！</p>
+<h3 id="准备源代码">准备源代码</h3><p>我已经在GitHub上面为你准备好了示例项目。登录GitHub后fork<a href="https://github.com/tjwudi/sat-example" target="_blank" rel="external">这个项目（https://github.com/tjwudi/sat-example）</a>，并clone你刚才fork的项目到本地来。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ git <span class="built_in">clone</span> git@github.com:你的用户名/sat-example.git</span><br><span class="line">$ <span class="built_in">cd</span> sat-example</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>请注意不要用下载zip文件或者直接clone原项目的方式，因为在后续流程中我们需要往GitHub推新的tag。</p>
+</blockquote>
+<p>这是一个由Express.js生成的项目，在安装了Node.js和包管理器npm的前提下，你可以通过下面命令验证它是否能正确运行。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ npm install</span><br><span class="line">$ npm start</span><br></pre></td></tr></table></figure>
+<p>访问<a href="http://localhost:3000" target="_blank" rel="external">http://localhost:3000</a>即可看到欢迎页。</p>
+<h3 id="发布新的Release">发布新的Release</h3><p>每一个发布到生产环境的Docker镜像都应该对应着源代码仓库的一次发布（Release）。直接在本地开发分支的代码基础上构建Docker镜像是欠妥的。</p>
+<p>在GitHub上面发布一个新的Release分成两步。第一步是在<strong>sat-example</strong>的代码仓库里面创建一个tag，tag名称为版本号，然后将其发布到GitHub上。例如这里我们发布一次版本号0.1。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ git tag <span class="number">0.1</span></span><br><span class="line">$ git push origin master --tags</span><br></pre></td></tr></table></figure>
+<p><code>git push</code>带上<code>--tags</code>参数将把本地的tag同步到GitHub上。此时在GitHub的Release标签页里面会看到这个新的tag。</p>
+<!-- 1 -->
+<p>第二步点击右上方的”Draft a new release”，选择已有的tag 0.1，简单填写一下发布的标题和内容。</p>
+<!-- 2 -->
+<p>最后点击Publish release发布新的版本。</p>
+<!-- 3 -->
+<p>在开源代码仓库上发布新的版本是一个常用流程，在日常的开发过程中也会经常用到。</p>
+<h3 id="脚本：下载最新的发布">脚本：下载最新的发布</h3><p>在<strong>sat-example</strong>新建一个<strong>docker</strong>文件夹，里面存放构建Docker镜像相关的文件。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ mkdir docker</span><br><span class="line">$ touch docker/build-docker</span><br><span class="line">$ chmod +x docker/build-docker</span><br></pre></td></tr></table></figure>
+<p>我们新建了文件<strong>docker/build-docker</strong>，这将是一个Bash脚本，并给予它执行权限。今后在构建镜像的时候，只需执行<code>./build-docker</code>即可构建出一个Docker镜像。</p>
+<p>脚本每次构建一个Docker镜像的工作流是：</p>
+<ol>
+<li>用脚本从GitHub上自动下载最新一次发布的源代码压缩包</li>
+<li>根据Dockerfile构建Docker镜像</li>
+</ol>
+<p>在进行第一步之前我们先要定义所需的变量，例如GitHub的代码仓库名等。这样可以在后面的脚本中重用，也方便用到其他项目中。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> -n <span class="string">"Your Github Token: "</span></span><br><span class="line"><span class="built_in">read</span> TOKEN</span><br><span class="line"></span><br><span class="line">REPO=<span class="string">"sat-example"</span></span><br><span class="line">OWNER=<span class="string">"tjwudi"</span> <span class="comment"># 注意将这里换成你的用户名</span></span><br><span class="line">ROOT=$(<span class="built_in">pwd</span>)    <span class="comment"># 工作目录，应为xxx/docker</span></span><br></pre></td></tr></table></figure>
+<p><code>TOKEN</code>是GitHub上的Personal access token（PAT），接下来将使用它调用GitHub的API。使用PAT而不使用用户名密码组合是因为现在大部分GitHub账户都开启了双重验证（2-factor authentication），在这个情况下将不能用用户名密码来调用API。</p>
+<p>调用GitHub的API获取代码仓库的最新发布。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="function"><span class="title">gh_curl</span></span>() &#123;</span><br><span class="line">  curl -H <span class="string">"Authorization: token <span class="variable">$TOKEN</span>"</span> \</span><br><span class="line">     <span class="variable">$@</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"Getting latest release version ..."</span></span><br><span class="line">gh_curl https://api.github.com/repos/<span class="variable">$OWNER</span>/<span class="variable">$REPO</span>/releases/latest &gt; latest.json</span><br><span class="line">TAG_NAME=`cat latest.json | jq <span class="string">'.tag_name'</span> |  tr <span class="operator">-d</span> <span class="string">'"'</span>`</span><br><span class="line"><span class="built_in">echo</span> <span class="string">"done"</span></span><br></pre></td></tr></table></figure>
+<p><code>TAG_NAME</code>将是最新一次发布的tag名称。在我们的例子中，你将得到的是<strong>0.1</strong>这个值。接下来将该发布的压缩包下载下来并解压在<code>docker/releases</code>文件夹下。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> -n <span class="string">"Downloading latest release ..."</span></span><br><span class="line">ZIP_FILE=<span class="string">"releases/<span class="variable">$TAG_NAME</span>.zip"</span></span><br><span class="line"><span class="keyword">if</span> [ ! <span class="operator">-d</span> <span class="string">"releases"</span> ]; <span class="keyword">then</span></span><br><span class="line">  mkdir releases</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line">wget -q --auth-no-challenge --header=<span class="string">'Accept:application/octet-stream'</span> \</span><br><span class="line">    https://<span class="variable">$TOKEN</span>:@github.com/<span class="variable">$OWNER</span>/<span class="variable">$REPO</span>/archive/<span class="variable">$TAG_NAME</span>.zip \</span><br><span class="line">      -O <span class="variable">$ZIP_FILE</span></span><br><span class="line">rm -rf latest.json</span><br><span class="line"><span class="built_in">echo</span> <span class="string">"done"</span></span><br></pre></td></tr></table></figure>
+<p><strong>docker/releases</strong>文件夹专门用来存放下载下来的发布代码，应该把它加到项目的<strong>.gitignore</strong>文件中去。</p>
+<p>将新发布的代码全部解压到<strong>docker/src</strong>下。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> -n <span class="string">"Unzip files ... "</span></span><br><span class="line">unzip -o <span class="variable">$ZIP_FILE</span> <span class="operator">-d</span> releases &gt; /dev/null <span class="number">2</span>&gt;&amp;<span class="number">1</span></span><br><span class="line">ORIGIN_SRC=<span class="string">"releases/runny-server-<span class="variable">$TAG_NAME</span>"</span></span><br><span class="line">SRC=<span class="string">"releases/src"</span></span><br><span class="line">rm -rf <span class="variable">$SRC</span></span><br><span class="line">mkdir <span class="variable">$SRC</span></span><br><span class="line">mv <span class="variable">$ORIGIN_SRC</span>/* <span class="variable">$SRC</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"done"</span></span><br></pre></td></tr></table></figure>
+<p>如果你的项目涉及要用构建工具（如grunt和gulp）构建生产环境文件，那么此时就是构建的时候了。在我们的<strong>sat-example</strong>项目中，你不需要做这一步。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> <span class="variable">$SRC</span></span><br><span class="line">npm install &amp;&amp; bower install</span><br><span class="line">gulp build</span><br></pre></td></tr></table></figure>
+<p>最后用<code>docker build</code>命令，构建最新的一个镜像。<code>docker build</code>还依赖于配置文件<strong>Dockerfile</strong>，在下一节中我们会详细描述。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> <span class="variable">$ROOT</span></span><br><span class="line">docker build -t runny:<span class="variable">$TAG_NAME</span> .</span><br></pre></td></tr></table></figure>
+<p>完整的构建脚本如下。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="shebang">#!/usr/bin/env bash</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># IMPORTANT: Run this script against /docker directory</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> -n <span class="string">"Your Github Token: "</span></span><br><span class="line"><span class="built_in">read</span> TOKEN</span><br><span class="line"></span><br><span class="line">REPO=<span class="string">"sat-example"</span></span><br><span class="line">OWNER=<span class="string">"tjwudi"</span></span><br><span class="line">ROOT=$(<span class="built_in">pwd</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="function"><span class="title">gh_curl</span></span>() &#123;</span><br><span class="line">  curl -H <span class="string">"Authorization: token <span class="variable">$TOKEN</span>"</span> \</span><br><span class="line">     <span class="variable">$@</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"Getting latest release version ..."</span></span><br><span class="line">gh_curl https://api.github.com/repos/<span class="variable">$OWNER</span>/<span class="variable">$REPO</span>/releases/latest &gt; latest.json</span><br><span class="line">TAG_NAME=`cat latest.json | jq <span class="string">'.tag_name'</span> |  tr <span class="operator">-d</span> <span class="string">'"'</span>`</span><br><span class="line"><span class="built_in">echo</span> <span class="string">"done"</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> -n <span class="string">"Downloading latest release ..."</span></span><br><span class="line">ZIP_FILE=<span class="string">"releases/<span class="variable">$TAG_NAME</span>.zip"</span></span><br><span class="line"><span class="keyword">if</span> [ ! <span class="operator">-d</span> <span class="string">"releases"</span> ]; <span class="keyword">then</span></span><br><span class="line">  mkdir releases</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line">wget -q --auth-no-challenge --header=<span class="string">'Accept:application/octet-stream'</span> \</span><br><span class="line">    https://<span class="variable">$TOKEN</span>:@github.com/<span class="variable">$OWNER</span>/<span class="variable">$REPO</span>/archive/<span class="variable">$TAG_NAME</span>.zip \</span><br><span class="line">      -O <span class="variable">$ZIP_FILE</span></span><br><span class="line">rm -rf latest.json</span><br><span class="line"><span class="built_in">echo</span> <span class="string">"done"</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> -n <span class="string">"Unzip files ... "</span></span><br><span class="line">unzip -o <span class="variable">$ZIP_FILE</span> <span class="operator">-d</span> releases &gt; /dev/null <span class="number">2</span>&gt;&amp;<span class="number">1</span></span><br><span class="line">ORIGIN_SRC=<span class="string">"releases/runny-server-<span class="variable">$TAG_NAME</span>"</span></span><br><span class="line">SRC=<span class="string">"releases/src"</span></span><br><span class="line">rm -rf <span class="variable">$SRC</span></span><br><span class="line">mkdir <span class="variable">$SRC</span></span><br><span class="line">mv <span class="variable">$ORIGIN_SRC</span>/* <span class="variable">$SRC</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"done"</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"Build image"</span></span><br><span class="line"><span class="built_in">cd</span> <span class="variable">$ROOT</span></span><br><span class="line">docker build -t runny:<span class="variable">$TAG_NAME</span> .</span><br></pre></td></tr></table></figure>
+<h3 id="Dockerfile">Dockerfile</h3><p>Docker根据一个名为Dockerfile的文件构建镜像。当运行<code>docker build</code>命令的时候，Docker会在当前目录下寻找Dockerfile，并根据Dockerfile的指令一步步构建镜像。</p>
+<p>在<strong>docker</strong>文件夹下新建一个文件<strong>Dockerfile</strong>。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">FROM node:<span class="number">5.12</span><span class="number">.0</span></span><br><span class="line">MAINTAINER Di Wu &lt;i@leapoahead.com&gt;</span><br></pre></td></tr></table></figure>
+<p>文件的第一行指定了你要构建的镜像的“基镜像”。你不需要去自己从头构建每一个镜像，从安装新系统，到安装必要的系统软件…… 你只需要指定一个基镜像，那是别人做好的镜像，你在别人的基础上进行修改，就可以构建出自己的镜像了。在这里我们选择的是<code>node:5.12.0</code>作为基镜像。</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ADD</span> <span class="bash">./releases/src /sat-example</span><br><span class="line"></span><span class="built_in">WORKDIR</span> <span class="bash">/sat-example</span></span><br></pre></td></tr></table></figure>
+<p><code>ADD</code>是一个Docker指令。<code>ADD &lt;src&gt; &lt;target&gt;</code>将把你本机上的<code>&lt;src&gt;</code>拷贝到镜像里面的<code>&lt;target&gt;</code>。这里我们将之前脚本里面所得到的最新发布的源代码拷贝到镜像中<code>/sat-example</code>文件夹。</p>
+<p><code>WORKDIR &lt;workdir&gt;</code>指令指定了在镜像中的工作目录。接下来的所有工作都是基于该目录为默认的根目录进行的。</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">RUN</span> <span class="bash">npm install --production &amp;&amp; npm install forever -g</span><br><span class="line"></span><span class="built_in">ENV</span> NODE_ENV=production</span><br></pre></td></tr></table></figure>
+<p><code>RUN</code>指令在镜像内执行bash命令。我们通过它安装一些在基镜像里面没有的系统软件，或安装依赖项。需要注意的是，<strong>尽量不要在Dockerfile里面构建</strong>。Dockerfile里面的任何一切都只应该是生产环境的，也就是说，不应该存在开发环境采用的依赖项（devDependencies），也不应该存在未经构建的源文件。</p>
+<p>我们还安装了<a href="https://github.com/foreverjs/forever" target="_blank" rel="external">forever</a>，用于管理Node应用进程状态，让应用保持运行。</p>
+<p><code>ENV</code>指令让我们定义镜像中的环境变量，此处我们将Node的运行环境设置为production（生产环境）。</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">CMD</span> <span class="bash">[<span class="string">"forever"</span>, <span class="string">"start"</span>, <span class="string">"bin/www"</span>]</span><br><span class="line"></span><span class="built_in">EXPOSE</span> <span class="number">3000</span></span><br></pre></td></tr></table></figure>
+<p><code>CMD</code>指令指定了在镜像启动时所执行的命令。当镜像启动后，将直接运行<code>forever start bin/www</code>启动我们的应用；<code>EXPOSE</code>指令告诉Docker这个镜像将监听TCP 3000端口。</p>
+<p>完整的Dockerfile如下：</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">FROM</span> node:<span class="number">5.12</span>.<span class="number">0</span></span><br><span class="line"><span class="built_in">MAINTAINER</span> Di Wu &lt;i@leapoahead.com&gt;</span><br><span class="line"></span><br><span class="line"><span class="built_in">ADD</span> <span class="bash">./releases/src /sat-example</span><br><span class="line"></span><span class="built_in">WORKDIR</span> <span class="bash">/sat-example</span><br><span class="line"></span></span><br><span class="line"><span class="built_in">RUN</span> <span class="bash">npm install --production &amp;&amp; npm install forever -g</span><br><span class="line"></span><span class="built_in">ENV</span> NODE_ENV=production</span><br><span class="line"></span><br><span class="line"><span class="built_in">CMD</span> <span class="bash">[<span class="string">"forever"</span>, <span class="string">"start"</span>, <span class="string">"bin/www"</span>]</span><br><span class="line"></span><span class="built_in">EXPOSE</span> <span class="number">3000</span></span><br></pre></td></tr></table></figure>
+<h3 id="小结">小结</h3><p>第一部分中我们分步讲解了构建镜像的全过程。其中最重要的一个理念是，每一个Docker镜像都对应一次版本发布，所以我们应该下载获取最新的发布，而不是直接基于本地开发中的源代码构建。</p>
+<p>第二部分里面我们将镜像发布到生产环境上并运行，并学习如何管理、监控你的Docker容器。</p>
+
+            
+                
+
+            
+        </div>
+    </div>
+    
+    <div class="post-rmds main-content-wrap">
+        <h4>猜你想读</h4>
+        <ul>
+            
+            
+                <li><a href="http://blog.leapoahead.com/2016/07/01/startup-plans-1/">那些我想解决的问题 -- 空闲的优质咖啡店</a></li>
+            
+        </ul>
+        
+    </div>
+
+    <div class="post-mailchimp">
+    <div class="main-content-wrap mailchimp-wrap">
+        <h3>让有趣易懂的知识主动找到你</h3>
+        <p>订阅我的Email半月刊，让我们共同学习、成长。绝无广告！</p>
+        <form action="//leapoahead.us8.list-manage.com/subscribe/post?u=f3a6e2f843ac1be03e00f7bed&amp;amp;id=58e28559b1" method="post" name="mc-embedded-subscribe-form" class="mailchimp-form" target="_blank" novalidate>
+            <label for="mce-EMAIL" style="display: none">Email地址</label>
+            <input type="email" value="" name="EMAIL" id="mce-EMAIL" placeholder="您常用的Email地址" class="mailchimp-input">
+            <input type="submit" value="订阅" name="subscribe" id="mc-embedded-subscribe" class="mailchimp-input mailchimp-subscribe">
+            <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+            <div style="position: absolute; left: -5000px;"><input type="text" name="b_f3a6e2f843ac1be03e00f7bed_58e28559b1" tabindex="-1" value=""></div>
+        </form>
+    </div>
+</div>
+    <div class="post-footer main-content-wrap">
+        
+        <div class="post-actions-wrap">
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
+                <i class="fa fa-share-alt"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2016/07/30/nodejs-docker-from-scratch-to-production/">
+                <i class="fa fa-facebook-official"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2016/07/30/nodejs-docker-from-scratch-to-production/">
+                <i class="fa fa-twitter"></i>
+            </a>
+        </li>
+        
+            <li class="post-action">
+                <a class="post-action-btn btn btn--default" href="#disqus_thread">
+                    <i class="fa fa-comment-o"></i>
+                </a>
+            </li>
+        
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default jiathis_button_tsina" href="http://www.jiathis.com/send/?webid=tsina&uid=1399172634630776&summary=&lt;p&gt;Docker在前几天发布了Mac和Windows的版本，从此Mac用户可以无需安装VirtualBox使用Docker。这给更多对Docker只闻其名但未曾尝试的朋友更方便地动手尝试的机会。本文将带你了解Docker，并一步步使用Docker将一个Node.js应用部署到生产环境中。&lt;/p&gt;&title=Node.js与Docker从开发到生产（1）&url=http://blog.leapoahead.com/2016/07/30/nodejs-docker-from-scratch-to-production/" target="new">
+                <i class="fa fa-weibo"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+            <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2016 子回. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="2">
+                    <div class="post-actions-wrap">
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
+                <i class="fa fa-share-alt"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2016/07/30/nodejs-docker-from-scratch-to-production/">
+                <i class="fa fa-facebook-official"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2016/07/30/nodejs-docker-from-scratch-to-production/">
+                <i class="fa fa-twitter"></i>
+            </a>
+        </li>
+        
+            <li class="post-action">
+                <a class="post-action-btn btn btn--default" href="#disqus_thread">
+                    <i class="fa fa-comment-o"></i>
+                </a>
+            </li>
+        
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default jiathis_button_tsina" href="http://www.jiathis.com/send/?webid=tsina&uid=1399172634630776&summary=&lt;p&gt;Docker在前几天发布了Mac和Windows的版本，从此Mac用户可以无需安装VirtualBox使用Docker。这给更多对Docker只闻其名但未曾尝试的朋友更方便地动手尝试的机会。本文将带你了解Docker，并一步步使用Docker将一个Node.js应用部署到生产环境中。&lt;/p&gt;&title=Node.js与Docker从开发到生产（1）&url=http://blog.leapoahead.com/2016/07/30/nodejs-docker-from-scratch-to-production/" target="new">
+                <i class="fa fa-weibo"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                <div id="share-options-bar" class="share-options-bar" data-behavior="2">
+    <ul class="share-options">
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2016/07/30/nodejs-docker-from-scratch-to-production/">
+                <i class="fa fa-google-plus"></i><span class="">Share on Google Plus</span>
+            </a>
+        </li>
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2016/07/30/nodejs-docker-from-scratch-to-production/">
+                <i class="fa fa-facebook-official"></i><span>Share on Facebook</span>
+            </a>
+        </li>
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2016/07/30/nodejs-docker-from-scratch-to-production/">
+                <i class="fa fa-twitter"></i><span>Share on Twitter</span>
+            </a>
+        </li>
+    </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
+            
+        </div>
+        <div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-remove"></i>
+        </div>
+        
+            <img id="about-card-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=110"/>
+        
+            <h4 id="about-card-name">子回</h4>
+        
+            <h5 id="about-card-bio"><p>Life is all about A/B testing</p>
+</h5>
+        
+        
+            <h5 id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>Software Engineer Intern at Yelp</p>
+
+            </h5>
+        
+        
+            <h5 id="about-card-location">
+                <i class="fa fa-map-marker"></i>
+                <br/>
+                San Francisco, CA
+            </h5>
+        
+    </div>
+</div>
+
+        <div id="cover" style="background-image:url('http://res.cloudinary.com/tranquilpeak-hexo-theme/image/upload/v1438975482/v1.3.0-cover.jpg');"></div>
+    </body>
+    <!--SCRIPTS-->
+<script src="/assets/js/jquery.js" type="text/javascript"></script>
+<script src="/assets/js/jquery.fancybox.js" type="text/javascript"></script>
+<script src="/assets/js/jquery.fancybox-thumbs.js" type="text/javascript"></script>
+<script src="/assets/js/tranquilpeak.js" type="text/javascript"></script>
+<!--SCRIPTS END-->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'johnweng';
+        (function() {
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+
+
+
+</html>
