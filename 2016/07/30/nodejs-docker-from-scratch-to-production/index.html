@@ -18,7 +18,10 @@
 <meta property="og:url" content="http://blog.leapoahead.com/2016/07/30/nodejs-docker-from-scratch-to-production/index.html">
 <meta property="og:site_name" content="回田园 - 子回的私人创作">
 <meta property="og:description" content="Docker在前几天发布了Mac和Windows的版本，从此Mac用户可以无需安装VirtualBox使用Docker。这给更多对Docker只闻其名但未曾尝试的朋友更方便地动手尝试的机会。本文将带你了解Docker，并一步步使用Docker将一个Node.js应用部署到生产环境中。">
-<meta property="og:updated_time" content="2016-07-31T06:14:43.000Z">
+<meta property="og:image" content="http://blog.leapoahead.com/2016/07/30/nodejs-docker-from-scratch-to-production/1.png">
+<meta property="og:image" content="http://blog.leapoahead.com/2016/07/30/nodejs-docker-from-scratch-to-production/2.png">
+<meta property="og:image" content="http://blog.leapoahead.com/2016/07/30/nodejs-docker-from-scratch-to-production/3.png">
+<meta property="og:updated_time" content="2016-07-31T06:21:18.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Node.js与Docker从开发到生产（1）">
 <meta name="twitter:description" content="Docker在前几天发布了Mac和Windows的版本，从此Mac用户可以无需安装VirtualBox使用Docker。这给更多对Docker只闻其名但未曾尝试的朋友更方便地动手尝试的机会。本文将带你了解Docker，并一步步使用Docker将一个Node.js应用部署到生产环境中。">
@@ -220,11 +223,11 @@
 <p>在GitHub上面发布一个新的Release分成两步。第一步是在<strong>sat-example</strong>的代码仓库里面创建一个tag，tag名称为版本号，然后将其发布到GitHub上。例如这里我们发布一次版本号0.1。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ git tag <span class="number">0.1</span></span><br><span class="line">$ git push origin master --tags</span><br></pre></td></tr></table></figure>
 <p><code>git push</code>带上<code>--tags</code>参数将把本地的tag同步到GitHub上。此时在GitHub的Release标签页里面会看到这个新的tag。</p>
-<!-- 1 -->
+<img src="/2016/07/30/nodejs-docker-from-scratch-to-production/1.png" alt="1.png" title="">
 <p>第二步点击右上方的”Draft a new release”，选择已有的tag 0.1，简单填写一下发布的标题和内容。</p>
-<!-- 2 -->
+<img src="/2016/07/30/nodejs-docker-from-scratch-to-production/2.png" alt="2.png" title="">
 <p>最后点击Publish release发布新的版本。</p>
-<!-- 3 -->
+<img src="/2016/07/30/nodejs-docker-from-scratch-to-production/3.png" alt="3.png" title="">
 <p>在开源代码仓库上发布新的版本是一个常用流程，在日常的开发过程中也会经常用到。</p>
 <h3 id="脚本：下载最新的发布">脚本：下载最新的发布</h3><p>在<strong>sat-example</strong>新建一个<strong>docker</strong>文件夹，里面存放构建Docker镜像相关的文件。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ mkdir docker</span><br><span class="line">$ touch docker/build-docker</span><br><span class="line">$ chmod +x docker/build-docker</span><br></pre></td></tr></table></figure>
