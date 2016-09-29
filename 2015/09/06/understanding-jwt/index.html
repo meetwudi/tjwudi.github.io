@@ -184,7 +184,7 @@
         </h1>
     
     <div class="post-meta">
-    <time itemprop="datePublished" content="Sun Sep 06 2015 20:25:36 GMT+0800">
+    <time itemprop="datePublished" content="Sun Sep 06 2015 20:25:36 GMT-0700">
 	
 		    9月 06, 2015
     	
@@ -204,7 +204,7 @@
             <p>JSON Web Token（JWT）是一个非常轻巧的<a href="https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32" target="_blank" rel="external">规范</a>。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。</p>
 <a id="more"></a>
 <p>让我们来假想一下一个场景。在A用户关注了B用户的时候，系统发邮件给B用户，并且附有一个链接“点此关注A用户”。链接的地址可以是这样的</p>
-<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">https:</span><span class="comment">//your.awesome-app.com/make-friend/?from_user=B&amp;target_user=A</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http<span class="variable">s:</span>//your.awesome-app.<span class="keyword">com</span>/<span class="keyword">make</span>-friend/?from_user=B&amp;target_user=A</span><br></pre></td></tr></table></figure>
 <p>上面的URL主要通过URL来描述这个当然这样做有一个弊端，那就是要求用户B用户是一定要先登录的。可不可以简化这个流程，让B用户不用登录就可以完成这个操作。JWT就允许我们做到这点。</p>
 <img src="/2015/09/06/understanding-jwt/jwt.png" alt="JSON Web Token" title="JSON Web Token">
 <h3 id="JWT的组成">JWT的组成</h3><p>一个JWT实际上就是一个字符串，它由三部分组成，<strong>头部</strong>、<strong>载荷</strong>与<strong>签名</strong>。</p>

@@ -4,7 +4,7 @@
   <subtitle><![CDATA[创造是我最大的兴趣]]></subtitle>
   <link href="/atom.xml" rel="self"/>
   <link href="http://blog.leapoahead.com/"/>
-  <updated>2016-07-31T06:21:18.000Z</updated>
+  <updated>2016-03-03T01:23:48.000Z</updated>
   <id>http://blog.leapoahead.com/</id>
   
   <author>
@@ -15,98 +15,10 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
-    <title><![CDATA[Node.js与Docker从开发到生产（1）]]></title>
-    <link href="http://blog.leapoahead.com/2016/07/30/nodejs-docker-from-scratch-to-production/"/>
-    <id>http://blog.leapoahead.com/2016/07/30/nodejs-docker-from-scratch-to-production/</id>
-    <published>2016-07-30T03:19:53.000Z</published>
-    <updated>2016-07-31T06:21:18.000Z</updated>
-    <content type="html"><![CDATA[<p>Docker在前几天发布了Mac和Windows的版本，从此Mac用户可以无需安装VirtualBox使用Docker。这给更多对Docker只闻其名但未曾尝试的朋友更方便地动手尝试的机会。本文将带你了解Docker，并一步步使用Docker将一个Node.js应用部署到生产环境中。</p>
-<a id="more"></a>
-<h3 id="什么是Docker">什么是Docker</h3><p>为了让更多读者能够跟随本文的步伐，我有必要阐述什么是Docker。如果你已经有所了解，或者想立刻动手实践，可以直接跳到第2节。</p>
-<p>我们从真实的生产环境说起。当一个应用刚上线的时候，或许一台服务器还是够用的。但随着活跃用户数的增长，一台服务器不够用了，我们可能需要两台、十台甚至几百台的服务器来支撑一个应用。</p>
-<p>在这几百台服务器中，每台服务器的系统配置都是可以能有细微差异的。尽管一开始安装系统的时候采用的是同一种系统、同一个版本，但是在接下来可能有几台机器进行了自动升级、有几台机器上某个软件包被自动更新了等等的问题。当服务器产生差异，应用就有可能在一些机器上崩溃。<strong>维护集群软硬件状态的一致性是一个很重要的任务，也是一个棘手的问题</strong>。</p>
-<p>用于管理一致性的配置管理工具有不少，比较流行的有puppet、ansible和chef。它们通过由管理员配置的方式，对所有机器进行统一管理，例如安装、删除软件等。</p>
-<p>另外一种方式就是采用虚拟化（Virtualization）。虚拟化这个词可能你会陌生，但是虚拟机这个词你肯定熟悉。虚拟机本身就是一种虚拟化技术，它通过用软件模拟硬件环境，让你可以在任何地方运行同一个虚拟机镜像。在Windows 8上，你可以用虚拟机运行两个Ubuntu系统；在Mac上，你也可以运行同样的Ubuntu系统，使用同一个镜像。这是传统的虚拟机虚拟化技术。</p>
-<p>Docker是一种轻量级的虚拟化技术。它通过创建镜像，为应用提供一个一致的运行环境。在部署应用的时候，我们不再将应用本身部署到服务器上，而是直接在服务器上运行这个镜像。</p>
-<p>我们在本文中不详细聊应用Docker的好处，而是通过一步步操作了解如何部署一个Docker应用。</p>
-<h3 id="安装Docker">安装Docker</h3><p>首先需要在你的机器上安装Docker，你可以在自己的Mac、Linux或者Windows下安装。<a href="https://docs.docker.com/engine/installation/mac/" target="_blank" rel="external">Mac安装点这里</a>、<a href="https://docs.docker.com/engine/installation/windows/" target="_blank" rel="external">Windows安装点这里</a>、<a href="https://docs.docker.com/engine/installation/linux/ubuntulinux/" target="_blank" rel="external">Linux安装点这里</a>。</p>
-<p>这里以Mac为例，验证安装的方法是在终端里面用<code>docker version</code>命令。若正确安装，你将得到类似下面的信息。</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">$ docker version</span><br><span class="line">Client:</span><br><span class="line"> Version:      <span class="number">1.12</span><span class="number">.0</span></span><br><span class="line"> API version:  <span class="number">1.24</span></span><br><span class="line"> Go version:   go1<span class="number">.6</span><span class="number">.3</span></span><br><span class="line"> Git commit:   <span class="number">8</span>eab29e</span><br><span class="line"> Built:        Thu Jul <span class="number">28</span> <span class="number">21</span>:<span class="number">15</span>:<span class="number">28</span> <span class="number">2016</span></span><br><span class="line"> OS/Arch:      darwin/amd64</span><br><span class="line"></span><br><span class="line">Server:</span><br><span class="line"> Version:      <span class="number">1.12</span><span class="number">.0</span></span><br><span class="line"> API version:  <span class="number">1.24</span></span><br><span class="line"> Go version:   go1<span class="number">.6</span><span class="number">.3</span></span><br><span class="line"> Git commit:   <span class="number">8</span>eab29e</span><br><span class="line"> Built:        Thu Jul <span class="number">28</span> <span class="number">21</span>:<span class="number">15</span>:<span class="number">28</span> <span class="number">2016</span></span><br><span class="line"> OS/Arch:      linux/amd64</span><br></pre></td></tr></table></figure>
-<p>本文是在7月30号写的，可以看到这个版本是新鲜出炉的！</p>
-<h3 id="准备源代码">准备源代码</h3><p>我已经在GitHub上面为你准备好了示例项目。登录GitHub后fork<a href="https://github.com/tjwudi/sat-example" target="_blank" rel="external">这个项目（https://github.com/tjwudi/sat-example）</a>，并clone你刚才fork的项目到本地来。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ git <span class="built_in">clone</span> git@github.com:你的用户名/sat-example.git</span><br><span class="line">$ <span class="built_in">cd</span> sat-example</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>请注意不要用下载zip文件或者直接clone原项目的方式，因为在后续流程中我们需要往GitHub推新的tag。</p>
-</blockquote>
-<p>这是一个由Express.js生成的项目，在安装了Node.js和包管理器npm的前提下，你可以通过下面命令验证它是否能正确运行。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ npm install</span><br><span class="line">$ npm start</span><br></pre></td></tr></table></figure>
-<p>访问<a href="http://localhost:3000" target="_blank" rel="external">http://localhost:3000</a>即可看到欢迎页。</p>
-<h3 id="发布新的Release">发布新的Release</h3><p>每一个发布到生产环境的Docker镜像都应该对应着源代码仓库的一次发布（Release）。直接在本地开发分支的代码基础上构建Docker镜像是欠妥的。</p>
-<p>在GitHub上面发布一个新的Release分成两步。第一步是在<strong>sat-example</strong>的代码仓库里面创建一个tag，tag名称为版本号，然后将其发布到GitHub上。例如这里我们发布一次版本号0.1。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ git tag <span class="number">0.1</span></span><br><span class="line">$ git push origin master --tags</span><br></pre></td></tr></table></figure>
-<p><code>git push</code>带上<code>--tags</code>参数将把本地的tag同步到GitHub上。此时在GitHub的Release标签页里面会看到这个新的tag。</p>
-<img src="/2016/07/30/nodejs-docker-from-scratch-to-production/1.png" alt="1.png" title="">
-<p>第二步点击右上方的”Draft a new release”，选择已有的tag 0.1，简单填写一下发布的标题和内容。</p>
-<img src="/2016/07/30/nodejs-docker-from-scratch-to-production/2.png" alt="2.png" title="">
-<p>最后点击Publish release发布新的版本。</p>
-<img src="/2016/07/30/nodejs-docker-from-scratch-to-production/3.png" alt="3.png" title="">
-<p>在开源代码仓库上发布新的版本是一个常用流程，在日常的开发过程中也会经常用到。</p>
-<h3 id="脚本：下载最新的发布">脚本：下载最新的发布</h3><p>在<strong>sat-example</strong>新建一个<strong>docker</strong>文件夹，里面存放构建Docker镜像相关的文件。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ mkdir docker</span><br><span class="line">$ touch docker/build-docker</span><br><span class="line">$ chmod +x docker/build-docker</span><br></pre></td></tr></table></figure>
-<p>我们新建了文件<strong>docker/build-docker</strong>，这将是一个Bash脚本，并给予它执行权限。今后在构建镜像的时候，只需执行<code>./build-docker</code>即可构建出一个Docker镜像。</p>
-<p>脚本每次构建一个Docker镜像的工作流是：</p>
-<ol>
-<li>用脚本从GitHub上自动下载最新一次发布的源代码压缩包</li>
-<li>根据Dockerfile构建Docker镜像</li>
-</ol>
-<p>在进行第一步之前我们先要定义所需的变量，例如GitHub的代码仓库名等。这样可以在后面的脚本中重用，也方便用到其他项目中。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> -n <span class="string">"Your Github Token: "</span></span><br><span class="line"><span class="built_in">read</span> TOKEN</span><br><span class="line"></span><br><span class="line">REPO=<span class="string">"sat-example"</span></span><br><span class="line">OWNER=<span class="string">"tjwudi"</span> <span class="comment"># 注意将这里换成你的用户名</span></span><br><span class="line">ROOT=$(<span class="built_in">pwd</span>)    <span class="comment"># 工作目录，应为xxx/docker</span></span><br></pre></td></tr></table></figure>
-<p><code>TOKEN</code>是GitHub上的Personal access token（PAT），接下来将使用它调用GitHub的API。使用PAT而不使用用户名密码组合是因为现在大部分GitHub账户都开启了双重验证（2-factor authentication），在这个情况下将不能用用户名密码来调用API。</p>
-<p>调用GitHub的API获取代码仓库的最新发布。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="function"><span class="title">gh_curl</span></span>() &#123;</span><br><span class="line">  curl -H <span class="string">"Authorization: token <span class="variable">$TOKEN</span>"</span> \</span><br><span class="line">     <span class="variable">$@</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"Getting latest release version ..."</span></span><br><span class="line">gh_curl https://api.github.com/repos/<span class="variable">$OWNER</span>/<span class="variable">$REPO</span>/releases/latest &gt; latest.json</span><br><span class="line">TAG_NAME=`cat latest.json | jq <span class="string">'.tag_name'</span> |  tr <span class="operator">-d</span> <span class="string">'"'</span>`</span><br><span class="line"><span class="built_in">echo</span> <span class="string">"done"</span></span><br></pre></td></tr></table></figure>
-<p><code>TAG_NAME</code>将是最新一次发布的tag名称。在我们的例子中，你将得到的是<strong>0.1</strong>这个值。接下来将该发布的压缩包下载下来并解压在<code>docker/releases</code>文件夹下。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> -n <span class="string">"Downloading latest release ..."</span></span><br><span class="line">ZIP_FILE=<span class="string">"releases/<span class="variable">$TAG_NAME</span>.zip"</span></span><br><span class="line"><span class="keyword">if</span> [ ! <span class="operator">-d</span> <span class="string">"releases"</span> ]; <span class="keyword">then</span></span><br><span class="line">  mkdir releases</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line">wget -q --auth-no-challenge --header=<span class="string">'Accept:application/octet-stream'</span> \</span><br><span class="line">    https://<span class="variable">$TOKEN</span>:@github.com/<span class="variable">$OWNER</span>/<span class="variable">$REPO</span>/archive/<span class="variable">$TAG_NAME</span>.zip \</span><br><span class="line">      -O <span class="variable">$ZIP_FILE</span></span><br><span class="line">rm -rf latest.json</span><br><span class="line"><span class="built_in">echo</span> <span class="string">"done"</span></span><br></pre></td></tr></table></figure>
-<p><strong>docker/releases</strong>文件夹专门用来存放下载下来的发布代码，应该把它加到项目的<strong>.gitignore</strong>文件中去。</p>
-<p>将新发布的代码全部解压到<strong>docker/src</strong>下。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> -n <span class="string">"Unzip files ... "</span></span><br><span class="line">unzip -o <span class="variable">$ZIP_FILE</span> <span class="operator">-d</span> releases &gt; /dev/null <span class="number">2</span>&gt;&amp;<span class="number">1</span></span><br><span class="line">ORIGIN_SRC=<span class="string">"releases/runny-server-<span class="variable">$TAG_NAME</span>"</span></span><br><span class="line">SRC=<span class="string">"releases/src"</span></span><br><span class="line">rm -rf <span class="variable">$SRC</span></span><br><span class="line">mkdir <span class="variable">$SRC</span></span><br><span class="line">mv <span class="variable">$ORIGIN_SRC</span>/* <span class="variable">$SRC</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"done"</span></span><br></pre></td></tr></table></figure>
-<p>如果你的项目涉及要用构建工具（如grunt和gulp）构建生产环境文件，那么此时就是构建的时候了。在我们的<strong>sat-example</strong>项目中，你不需要做这一步。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> <span class="variable">$SRC</span></span><br><span class="line">npm install &amp;&amp; bower install</span><br><span class="line">gulp build</span><br></pre></td></tr></table></figure>
-<p>最后用<code>docker build</code>命令，构建最新的一个镜像。<code>docker build</code>还依赖于配置文件<strong>Dockerfile</strong>，在下一节中我们会详细描述。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> <span class="variable">$ROOT</span></span><br><span class="line">docker build -t runny:<span class="variable">$TAG_NAME</span> .</span><br></pre></td></tr></table></figure>
-<p>完整的构建脚本如下。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="shebang">#!/usr/bin/env bash</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># IMPORTANT: Run this script against /docker directory</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> -n <span class="string">"Your Github Token: "</span></span><br><span class="line"><span class="built_in">read</span> TOKEN</span><br><span class="line"></span><br><span class="line">REPO=<span class="string">"sat-example"</span></span><br><span class="line">OWNER=<span class="string">"tjwudi"</span></span><br><span class="line">ROOT=$(<span class="built_in">pwd</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="function"><span class="title">gh_curl</span></span>() &#123;</span><br><span class="line">  curl -H <span class="string">"Authorization: token <span class="variable">$TOKEN</span>"</span> \</span><br><span class="line">     <span class="variable">$@</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"Getting latest release version ..."</span></span><br><span class="line">gh_curl https://api.github.com/repos/<span class="variable">$OWNER</span>/<span class="variable">$REPO</span>/releases/latest &gt; latest.json</span><br><span class="line">TAG_NAME=`cat latest.json | jq <span class="string">'.tag_name'</span> |  tr <span class="operator">-d</span> <span class="string">'"'</span>`</span><br><span class="line"><span class="built_in">echo</span> <span class="string">"done"</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> -n <span class="string">"Downloading latest release ..."</span></span><br><span class="line">ZIP_FILE=<span class="string">"releases/<span class="variable">$TAG_NAME</span>.zip"</span></span><br><span class="line"><span class="keyword">if</span> [ ! <span class="operator">-d</span> <span class="string">"releases"</span> ]; <span class="keyword">then</span></span><br><span class="line">  mkdir releases</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line">wget -q --auth-no-challenge --header=<span class="string">'Accept:application/octet-stream'</span> \</span><br><span class="line">    https://<span class="variable">$TOKEN</span>:@github.com/<span class="variable">$OWNER</span>/<span class="variable">$REPO</span>/archive/<span class="variable">$TAG_NAME</span>.zip \</span><br><span class="line">      -O <span class="variable">$ZIP_FILE</span></span><br><span class="line">rm -rf latest.json</span><br><span class="line"><span class="built_in">echo</span> <span class="string">"done"</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> -n <span class="string">"Unzip files ... "</span></span><br><span class="line">unzip -o <span class="variable">$ZIP_FILE</span> <span class="operator">-d</span> releases &gt; /dev/null <span class="number">2</span>&gt;&amp;<span class="number">1</span></span><br><span class="line">ORIGIN_SRC=<span class="string">"releases/runny-server-<span class="variable">$TAG_NAME</span>"</span></span><br><span class="line">SRC=<span class="string">"releases/src"</span></span><br><span class="line">rm -rf <span class="variable">$SRC</span></span><br><span class="line">mkdir <span class="variable">$SRC</span></span><br><span class="line">mv <span class="variable">$ORIGIN_SRC</span>/* <span class="variable">$SRC</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"done"</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"Build image"</span></span><br><span class="line"><span class="built_in">cd</span> <span class="variable">$ROOT</span></span><br><span class="line">docker build -t runny:<span class="variable">$TAG_NAME</span> .</span><br></pre></td></tr></table></figure>
-<h3 id="Dockerfile">Dockerfile</h3><p>Docker根据一个名为Dockerfile的文件构建镜像。当运行<code>docker build</code>命令的时候，Docker会在当前目录下寻找Dockerfile，并根据Dockerfile的指令一步步构建镜像。</p>
-<p>在<strong>docker</strong>文件夹下新建一个文件<strong>Dockerfile</strong>。</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">FROM node:<span class="number">5.12</span><span class="number">.0</span></span><br><span class="line">MAINTAINER Di Wu &lt;i@leapoahead.com&gt;</span><br></pre></td></tr></table></figure>
-<p>文件的第一行指定了你要构建的镜像的“基镜像”。你不需要去自己从头构建每一个镜像，从安装新系统，到安装必要的系统软件…… 你只需要指定一个基镜像，那是别人做好的镜像，你在别人的基础上进行修改，就可以构建出自己的镜像了。在这里我们选择的是<code>node:5.12.0</code>作为基镜像。</p>
-<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ADD</span> <span class="bash">./releases/src /sat-example</span><br><span class="line"></span><span class="built_in">WORKDIR</span> <span class="bash">/sat-example</span></span><br></pre></td></tr></table></figure>
-<p><code>ADD</code>是一个Docker指令。<code>ADD &lt;src&gt; &lt;target&gt;</code>将把你本机上的<code>&lt;src&gt;</code>拷贝到镜像里面的<code>&lt;target&gt;</code>。这里我们将之前脚本里面所得到的最新发布的源代码拷贝到镜像中<code>/sat-example</code>文件夹。</p>
-<p><code>WORKDIR &lt;workdir&gt;</code>指令指定了在镜像中的工作目录。接下来的所有工作都是基于该目录为默认的根目录进行的。</p>
-<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">RUN</span> <span class="bash">npm install --production &amp;&amp; npm install forever -g</span><br><span class="line"></span><span class="built_in">ENV</span> NODE_ENV=production</span><br></pre></td></tr></table></figure>
-<p><code>RUN</code>指令在镜像内执行bash命令。我们通过它安装一些在基镜像里面没有的系统软件，或安装依赖项。需要注意的是，<strong>尽量不要在Dockerfile里面构建</strong>。Dockerfile里面的任何一切都只应该是生产环境的，也就是说，不应该存在开发环境采用的依赖项（devDependencies），也不应该存在未经构建的源文件。</p>
-<p>我们还安装了<a href="https://github.com/foreverjs/forever" target="_blank" rel="external">forever</a>，用于管理Node应用进程状态，让应用保持运行。</p>
-<p><code>ENV</code>指令让我们定义镜像中的环境变量，此处我们将Node的运行环境设置为production（生产环境）。</p>
-<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">CMD</span> <span class="bash">[<span class="string">"forever"</span>, <span class="string">"start"</span>, <span class="string">"bin/www"</span>]</span><br><span class="line"></span><span class="built_in">EXPOSE</span> <span class="number">3000</span></span><br></pre></td></tr></table></figure>
-<p><code>CMD</code>指令指定了在镜像启动时所执行的命令。当镜像启动后，将直接运行<code>forever start bin/www</code>启动我们的应用；<code>EXPOSE</code>指令告诉Docker这个镜像将监听TCP 3000端口。</p>
-<p>完整的Dockerfile如下：</p>
-<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">FROM</span> node:<span class="number">5.12</span>.<span class="number">0</span></span><br><span class="line"><span class="built_in">MAINTAINER</span> Di Wu &lt;i@leapoahead.com&gt;</span><br><span class="line"></span><br><span class="line"><span class="built_in">ADD</span> <span class="bash">./releases/src /sat-example</span><br><span class="line"></span><span class="built_in">WORKDIR</span> <span class="bash">/sat-example</span><br><span class="line"></span></span><br><span class="line"><span class="built_in">RUN</span> <span class="bash">npm install --production &amp;&amp; npm install forever -g</span><br><span class="line"></span><span class="built_in">ENV</span> NODE_ENV=production</span><br><span class="line"></span><br><span class="line"><span class="built_in">CMD</span> <span class="bash">[<span class="string">"forever"</span>, <span class="string">"start"</span>, <span class="string">"bin/www"</span>]</span><br><span class="line"></span><span class="built_in">EXPOSE</span> <span class="number">3000</span></span><br></pre></td></tr></table></figure>
-<h3 id="小结">小结</h3><p>第一部分中我们分步讲解了构建镜像的全过程。其中最重要的一个理念是，每一个Docker镜像都对应一次版本发布，所以我们应该下载获取最新的发布，而不是直接基于本地开发中的源代码构建。</p>
-<p>第二部分里面我们将镜像发布到生产环境上并运行，并学习如何管理、监控你的Docker容器。</p>
-]]></content>
-    <summary type="html">
-    <![CDATA[<p>Docker在前几天发布了Mac和Windows的版本，从此Mac用户可以无需安装VirtualBox使用Docker。这给更多对Docker只闻其名但未曾尝试的朋友更方便地动手尝试的机会。本文将带你了解Docker，并一步步使用Docker将一个Node.js应用部署到生产环境中。</p>]]>
-    
-    </summary>
-    
-      <category term="Engineering" scheme="http://blog.leapoahead.com/categories/Engineering/"/>
-    
-  </entry>
-  
-  <entry>
     <title><![CDATA[指路Reactive Programming]]></title>
     <link href="http://blog.leapoahead.com/2016/03/02/introduction-to-reactive-programming/"/>
     <id>http://blog.leapoahead.com/2016/03/02/introduction-to-reactive-programming/</id>
-    <published>2016-03-02T11:58:21.000Z</published>
+    <published>2016-03-03T03:58:21.000Z</published>
     <updated>2016-03-03T01:23:48.000Z</updated>
     <content type="html"><![CDATA[<p>我在工作中采用Reactive Programming（RP）已经有一年了，对于这个“新鲜”的辞藻或许有一些人还不甚熟悉，这里就和大家说说关于RP我的理解。希望在读完本文后，你能够用Reactive Extension进行RP。</p>
 <a id="more"></a>
@@ -231,139 +143,10 @@
   </entry>
   
   <entry>
-    <title><![CDATA[《必然》—— 对变革如数家珍]]></title>
-    <link href="http://blog.leapoahead.com/2016/02/27/book-of-2016-the-inevitable/"/>
-    <id>http://blog.leapoahead.com/2016/02/27/book-of-2016-the-inevitable/</id>
-    <published>2016-02-27T01:52:04.000Z</published>
-    <updated>2016-02-27T02:48:21.000Z</updated>
-    <content type="html"><![CDATA[<p>我曾和别人讨论，Google、Facebook等科技巨人之后，下一家革命性的公司会是做什么的？我还问过Google前员工，“你觉得Google能活几年”？</p>
-<a id="more"></a>
-<p>科技界不会有下一个Google，也不会有下一个Facebook。这两家公司都已经在各自开辟的领域做到了世界第一，想要超越它们，你必须做出比他们现有产品好出许多的产品，这是近乎不可能的事情了。所以我们的关注点应该就放在，下一个和现有巨头完全不同的巨头会是怎么样的。</p>
-<p>互联网带给我们的众多的变革，却少有人能如数家珍地罗列出来。最多也就是在微信朋友圈看些零零散散的文章，夸一夸互联网+，扯一扯新经济转型……而Kevin Kelly在他的著作《必然》之中却做到了对现在互联网科技圈子庖丁解牛。</p>
-<p>在书中谈到知化（Cognifying）的时候，我不禁在思索我们这些工程师未来的职业道路。在人工智能发展的初期，我们都骄傲地认为人工智能是受我们（工程师）所控制的，毕竟其源代码是由我们编写出来的。尽管在其他领域，人工智能驱动的机器人一直在颠覆一些人现有的工作。</p>
-<p>注意到这里我说的是<strong>颠覆</strong>，而非取代。机器无法替代人类，因为人类不是生活在二进制世界中的。机器擅长从二进制的数据中学习，通过数学模型快速地学习。而人类不是这样的，我们通过知性的记忆来进行学习。但也正因为这样，很多工作，例如清洁、纺织、食品生产等很容易从过往数据总结规律的事情，很快就能被我们的机器所学会。它们可以帮助我们更高效的解决问题，但不会直接出面帮你解决问题。</p>
-<p>永远记住，电脑是很笨的。它们所知道的什么东西都是我们主动教给他们的，有时候教错了，这个锅还得我们来背。扯远了。</p>
-<p>那么它可不可能大规模地颠覆软件工程师的工作呢？答案是可能。有一件工程师们心知肚明的事情，那就是我们其实很多时候都在做一些无谓的重复劳动。这些重复劳动很多是机器人可以学习、替代的。没有理由机器人完全无法理解我们在编写的程序，它自己本身就来自那个世界。</p>
-<p>企业本身会很乐意人工智能驱动的机器人（虽然它不一定要是真的拥有铝合金外壳的机器人的形式）出现，毕竟现在养一个工程师真的是太贵了。工程师每天如果坐在办公室里面八个小时，其中能够高效工作的或许只有三到四个小时。好的工程师总是会花时间学习、沟通的，而他们真正在高效工作，应当是在不假思索的编码的过程。如果把敲键盘的事情大部分交给自动化的流程完成，或者，由工程师口述（通过语音输入），然后由人工智能生成代码，那么效率将有大大的提升。</p>
-<p>我相信很多基础的工程职位会被人工智能替换掉，这在建筑设计业、公共运输业都已经在发生，在软件业也将会发生。想到这里，我不禁双腿一颤，赶快左手捧起一本《机器学习》、右手捧起一本《电工基础》，希望未来有机器人要抢我饭碗的时候，我至少还有机会可以想想办法把它干掉……</p>
-<p>说到口述，这个尝试其实已经可以开始了。现在的语音输入技术完全能够让一个人在五分钟内打出一篇五千字的文章（取决于口语水平）。未来，我们可能不止于语音输入，我们还会进入脑电波输入的时代。只需要想一想，屏幕上就会出现</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">console</span>.log(<span class="string">'JavaScript is the best programming language, if, PHP is not here.'</span>);</span><br></pre></td></tr></table></figure>
-<p>一切看起来都是那么幸福。</p>
-<p>推荐这本《必然》给大家，书中有对科技行业的十一个方向的洞悉，想必至少有一个你会感兴趣。</p>
-<img src="/2016/02/27/book-of-2016-the-inevitable/the_inevitable.jpg" alt="The Inevitable" title="The Inevitable">]]></content>
-    <summary type="html">
-    <![CDATA[<p>我曾和别人讨论，Google、Facebook等科技巨人之后，下一家革命性的公司会是做什么的？我还问过Google前员工，“你觉得Google能活几年”？</p>]]>
-    
-    </summary>
-    
-      <category term="Reading" scheme="http://blog.leapoahead.com/categories/reading/"/>
-    
-  </entry>
-  
-  <entry>
-    <title><![CDATA[《Hooked》 - 用户行为操纵的技术]]></title>
-    <link href="http://blog.leapoahead.com/2016/02/13/book-of-2016-hooked-how-to-build-habit-forming-products/"/>
-    <id>http://blog.leapoahead.com/2016/02/13/book-of-2016-hooked-how-to-build-habit-forming-products/</id>
-    <published>2016-02-13T04:13:29.000Z</published>
-    <updated>2016-02-13T05:01:55.000Z</updated>
-    <content type="html"><![CDATA[<blockquote>
-<p>Start-ups are grueling and only the most fortunate persevere before finding success. If you only build for fame or fortune, you will likely find neither. Build for meaning, though, and you can’t go wrong. （创业是极其艰辛的，只有那些最幸运的人才能在找到成功之前一直坚持下去。如果你是为了追求财富和名望去创业，那么你几乎是两者都无法得到的。反之，为了一个使命的意义去奋斗，那就没错了）</p>
-</blockquote>
-<a id="more"></a>
-<p>大过年的，除了吃和睡之外，看本书才能平衡一下心理。作为2016看的第二本书，《Hooked: How to Build Habit-forming Products》介绍了构建操纵用户行为习惯的模型——Hook Model。中文名应该可以叫做《过瘾！—— 如何操纵用户的行为习惯》，看起来有点像控制狂写的书。</p>
-<img src="/2016/02/13/book-of-2016-hooked-how-to-build-habit-forming-products/2.png" alt="Push Notification 《Hooked: How to Build Habit-forming Products》" title="Push Notification 《Hooked: How to Build Habit-forming Products》">
-<p>整个Hook Model由四个阶段构成，分别是：</p>
-<ul>
-<li>Trigger（触发）</li>
-<li>Action（行动）</li>
-<li>Reward（回馈）</li>
-<li>Investment（投资）</li>
-</ul>
-<p>书中举了不少例子供参考，例如Facebook、Twitter、Tinder（国外的交友App）和Pinterest。通过结合例子介绍Hook Model，让人深深觉得自己处于一个被别人深深套牢的境地。边看例子变回想，有时候都觉得要冒冷汗，心里直想，“尼玛，原来这个功能是为了让我干这个事”！</p>
-<p>其中最有趣的部分是Trigger和Reward。</p>
-<h3 id="Trigger">Trigger</h3><p>Trigger（触发）指的是触发用户进行某一行为的诱因。Trigger分为Internal Trigger（内部触发）和External Trigger（外部触发）。</p>
-<p>外部触发是作为用户能够见到的，应用用于引导用户行为的表现。例如，推送通知就是一个很经典的外部触发。当用户看到一个自己感兴趣的推送通知，他就会打开这个推动通知，并进入这个应用进行阅读等操作。书中外部触发分为四类：</p>
-<ol>
-<li>Paid Triggers （付费渠道）</li>
-<li>Earned Triggers （公共关系）</li>
-<li>Relationship Triggers （口口相传）</li>
-<li>Owned Triggers （应用内自建的功能）</li>
-</ol>
-<img src="/2016/02/13/book-of-2016-hooked-how-to-build-habit-forming-products/push-notification.png" alt="Push Notification" title="Push Notification">
-<p>（本文图片均来源于网络，不再注明）</p>
-<p>而内部触发，从我的理解来看，就是应用给用户的印象与用户当前需求的<strong>契合度</strong>。当用户认为这个应用提供的能力能够解决（或舒缓）他目前的需求，那么他就会受到鼓舞，从而使用这个应用。</p>
-<h3 id="Reward">Reward</h3><p>讲Reward的章节全名叫做Variable Reward，核心观点是：</p>
-<blockquote>
-<p>给予用户的反馈应该是多变的。当用户习惯了同样的一种反馈之后，慢慢就会失去对这个产品的依赖。</p>
-</blockquote>
-<p>互联网产品设计是一个Infinite Loop，那些广为人知的应用没有一个不是每天都在发生变化的。而变化的最重要的一个环节就是用户反馈的变化。就拿大家都在用的淘宝而言，其核心功能——网购，其实一直都没有变化。但是它所推出的各类促销活动、各种游戏玩法和奖励时时刻刻都在变化。造就一个高用户粘性的产品，靠的不仅仅是最开始那个核心的构想，还有之后不断的创新和变革。</p>
-<p>书中将用户反馈分为三种，Reward of the tribe、Reward of the hunt和Reward of the self。其中最强大的一种Reward，我认为应当是Reward of the tribe。Tribe是团体、部落的意思，Reward of the tribe指的主要是社会认同的反馈。</p>
-<p>仔细想想为什么很多人喜欢用微信朋友圈，在很多时候，大家实际上期待的是来自自己所在的圈子的一种认同。今天我多读了一本书了，写一篇博客分享给大家，就会期望我所在的圈子给出反馈和鼓励；吃饭之前先拍照，拍照之后分享朋友圈，然后再动筷子……这些都是寻求社会认同，是非常正常也很普遍的事情。然而正是对社会认同感的追求，才造就了今天的微博、微信。</p>
-<h3 id="Morality（道德）">Morality（道德）</h3><p>介绍了整个Hook Model之后，作者在整本书最后还介绍了关于操纵用户行为的道德问题。不得不说全书介绍了非常多操纵用户行为的技巧，这些技巧能够帮助你的用户更多、更好地使用你的产品，也可能会对用户的生活产生负面影响。</p>
-<p>关于操纵用户行为的道德，其中最为受关注的就是“上瘾”（addicted）的问题。例如，单就用户粘性而言，一些知名游戏的用户粘性明显就很高，甚至到了让人废寝忘食的上瘾地步。如何平衡“提高用户粘性”和“防止用户上瘾”之间做出权衡，是整个操纵用户行为技术的道德问题的核心。</p>
-<p>总体而言，这本书是一本从心理学、用户行为、交互设计等多个角度出发，探讨用户行为操作的好书。它适合任何人阅读，无论是一个商业人事、产品设计师、交互设计师还是软件工程师，相信都能从中得到一些产品设计相关的启发。</p>
-]]></content>
-    <summary type="html">
-    <![CDATA[<blockquote>
-<p>Start-ups are grueling and only the most fortunate persevere before finding success. If you only build for fame or fortune, you will likely find neither. Build for meaning, though, and you can’t go wrong. （创业是极其艰辛的，只有那些最幸运的人才能在找到成功之前一直坚持下去。如果你是为了追求财富和名望去创业，那么你几乎是两者都无法得到的。反之，为了一个使命的意义去奋斗，那就没错了）</p>
-</blockquote>]]>
-    
-    </summary>
-    
-      <category term="Reading" scheme="http://blog.leapoahead.com/categories/reading/"/>
-    
-  </entry>
-  
-  <entry>
-    <title><![CDATA[《蔡康永的说话之道》—— 成人的说话法则]]></title>
-    <link href="http://blog.leapoahead.com/2016/01/23/book-of-2016-caikangyong/"/>
-    <id>http://blog.leapoahead.com/2016/01/23/book-of-2016-caikangyong/</id>
-    <published>2016-01-23T05:45:21.000Z</published>
-    <updated>2016-01-23T06:50:55.000Z</updated>
-    <content type="html"><![CDATA[<blockquote>
-<p>练习关心别人，而且表现出你的关心，我觉得是非常值得的，因为你生命中必须有你最在乎的人，你才会活得有滋味。 —— 蔡康永的说话之道</p>
-</blockquote>
-<a id="more"></a>
-<p>2016的年初，回到上海。回来第二天就约了朋友Y到他的新公司参观，坐落在上海城中心。Y约我去主要是要向我咨询一些软件开发相关的事宜，包括一些成本估算、程式结构的设计和进度的规划。他们公司其实自己也有一个全职的工程师GG，Y告诉我他觉得这个GG不太靠谱，所以“请”我来一起聊聊，验证下GG的一些工作。而我呢，其实只是抱着和朋友见面聊天的心态。我不是什么经验丰富的工程师，只是希望能帮上忙。</p>
-<p>谈话结束后去吃饭的路上，我和Y说，其实我觉得GG的问题不是在专业知识上，而是在说话上很有问题，所以Y会觉得GG不靠谱。他在别人商量事情的时候喜欢插嘴，他会极力地为自己当下觉得正确的方案辩护。而且在别人讨论其他的方案的时候，他经常自己小声（但别人能听到）地嘀咕自己的方案的优越。</p>
-<p>“（小声）哎呀，这样我肯定要多花好久时间的吧”</p>
-<p>“（小声）哎呀…哎，那这样我的框架就白写了，浪费了一个月呢”</p>
-<p>在吃饭的时候，GG依然保持着他的风格。当别人在聊故事的时候，他很喜欢硬插进来他自己的一些（根本就算不上见解）的见解。譬如，我们在聊一个供暖行业的商业模式，将自家空调装到平常百姓家，然后邀请这些装了空调的家庭变成线下体验店。我当时就质疑这样做是否会破坏整个品牌的一致性，大家也很乐意讨论这个话题。而GG却在旁边一直重复，“这都是风险管理的问题，像我们软件行业……”，我默默地掐着手指算，这句话他重复了六遍。</p>
-<p>显然，大家都对他想把话题转移到软件行业很不感兴趣。这真的是因为软件行业没有供暖行业有话聊吗？当然不是。谁会愿意和一个说话带着刺，每一句里面都带着“我”的人聊天呢？</p>
-<p>而Y和我的另一个好朋友H，他们两个就是很聊得来的人。当天晚上我们三个人在宾馆里面聊到了凌晨四点半，从未来的职业规划、互联网和供暖行业结合聊到学校里面的各类趣事、女生的行为习惯、美国的蠢货总统候选人……虽然长时间的聊天让身体会疲惫，但是三个能互相欣赏的人聊天会让人有从内而外的舒服。很担心在大学以后就很难遇到这种能分点列清观点与你侃侃而谈的朋友出现了。</p>
-<p>对那个晚上印象深刻，是因为恰好最近读完了《蔡康永的说话之道》。蔡康永是台湾的著名节目主持人，主持过很出名的对话类节目《康熙来了》。“说话之道”这本书有趣的地方在于，它被分为了四十个对成年人说话的小建议，这样要让自己对号入座是很容易的。每次读完一个小故事，你就会抬起头来发呆五秒钟，想着，“嗯，我当时真的是犯了这条大忌讳，现在想起来那个听到我这句话的人应该当时心理阴影面积是无穷大吧……”</p>
-<img src="/2016/01/23/book-of-2016-caikangyong/1.jpg" alt="蔡康永的说话之道" title="蔡康永的说话之道">
-<p>在读这本书的两周多时间里，我一直拿着身边的人做实验。当天H和Y实际上就是被我做了一晚上试验品，毕竟我们做计算机设计的人最注重反复锻炼。</p>
-<blockquote>
-<p>美国有个调查，说一般人最喜欢的名字，是自己姓名里的字。我不知道这样的调查结果，是否也适合中文姓名？但只要你想一下，你浏览街上招牌、翻阅报纸杂志时，会不会特别被自己的名字里的字吸引？如果会，就表示这个调查结果原则上是成立的人。这么喜欢自己的名字，当别人给你写电子邮件、跟你讲电话时，如果三不五十提起你的名字，你专心而且认同的程度，多会因此大大提高！<br>……<br>下次，当你贪图方便，想按一个键就发出一百则罐头简讯，向朋友贺节的时候，想想对方的感受，想想你这么做真的是在巩固友谊吗？还是在增加彼此的冷漠，同时增加电信业者的营收？ —— 蔡康永的说话之道</p>
-</blockquote>
-<p>“罐头简讯”的意思就是群发短信。在节日里面，朋友之间互相发送微信、传递微信红包，深层的目的一般都是表达“虽然见不到你，但是我希望通过这则短信告诉你，我还记得你这个朋友，祝我们友谊地久天长”。这样的大前提是，要让对方感觉到这句话是对你说的。当校长站在毕业典礼台上说，“我会记得你们每一个同学的音容笑貌”的时候，你真的相信吗？真的记得住的人，当然是天天和你朝夕相处的同班，而不是那些发言人们。</p>
-<p>写信之所以会比发微信温暖，也是因为你会在信封上诚诚恳恳地写下对方的名字，而且要亲自到邮局去投递。</p>
-<blockquote>
-<p>演讲的人，设身处地的站在台下观众的立场想，是最有用的原则。他们是被学校逼着，在寒风中站在户外听你演讲的应届毕业生吗？他们是一群刚吃完中饭、昏昏欲睡的企业家吗？是一群比较爱听八卦、但迫于社交原因才来听严肃演讲的贵妇？还是一群被病痛所苦的病人？<br>……<br>不管他是自愿花钱买票、或者是被老师老板逼着来听你演讲。只要你体谅他的疲劳，给他一些乐趣，以及两到三样有用的讯息，他就会觉得你是个非常好的演讲者，下次还愿意听你演讲。 —— 蔡康永的说话之道</p>
-</blockquote>
-<p>我其实很爱好演讲、讲课。原因是在准备课程的过程中，自身也能学到、总结出很多有意思的东西。我之前把很多的精力放在了自己的愉悦上，可我很少想过的是，为什么听我的课的人有些会昏昏欲睡？我会用一些很粗浅的方法，例如学会控制音量，在重要的部分的时候提亮嗓门，可是收效甚微。</p>
-<p>后来我尝试着将课程真正有用的内容减少，多一些无关紧要的信息，甚至是游戏、（冷）笑话。结果就真的很有用，没有人再会在我的演讲中感到睡意昏沉。因为我给他们喘气的机会，是能够体谅他们的疲劳，代价就是我少一些show off而已，就能换来大家的注意力。</p>
-<p>这或许也是“罗辑思维”微信号很成功的一个原因。它不仅很短，60秒的语音相信不会让任何人感到疲惫。而且，我还可以随意挑时间去听。“罗辑思维”是新经济——粉丝经济和碎片经济的产物，其中碎片经济，无非就是让人舒服，仅此而已。</p>
-<p>做一个让人舒服的人，自己也能舒服。这需要时间去训练，而《蔡康永的说话之道》就是一本不错的伴读物。</p>
-<p>祝大家生活开心、愉快。</p>
-]]></content>
-    <summary type="html">
-    <![CDATA[<blockquote>
-<p>练习关心别人，而且表现出你的关心，我觉得是非常值得的，因为你生命中必须有你最在乎的人，你才会活得有滋味。 —— 蔡康永的说话之道</p>
-</blockquote>]]>
-    
-    </summary>
-    
-      <category term="Reading" scheme="http://blog.leapoahead.com/categories/reading/"/>
-    
-  </entry>
-  
-  <entry>
     <title><![CDATA[迭代、递归与Tail Call Optimization]]></title>
     <link href="http://blog.leapoahead.com/2016/01/03/iterative-recursive-process/"/>
     <id>http://blog.leapoahead.com/2016/01/03/iterative-recursive-process/</id>
-    <published>2016-01-03T09:59:13.000Z</published>
+    <published>2016-01-04T01:59:13.000Z</published>
     <updated>2016-01-03T11:46:27.000Z</updated>
     <content type="html"><![CDATA[<p>在程序设计的世界里面有两种很基本的设计模式，那就是迭代（iterative）和递归（recursive）。这两种模式之间存在着很强的一致性和对称性。</p>
 <a id="more"></a>
@@ -410,7 +193,7 @@
     <title><![CDATA[硅谷夜谈]]></title>
     <link href="http://blog.leapoahead.com/2015/12/27/thinking-in-silicon-valley/"/>
     <id>http://blog.leapoahead.com/2015/12/27/thinking-in-silicon-valley/</id>
-    <published>2015-12-27T14:45:32.000Z</published>
+    <published>2015-12-28T06:45:32.000Z</published>
     <updated>2015-12-28T09:27:45.000Z</updated>
     <content type="html"><![CDATA[<p>旧金山严格意义上不算是硅谷的一部分，它其实坐落于硅谷以北。城市的占地面积不大，百分之九十是一马平川的居民区。东北角的Financial District是这里唯一高楼耸立的区域，人如川流，在他们之中不少都是科技工作者。贯穿整个Financial District的是Market Street，好似是旧金山的脊柱一般，撑着这个科技之都鲜活的躯体。</p>
 <img src="/2015/12/27/thinking-in-silicon-valley/1.jpg" alt="Market Street" title="Market Street">
@@ -452,7 +235,7 @@
     <title><![CDATA[Debugging with strace]]></title>
     <link href="http://blog.leapoahead.com/2015/11/27/debugging-with-strace/"/>
     <id>http://blog.leapoahead.com/2015/11/27/debugging-with-strace/</id>
-    <published>2015-11-26T16:32:56.000Z</published>
+    <published>2015-11-27T08:32:56.000Z</published>
     <updated>2015-11-27T09:20:47.000Z</updated>
     <content type="html"><![CDATA[<p><a href="http://linux.die.net/man/1/strace" target="_blank" rel="external">strace</a> is a tool that helps to inspect system calls your application makes. I found it really useful this week when I debugging a complex python application. I am not going through my original problem though, but will show you some typical examples as proof of concept.</p>
 <a id="more"></a>
@@ -489,31 +272,10 @@
   </entry>
   
   <entry>
-    <title><![CDATA[关于实现Chrome DevTools选择性Cache的提议]]></title>
-    <link href="http://blog.leapoahead.com/2015/10/26/chrome-devtools-selective-caching-proposal/"/>
-    <id>http://blog.leapoahead.com/2015/10/26/chrome-devtools-selective-caching-proposal/</id>
-    <published>2015-10-26T14:56:16.000Z</published>
-    <updated>2015-10-27T06:02:28.000Z</updated>
-    <content type="html"><![CDATA[<p>我们都爱Chrome DevTools！作为Web工程师，我们每天都使用DevTools。</p>
-<a id="more"></a>
-<p>在使用DevTools的过程中，我们会使用“Disable Cache (while DevTools is opened)”这个功能。在开发环境中，这个功能让我们在打开DevTools的时候，每次刷新都能获取到最新版本的静态资源。</p>
-<p>但是这个功能的弊端就是，当我们的页面在有过多静态资源的时候，就需要等非常之久。为了解决这个问题，我提出了选择性Cache的提议，可以在<a href="https://docs.google.com/document/d/19dkHl9fRbO_bN-jH_OSkbsNtq4MT4c2ZL8cqX7llY0U/edit#heading=h.3x8nyq2w3lbm" target="_blank" rel="external">这个Google Docs</a>上面看到。</p>
-<p>希望大家可以加入这里的讨论，让我们一起让DevTools变得更好！：）</p>
-]]></content>
-    <summary type="html">
-    <![CDATA[<p>我们都爱Chrome DevTools！作为Web工程师，我们每天都使用DevTools。</p>]]>
-    
-    </summary>
-    
-      <category term="Engineering" scheme="http://blog.leapoahead.com/categories/Engineering/"/>
-    
-  </entry>
-  
-  <entry>
     <title><![CDATA[Galley - 为基于Docker架构本地开发与测试提速]]></title>
     <link href="http://blog.leapoahead.com/2015/10/23/intro-to-galley/"/>
     <id>http://blog.leapoahead.com/2015/10/23/intro-to-galley/</id>
-    <published>2015-10-22T16:40:01.000Z</published>
+    <published>2015-10-23T07:40:01.000Z</published>
     <updated>2015-10-23T07:44:59.000Z</updated>
     <content type="html"><![CDATA[<p>（本文投稿于<a href="www.infoq.com/cn/">InfoQ</a>，无论其是否刊登，其他第三方转载请务必注明出处）</p>
 <p>现如今，Docker已经成为了很多公司部署应用、服务的首选方案。依靠容器技术，我们能在不同的体系结构之上轻松部署几乎任何种类的应用。在洛杉矶时间2015年10月21日于旧金山展开的Twitter Flight开发者大会上，来自Fabric的工程师Joan Smith再次谈到了这一点。</p>
@@ -561,7 +323,7 @@
     <title><![CDATA[我从开源项目中学习到的Docker经验]]></title>
     <link href="http://blog.leapoahead.com/2015/10/07/docker-lessons-learned-md/"/>
     <id>http://blog.leapoahead.com/2015/10/07/docker-lessons-learned-md/</id>
-    <published>2015-10-07T11:42:44.000Z</published>
+    <published>2015-10-08T02:42:44.000Z</published>
     <updated>2015-10-08T04:30:37.000Z</updated>
     <content type="html"><![CDATA[<p>最近几周从一个Web开发俨然摇身一变成了“运维”，在GitHub上面为<a href="https://github.com/EverythingMe/redash" target="_blank" rel="external">re:dash</a>做Docker化的支持。在整个Code Review的过程中汲取了一些Docker的经验。</p>
 <a id="more"></a>
@@ -599,7 +361,7 @@
     <title><![CDATA[“函数是一等公民”背后的含义]]></title>
     <link href="http://blog.leapoahead.com/2015/09/19/function-as-first-class-citizen/"/>
     <id>http://blog.leapoahead.com/2015/09/19/function-as-first-class-citizen/</id>
-    <published>2015-09-18T17:37:41.000Z</published>
+    <published>2015-09-19T08:37:41.000Z</published>
     <updated>2015-09-19T08:37:41.000Z</updated>
     <content type="html"><![CDATA[<p>在学习一些语言的时候，你经常会听到“函数是一等公民”这样的描述。那么究竟函数在这类语言中扮演着怎么样的一个角色？它和函数式编程、无状态设计、封装抽象有什么千丝万缕的联系？</p>
 <a id="more"></a>
@@ -720,7 +482,7 @@
     <title><![CDATA[JavaScript闭包的底层运行机制]]></title>
     <link href="http://blog.leapoahead.com/2015/09/15/js-closure/"/>
     <id>http://blog.leapoahead.com/2015/09/15/js-closure/</id>
-    <published>2015-09-15T13:17:24.000Z</published>
+    <published>2015-09-16T04:17:24.000Z</published>
     <updated>2015-09-16T04:17:41.000Z</updated>
     <content type="html"><![CDATA[<p>我研究JavaScript闭包（closure）已经有一段时间了。我之前只是学会了如何使用它们，而没有透彻地了解它们具体是如何运作的。那么，究竟什么是闭包？</p>
 <a id="more"></a>
@@ -830,7 +592,7 @@
     <title><![CDATA[5分钟内使用React、Webpack与ES6构建应用]]></title>
     <link href="http://blog.leapoahead.com/2015/09/12/react-es6-webpack-in-5-minutes/"/>
     <id>http://blog.leapoahead.com/2015/09/12/react-es6-webpack-in-5-minutes/</id>
-    <published>2015-09-12T03:54:02.000Z</published>
+    <published>2015-09-12T18:54:02.000Z</published>
     <updated>2015-09-12T18:54:02.000Z</updated>
     <content type="html"><![CDATA[<p>假设你想要非常快速地搭建一个React应用，或者你想快速地搭建用ES6学习React开发的环境，那么这篇文章你一定不想错过。</p>
 <a id="more"></a>
@@ -871,7 +633,7 @@
     <title><![CDATA[Workshop - 对Express中间件进行单元测试]]></title>
     <link href="http://blog.leapoahead.com/2015/09/09/unittesting-express-middlewares/"/>
     <id>http://blog.leapoahead.com/2015/09/09/unittesting-express-middlewares/</id>
-    <published>2015-09-09T11:21:33.000Z</published>
+    <published>2015-09-10T02:21:33.000Z</published>
     <updated>2015-09-10T04:36:15.000Z</updated>
     <content type="html"><![CDATA[<p>我最近围绕着Express构建应用，尝试用不同的方法来对Express的中间件进行单元测试。今天通过Workshop的形式，一步一步地向大家介绍我的测试方式。</p>
 <a id="more"></a>
@@ -961,7 +723,7 @@
     <title><![CDATA[八幅漫画理解使用JSON Web Token设计单点登录系统]]></title>
     <link href="http://blog.leapoahead.com/2015/09/07/user-authentication-with-jwt/"/>
     <id>http://blog.leapoahead.com/2015/09/07/user-authentication-with-jwt/</id>
-    <published>2015-09-07T14:43:19.000Z</published>
+    <published>2015-09-08T05:43:19.000Z</published>
     <updated>2015-09-08T06:31:10.000Z</updated>
     <content type="html"><![CDATA[<p>上次在<a href="/2015/09/06/understanding-jwt/">《JSON Web Token - 在Web应用间安全地传递信息》</a>中我提到了JSON Web Token可以用来设计单点登录系统。我尝试用八幅漫画先让大家理解如何设计正常的用户认证系统，然后再延伸到单点登录系统。</p>
 <a id="more"></a>
@@ -1017,12 +779,12 @@
     <title><![CDATA[JSON Web Token - 在Web应用间安全地传递信息]]></title>
     <link href="http://blog.leapoahead.com/2015/09/06/understanding-jwt/"/>
     <id>http://blog.leapoahead.com/2015/09/06/understanding-jwt/</id>
-    <published>2015-09-06T12:25:36.000Z</published>
+    <published>2015-09-07T03:25:36.000Z</published>
     <updated>2015-09-07T03:25:36.000Z</updated>
     <content type="html"><![CDATA[<p>JSON Web Token（JWT）是一个非常轻巧的<a href="https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32" target="_blank" rel="external">规范</a>。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。</p>
 <a id="more"></a>
 <p>让我们来假想一下一个场景。在A用户关注了B用户的时候，系统发邮件给B用户，并且附有一个链接“点此关注A用户”。链接的地址可以是这样的</p>
-<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">https:</span><span class="comment">//your.awesome-app.com/make-friend/?from_user=B&amp;target_user=A</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http<span class="variable">s:</span>//your.awesome-app.<span class="keyword">com</span>/<span class="keyword">make</span>-friend/?from_user=B&amp;target_user=A</span><br></pre></td></tr></table></figure>
 <p>上面的URL主要通过URL来描述这个当然这样做有一个弊端，那就是要求用户B用户是一定要先登录的。可不可以简化这个流程，让B用户不用登录就可以完成这个操作。JWT就允许我们做到这点。</p>
 <img src="/2015/09/06/understanding-jwt/jwt.png" alt="JSON Web Token" title="JSON Web Token">
 <h3 id="JWT的组成">JWT的组成</h3><p>一个JWT实际上就是一个字符串，它由三部分组成，<strong>头部</strong>、<strong>载荷</strong>与<strong>签名</strong>。</p>
@@ -1093,7 +855,7 @@
     <title><![CDATA[以Node应用为例谈如何管理Web应用的环境常量]]></title>
     <link href="http://blog.leapoahead.com/2015/09/04/managing-env-constants/"/>
     <id>http://blog.leapoahead.com/2015/09/04/managing-env-constants/</id>
-    <published>2015-09-03T16:33:51.000Z</published>
+    <published>2015-09-04T07:33:51.000Z</published>
     <updated>2015-09-04T07:33:51.000Z</updated>
     <content type="html"><![CDATA[<p>在程序员自己的小世界里，我们一直在和“量”打交道——变量和常量。可是常量真的是一成不变的吗？事实上，常量也分为两种，应用常量（application-specific constant）和环境常量（environment-specific constant）。</p>
 <a id="more"></a>
@@ -1167,8 +929,8 @@
     <title><![CDATA[在Node应用中避免“Dot Hell”]]></title>
     <link href="http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/"/>
     <id>http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/</id>
-    <published>2015-09-02T16:38:51.000Z</published>
-    <updated>2015-09-03T07:38:51.000Z</updated>
+    <published>2015-09-03T07:38:51.000Z</published>
+    <updated>2016-09-29T05:13:23.000Z</updated>
     <content type="html"><![CDATA[<p>在Node应用中，我们使用<code>require</code>来加载模块。在目录层次相对复杂的应用中，总是会出现类似<code>require(&#39;../../../../../module&#39;)</code>的调用，我把它称之为Dot Hell。我用了一些时间研究现有的解决方案，并介绍我个人认为最好的方法。</p>
 <a id="more"></a>
 <img src="/2015/09/03/prevent-node-require-dot-hell/cat.png" alt="cat.png" title="">
@@ -1203,7 +965,7 @@
     <title><![CDATA[用自然语言的角度理解JavaScript中的this关键字]]></title>
     <link href="http://blog.leapoahead.com/2015/08/31/understanding-js-this-keyword/"/>
     <id>http://blog.leapoahead.com/2015/08/31/understanding-js-this-keyword/</id>
-    <published>2015-08-31T04:44:14.000Z</published>
+    <published>2015-08-31T19:44:14.000Z</published>
     <updated>2015-09-01T04:49:49.000Z</updated>
     <content type="html"><![CDATA[<p>在编写JavaScript应用的时候，我们经常会使用<code>this</code>关键字。那么<code>this</code>关键字究竟是怎样工作的？它的设计有哪些好的地方，有哪些不好的地方？本文带大家全面系统地认识这个老朋友。</p>
 <img src="/2015/08/31/understanding-js-this-keyword/what_is_this.png" alt="WHAT IS THIS" title="WHAT IS THIS">
@@ -1267,6 +1029,192 @@
     </summary>
     
       <category term="Engineering" scheme="http://blog.leapoahead.com/categories/Engineering/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[当你打开网页的时候，世界都发生了什么（1）]]></title>
+    <link href="http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/"/>
+    <id>http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/</id>
+    <published>2015-08-31T03:47:04.000Z</published>
+    <updated>2015-08-31T04:55:14.000Z</updated>
+    <content type="html"><![CDATA[<p>你有没有好奇过，当你试图打开一个网页的时候，这个世界上都发生了一些什么事情？会不会因为你手气键落，产生了蝴蝶效应，指尖的风拂起千年后你梦中的那个女孩的刘海？咳，也不是没有可能。今天我就来告诉你会发生什么事情，你可以沏一壶茶，坐在躺椅上，慢慢品味……</p>
+<a id="more"></a>
+<blockquote>
+<p>时光倒流到你刚才打开这个页面的那一瞬间…</p>
+</blockquote>
+<p>Hi！大家好，我的名字叫做浏览器，我还有个很酷的英文名字叫做Browser！很高兴认识你！</p>
+<img src="/2015/08/30/what-happens-when-you-open-a-webpage/browser.png" alt="浏览器" title="浏览器">
+<p>什么，你想上百度？没问题！请你告诉我一下，百度的地址是什么？或者说，百度的<strong>URL</strong>是什么？</p>
+<p>对了，给你介绍一下URL，全称Unified Resource Locator，中文名为统一资源定位符，也就是我们俗称的<strong>网址</strong>。它就像互联网上的门牌一样，而浏览器就好像的士司机。你只要告诉浏览器你想要看的网页的URL，他就会把你载到那里啦！</p>
+<img src="/2015/08/30/what-happens-when-you-open-a-webpage/baidu-url.png" alt="浏览器：访问百度页面" title="浏览器：访问百度页面">
+<p>嗯，百度的地址是<code>http://baidu.com</code>是吧，好嘞！我现在就开始帮你去把这个网页给请过来。</p>
+<p>首先，我先要找到这个网页的家在哪里。网页的家有一个名字叫做<strong>服务器</strong>，它的英文名叫做Server。服务器本身其实也是一台电脑，跟你家中的电脑其实是非常相似的。只不过相比起来，服务器性能会比普通的电脑的性能来得强劲，因为它需要服务成千上万个人！</p>
+<img src="/2015/08/30/what-happens-when-you-open-a-webpage/many-servers.png" alt="互联网上的服务器" title="互联网上的服务器">
+<p>那么这么多的服务器，我怎么找到百度所在的那个服务器呢？就靠你刚才告诉我的URL了！URL只是服务器地址的一个比较好听的名字而已，我没有办法直接通过这个地址找到服务器。其实啊，在服务器的世界里面，他们还有一种更精确的地址表达方式，叫做IP地址。</p>
+<blockquote>
+<p>插一嘴：IP地址是什么，它是怎么工作的，恐怕可以写好几本书了。简单地说，IP地址就是形同<code>192.168.0.1</code>这种形式的数字和英文句号的组合。你可以把它当做相对URL来讲更加准确的地址。</p>
+</blockquote>
+<p>我找到IP地址的方式其实很简单，我只要请操作系统（OS, Operating System）帮忙就好了。所谓的操作系统，就是类似Windows、Mac OS一样的软件，你能够在它们上面安装各种各样的软件。其中Mac OS是苹果电脑专用的操作系统。</p>
+<img src="/2015/08/30/what-happens-when-you-open-a-webpage/dnslookup.png" alt="dnslookup.png" title="">
+<p>这个从URL到IP地址的过程叫做DNS查找，即DNS Lookup。天啊，又一个新名词！没关系，你不需要记住这个名词。你所需要知道的是，这里看似操作系统独自很快地完成了这个过程，但是其实它为此所做的事情相当复杂。我们今后将有专门的文章用来介绍这一过程。</p>
+<h3 id="建立连接和发送请求">建立连接和发送请求</h3><p>已经顺利拿到了服务器的IP地址，接下来我就要向他要东西啦！首先我希望它把baidu.com对应的网页传送给我。我们之间传输信息的方式比较特殊，不需要我坐地铁去找它然后搬回来，而是我会跟服务器建立一个<strong>连接</strong>。</p>
+<p>连接，英文名叫做Connection。实际上，它就像开辟了一个专用的通道，供我们互相之间传递信息。</p>
+<img src="/2015/08/30/what-happens-when-you-open-a-webpage/connection.png" alt="连接的建立" title="连接的建立">
+<p>接下来，我就会通过这个专用通道，向服务器发起一个请求（Request）。在这个请求里面，我会像服务器阐明我想要的资源是什么，例如在这里，我想要的资源就是百度的首页。</p>
+<p>那么具体这个资源的位置我是怎么告诉服务器的呢？还得回到刚才的URL来说！</p>
+<img src="/2015/08/30/what-happens-when-you-open-a-webpage/url.png" alt="URL的组成" title="URL的组成">
+<p>一个URL一般由六个部分组成，这里我们只介绍主机名（服务器名）和资源位置（或者说是资源路径）。一个服务器上可以有很多的资源，对应着不同的页面或者文件，例如<code>http://xxx.com/login</code>可以是某网站的登录页面，<code>http://xxx.com/register</code>则可以是某网站的注册页面。这里的<code>/login</code>和<code>/register</code>就代表了两个不同的资源（这里是页面）。<code>/</code>是比较特殊的资源路径，叫做“根路径”，通常就是网站的首页了。其实，这里的原理就和我们电脑上的文件夹是一模一样的。</p>
+<p>在知道了需要的资源的位置之后，我就会给服务器发送一个请求。这个请求实际上就是一系列的英文字符，就像一篇文章一样。</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="request">GET <span class="string">/</span> HTTP/1.1</span></span><br><span class="line"><span class="attribute">User-Agent</span>: <span class="string">curl/7.37.1</span></span><br><span class="line"><span class="attribute">Host</span>: <span class="string">baidu.com</span></span><br><span class="line"><span class="attribute">Accept</span>: <span class="string">*/*</span></span><br></pre></td></tr></table></figure>
+<p>怎么样，我也是很有文采的吧！在这里，你需要知道的是，<code>GET /</code>即代表，我现在要从服务器上拿下来一个资源，这个资源的位置是<code>/</code>。另外，<code>Host: baidu.com</code>代表我要请求的主机名叫做<code>baidu.com</code>。Host这个英文单词就是有主机的意思！</p>
+<p>好了，请求已经准备完毕了，我现在就通过之前建立的连接将这个请求直接送给服务器！</p>
+<h3 id="获得响应">获得响应</h3><p>当服务器获得请求之后，经过一系列的工作（可能是类似翻箱倒柜找材料之类的吧），最后将要送还给我的材料，包括网页的代码，全部打包起来形成一个<strong>响应</strong>（Response），通过连接返回给我。</p>
+<p>响应是和请求对应的，一个请求对应一个响应。这就好像问问题一样，一问一答。所以，响应本身其实也就是一系列的英文字符，就像这样：（下面的响应是被简化的版本）</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">HTTP/1.1 200 OK</span><br><span class="line">Date: Mon, 31 Aug 2015 03:06:34 GMT</span><br><span class="line">Server: Apache</span><br><span class="line"><span class="operator"><span class="keyword">Cache</span>-Control: <span class="keyword">max</span>-age=<span class="number">86400</span></span><br><span class="line">Expires: Tue, <span class="number">01</span> Sep <span class="number">2015</span> <span class="number">03</span>:<span class="number">06</span>:<span class="number">34</span> GMT</span><br><span class="line"><span class="keyword">Last</span>-Modified: Tue, <span class="number">12</span> Jan <span class="number">2010</span> <span class="number">13</span>:<span class="number">48</span>:<span class="number">00</span> GMT</span><br><span class="line">ETag: <span class="string">"51-4b4c7d90"</span></span><br><span class="line"><span class="keyword">Accept</span>-Ranges: <span class="keyword">bytes</span></span><br><span class="line"><span class="keyword">Content</span>-<span class="keyword">Length</span>: <span class="number">81</span></span><br><span class="line"><span class="keyword">Connection</span>: <span class="keyword">Keep</span>-Alive</span><br><span class="line"><span class="keyword">Content</span>-<span class="keyword">Type</span>: <span class="built_in">text</span>/html</span><br><span class="line"> </span><br><span class="line">&lt;html&gt;</span><br><span class="line">    .... 此处省略<span class="keyword">N</span>多行</span><br><span class="line">&lt;/html&gt;</span></span><br></pre></td></tr></table></figure>
+<p>你可以注意到，响应分为两个部分。在13行之上的部分称作响应头（Response Head），下面的部分称作响应主体（Response Body）。在这里，响应主体就是网页的代码了。</p>
+<img src="/2015/08/30/what-happens-when-you-open-a-webpage/req-res.png" alt="请求-响应" title="请求-响应">
+<p>好了，到目前为止，我已经拿到了网页的代码。</p>
+<h3 id="等等…啥是代码？">等等…啥是代码？</h3><p>好问题！</p>
+<p>网页本身其实是由一系列的英文字符编写成的，这些英文字符称作“代码”（Code）。这些英文字符和普通的英文文章看起来差不多，但是它们都是用一种我（浏览器）可以看得懂的格式写成的。我通过阅读这些英文字符，理解它，然后按照它的意思将你想要看的页面渲染出来。</p>
+<p>别急，关于这些，我们在接下来的文章中慢慢道来。</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>你有没有好奇过，当你试图打开一个网页的时候，这个世界上都发生了一些什么事情？会不会因为你手气键落，产生了蝴蝶效应，指尖的风拂起千年后你梦中的那个女孩的刘海？咳，也不是没有可能。今天我就来告诉你会发生什么事情，你可以沏一壶茶，坐在躺椅上，慢慢品味……</p>]]>
+    
+    </summary>
+    
+      <category term="Web Beginner" scheme="http://blog.leapoahead.com/categories/beginner/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[你所应该知道的A/B测试基础]]></title>
+    <link href="http://blog.leapoahead.com/2015/08/27/introduction-to-ab-testing/"/>
+    <id>http://blog.leapoahead.com/2015/08/27/introduction-to-ab-testing/</id>
+    <published>2015-08-28T04:56:52.000Z</published>
+    <updated>2015-08-31T01:20:40.000Z</updated>
+    <content type="html"><![CDATA[<p>在互联网行业里面工作，能给我带来的一个乐趣就是“快”。天下武功，唯快不破。我们可以轻易地做到一天三次以上的产品更新速度，这是和许多传统行业的区别之一。如何利用好这个优势，在我眼里成为了产品发展的关键所在。</p>
+<a id="more"></a>
+<h3 id="什么是A/B测试？">什么是A/B测试？</h3><p>在快速上线的过程中，A/B测试是一个帮助我们快速试错的一种<strong>实验的方法</strong>。在统计学上，其实是Hypothesis Testing（假设测试）的一种形式。它能够帮我们了解我们对产品的改动，例如一个新的功能，是否能够吸引更多用户、让用户更加喜欢、产生更大的效益等。</p>
+<p>A/B测试方法的基本概括就是，将用户分为两组，一组使用旧产品（或旧功能），一组使用新的。然后对比两个用户组，通过数据来分析，新的功能究竟是好是坏。没错，就跟小学的时候做的那些有控制组、实验组的自然科学实验一样一样的。</p>
+<p>A/B测试的具体实施方式有很多种。桌面应用、网站、手机应用都有一些不同的A/B测试方法。本文中以网站的A/B测试为例来介绍。</p>
+<p>我们以天猫的购物车为例，现在的天猫购物车中，结算按钮是在最下方的。这里我浏览器窗口的高度弄得比较小，所以看起来结算按钮和物品之间距离很近，但是实际上他们之间是有很大的距离的。</p>
+<img src="/2015/08/27/introduction-to-ab-testing/tmall-cart.png" alt="天猫购物车" title="天猫购物车">
+<p>现在我就可以提出一个想法，让我们试着把结算按钮移动到购物车的最上方，或许可以增加这个结算按钮的点击穿透率（CTR，Click Through Rate），从而可能提高转化率（CR，Conversion Rate）。</p>
+<blockquote>
+<p>小知识&amp;题外话：CTR简单说即点击该结算按钮的次数占该页面的总访问次数的百分比。例如，在2014年10月25日这一天，一共有200万人打开了这个购物车的页面，其中有20万人点击“结算”并成功到达了结算页面，那么这一天该按钮的CTR即为<strong>20万/200万乘以100%，即10%</strong>。<br>CR，简单来说就是实际进行了消费活动的顾客占总访客数量的百分比。</p>
+</blockquote>
+<img src="/2015/08/27/introduction-to-ab-testing/tmall-cart-new.png" alt="天猫购物车新设计" title="天猫购物车新设计">
+<p>现在，我们就有了两个版本的购物车。一个是现有版本，我们称之为A；一个是我新设计的版本，我们称之为B。我们的目标是想要知道，B的效果是否比A来得好。</p>
+<p>那么，为了衡量效果，我们就要明确我们要观测的数据。这里，我们选择CTR和CR作为我们的观测数据。如果新设计上线后，这两个数据如果有上升，那么就代表着这个新的设计是一个很好的改进。</p>
+<h3 id="按用户（流量）划分控制组和实验组">按用户（流量）划分控制组和实验组</h3><p>接下来我们将用户划分成用户组和实验组。按用户分组也称作按流量分组。例如，我们可以让50%来到天猫的用户看到旧的设计，另外50%来到天猫的用户看到新的设计。</p>
+<p>需要注意的是，我们必须尽量保证同一个用户在实验期间所能看到的是同一个设计。如果他刚才看到的结算按钮在下面，现在又看到结算按钮在上面了，那么对他而言一定是一件很困惑的事情。</p>
+<img src="/2015/08/27/introduction-to-ab-testing/request-bucketing.png" alt="请求分桶" title="请求分桶">
+<blockquote>
+<p>小知识：划分组的过程由服务器的特定算法完成，这类算法我们一般称之为分桶算法（Bucketing Algorithm）。分桶也就是分组，是一个概念。对网站请求进行分桶的那部分程序叫做请求分桶（Request Bucketer）。</p>
+</blockquote>
+<h3 id="按页面划分控制组和实验组">按页面划分控制组和实验组</h3><p>有的时候，按照用户分组会存在一些问题。例如，如果你的实验是关于搜索引擎优化（SEO）的，那么可能就需要按照页面来划分控制组和实验组。例如，对于50%的购物车<strong>页面</strong>，无论谁访问，都是看到原来的设计；对于其他50%的购物车页面，则是新的设计。</p>
+<p>SEO的基本目的就是让搜索引擎更好搜索到网站的页面，所以我们希望在实验期间每次对于同一个页面，搜索引擎看到的结果都是一致的。这样才可以对比两种不同设计的页面对于搜索引擎爬虫的效果孰优孰劣。</p>
+<img src="/2015/08/27/introduction-to-ab-testing/seo-bucketing.png" alt="页面分桶" title="页面分桶">
+<p>典型的SEO优化包括对标题的优化。例如，控制组中的页面标题是放入了商家的宝贝数量，例如“艾迪达斯旗舰店 - 1020件商品 - 上天猫，就购了！”；实验组中的页面标题是放入了商家上传的照片的数量，例如“艾迪达斯旗舰店 - 4558张照片 - 上天猫，就购了！”。别小看这样细小的变化，业界的确有不少成功的SEO优化就是由细小的变化所产生的。</p>
+<h3 id="按页面划分的细节问题">按页面划分的细节问题</h3><p>按页面划分的时候，如果仅仅划分为两个组，可能会出现一些问题。比如，如果对天猫商家页面进行按页面分组，如果在实验期间正好某商家自身发生了非常疯狂的大促，那么它所在的那一组的数据可能会直线飙升。这就可能引起我们的误解，我们可能以为这是由于实验本身造成的影响，于是造成了错误判断。</p>
+<p>简单的解决方法就是划分为四个组，而不是两个组：</p>
+<ul>
+<li>控制组1</li>
+<li>控制组2</li>
+<li>实验组1</li>
+<li>实验组2</li>
+</ul>
+<p>如果在实验组1里面的某个商家因为其自身原因，数据飙升，带动了整个实验组1的数据飙升。但是，实验组2的数据却没有什么很大的起色的话，那么说明是商家自身原因导致，而非新的功能带来的影响。</p>
+<h3 id="分组的比例分配">分组的比例分配</h3><p>分组的比例分配不一定要是50%：50%，因为有些新功能是很可能造成不好的影响的，特别是试用一些新技术。在流量或者页面很多的情况下，哪怕是99%：1%的比例分配也是可以的，因为在后面还有采样的过程。对于淘宝，就算是1%的流量也是非常巨大的，所以样本总量（population）够大，对1%流量采样和50%的流量采样一般是没什么区别的。</p>
+<h3 id="互斥实验">互斥实验</h3><p>有些实验之间是互斥的，可能会互相影响结果。例如，实验A的存在会让实验B的效果适得其反。</p>
+<p>简单的方法就是开辟“泳道”（swimlane）。就好像在游泳的时候，你在你的泳道游你的蛙泳，我在我的泳道游我的自由泳，咱们互不侵犯。拿按页面划分来举例，我们可以让实验A所用的所有页面占网站总页面的20%，实验B占据20%，并且实验A和实验B所涉及的页面互不相交（即互斥）。</p>
+<img src="/2015/08/27/introduction-to-ab-testing/swimlanes.png" alt="泳道划分" title="泳道划分">
+<h3 id="在A/B测试中要注意什么">在A/B测试中要注意什么</h3><p><strong>不要过早下定论</strong>。一个实验上线后，不能急着在两三天内就下定论。统计学上有一个概念叫做statistical confidence，有专门的方法可以用于计算。只有当计算出来的数据达到一定阀值的时候，我们才可以（从统计学上）说这个新的设计是成功或者失败的。我们可以用现成的<a href="https://vwo.com/ab-split-test-significance-calculator/" target="_blank" rel="external">计算器</a>来计算。</p>
+<p><strong>尽量减小偏差（bias）</strong>。例如，如果你对页面进行分组采用的方式是让卖拐杖的页面成为控制组、不卖拐杖的页面成为实验组，那这里面就会产生很大的偏差。因为一般买拐杖都是老年人在买，或者中年的子女在帮老人买，青少年不太可能去买。所以，两组之间就会产生很大的用户的性格的差异，对实验结果的影响就可能很不好了。</p>
+<h3 id="所有的产品都可以进行A/B测试">所有的产品都可以进行A/B测试</h3><p>A/B测试允许我们快速演进我们的产品。我认为，除了互联网行业之外，其他行业也应该学习快速进行A/B测试的思想，创造更好的、质量更高的产品。</p>
+<p>A/B测试的场景很多，不同的A/B测试方法每天都在帮我们创建更好的世界。建议大家可以上网搜索，并和身边的人一起讨论如何应用假设测试打造更好的产品。</p>
+<h3 id="推荐阅读">推荐阅读</h3><ul>
+<li><a href="http://www.smashingmagazine.com/2010/06/the-ultimate-guide-to-a-b-testing/" target="_blank" rel="external">The Ultimate Guide To A/B Testing</a></li>
+<li><a href="http://www.sitepoint.com/designers-guide-a-b-testing/" target="_blank" rel="external">The Designer’s Guide to A/B Testing</a></li>
+</ul>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>在互联网行业里面工作，能给我带来的一个乐趣就是“快”。天下武功，唯快不破。我们可以轻易地做到一天三次以上的产品更新速度，这是和许多传统行业的区别之一。如何利用好这个优势，在我眼里成为了产品发展的关键所在。</p>]]>
+    
+    </summary>
+    
+      <category term="Software Engineering" scheme="http://blog.leapoahead.com/categories/engineering/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[我是如何对待学习编程这件事的]]></title>
+    <link href="http://blog.leapoahead.com/2015/08/27/how-i-learn-as-a-software-engineer/"/>
+    <id>http://blog.leapoahead.com/2015/08/27/how-i-learn-as-a-software-engineer/</id>
+    <published>2015-08-28T04:10:09.000Z</published>
+    <updated>2015-08-28T04:14:38.000Z</updated>
+    <content type="html"><![CDATA[<p>十一年前，我在电脑爱好者论坛上面发布了自己的第一个软件，DocumentsManager。那是一个用C# 3.0编写的文档分类、索引软件，五脏不全，但麻雀不小。今天他还在<a href="http://bbs.cfan.com.cn/thread-688798-1-1.html" target="_blank" rel="external">精华索引</a>里面。不只是他，精华帖中Leap.ahead和ASUSTek发布的帖子都是我发的，总共有22个。</p>
+<p>对于我而言，不仅创造是一种乐趣，学习如何创造同样也是一种很大的乐趣。在我的学生生涯中，在不同的时段，我学习创造的方式也不同。这是一个需要时间来演进的过程，所以时间一长，也需要总结一下。今天难得有了总结的冲动，便简略地说说我的一些心得。</p>
+<h3 id="深入才能浅出">深入才能浅出</h3><p>学计算机的人都研究抽象。有句话是这样说的，所有的计算机科学问题都可以用抽象来解决，除了过多的抽象。</p>
+<p>由于接触了太多的“抽象”，我曾经有一种心态，那就是要学就学顶端的设计，要做架构师。我还问过我的一个大学学长，“学什么课才能成为架构师”？在那时的我心目中，架构师就是画图的，然后程序员实现就是了。</p>
+<p>但是在有了工作经历后，我发现实际上如果对底层没有很深入的了解，是根本没有办法对顶层设计做出好的判断的。可能我只是知道一些名词，诸如cache、CDN、负载均衡等。但是真的要到用到这些东西的时候，其实是只能用到最粗浅的那一层。连螺丝是怎么拧的都不知道的人，别人怎么放心让你去建桥呢？</p>
+<p>这就是所谓的“深入浅出”。深入到每一分每一毫，是为“深入”。然后再跳出来，纵观全局，是为“浅出”。</p>
+<h3 id="广撒网，但别做捞鱼的打算">广撒网，但别做捞鱼的打算</h3><p>既然要深入浅出，那么这个深入真的是要把一个具体的技术钻研得很深吗？这也是一直以来很受争议的地方：到底是学一个领域学得精通好，还是学很多领域好？</p>
+<p>我的答案是，能真的学得精的人必然学得广，能真的学得广的人必然能学得精，而且能学得很快。仔细想想，我们的时间真的有少得窘迫到一定要在广和精之间二选一吗？如果纠结于这个问题，那么一定是放错了重点。重点不在于选择广或是精，而是如何让自己变得更会学习。</p>
+<p>我在国内外的大公司实习，感觉到的明显区别就是，国内公司“专家”居多，国外公司“工程师”居多。国内把工程师的职责分得非常清楚，哪怕是一个五六个人的小团队，也得有个明确的后端、前端、算法工程师云云。而国外的定义基本上都是软件工程师，职责很宽泛，你随时可以做其他团队做的事情。</p>
+<p>关于公司的这种现象，可以写另一篇单独的文章出来聊聊。但是可以确定的是，不管是国外还是国内，都有很多成功的技术公司。从来没有听人抱怨过，“我们这儿的工程师都只会一两样东西，其他啥也不会”，或者是“我们这儿的工程师啥都会一点儿，但就是不精”。</p>
+<p>所以，广撒网是没有错的，但是别做捞鱼的打算。当你自己感兴趣的时候，你自然会深入去研究，做出自己想要的东西。</p>
+<h3 id="学习规则，但不要相信它们">学习规则，但不要相信它们</h3><p>我喜欢规则，但是也很讨厌规则。</p>
+<p>在学习技术的时候经常会遇到所谓的Best Practice（最佳实践）。面对最佳实践，有三种态度：</p>
+<ul>
+<li>我代码连跑都跑不通，还管你最佳实践？</li>
+<li>最佳实践是要遵守的，能让我们的代码更加如何如何……</li>
+<li>最佳实践值得学习，要打破的时候也要适当打破</li>
+</ul>
+<p>我认为，这三种态度没有谁对谁错，但是需要被理性地看待。诚然，最佳实践是一种规则。但是，我们在面对规则的时候，不要忘记了自己做选择的权利。</p>
+<p>其实做工程、技术就是做选择，而且选择一般都很明显。不像做研究，有时候你的选择可能非常难以被发现。规则应该是让我们变得更有主见的。我们应该把它们拿出来理解、讨论、思考，让它们千变万化。到最后，要我们做选择的时候，才有资本拿出来给别人看。</p>
+<p>除了最佳实践外，我还经常想：这门语言的这个语法简直是一个败笔、这个变量起的这个名字实在是糟透了……我们不应该做一个hater，见到什么都否定。但是只要我拿得出理由，哪怕理由本身是有问题的，那我都敢去质疑。</p>
+<h3 id="关于兴趣">关于兴趣</h3><p>最后我想简短地说说兴趣。</p>
+<p>我不相信兴趣是可以培养出来的，只不过需要一点时间去发现它而已。就好像胡子总是会长的，但是个姑娘那就没辙了。如果硬要做自己不喜欢的事情，那就是让姑娘变小伙子，想起来就羞羞的。</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>十一年前，我在电脑爱好者论坛上面发布了自己的第一个软件，DocumentsManager。那是一个用C# 3.0编写的文档分类、索引软件，五脏不全，但麻雀不小。今天他还在<a href="http://bbs.cfan.com.cn/thread-688798-1-1.ht]]>
+    </summary>
+    
+      <category term="Life" scheme="http://blog.leapoahead.com/categories/life/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[First Week Intern at Yelp]]></title>
+    <link href="http://blog.leapoahead.com/2015/08/08/first-week-intern-at-yelp/"/>
+    <id>http://blog.leapoahead.com/2015/08/08/first-week-intern-at-yelp/</id>
+    <published>2015-08-09T05:03:00.000Z</published>
+    <updated>2015-08-27T03:13:57.000Z</updated>
+    <content type="html"><![CDATA[<p>This week is my first week @ Yelp, and I ❤ed it!</p>
+<a id="more"></a>
+<img src="/2015/08/08/first-week-intern-at-yelp/yelp-logo.png" alt="yelp-logo.png" title="">
+<p>[FIREWORKS !!!]</p>
+<p>[SCREAMING !!!]</p>
+<p>It was my first time being here in the US. I am here for internship @ Yelp as a Software Engineer Intern for six months.</p>
+<p>I was well-guided and firmly welcomed during the first week. The overall on-boarding process was quite mature.</p>
+<p>After exploring the Yelp HQ building with Krista — our Intern Program Manager and the New Engineer Orientation, I was introduced to my team, and also my mentor Andrew.</p>
+<p>My hands got dirty and busy at the very first day. I mean, really dirty. I even started writing python code on the first day. Besides that, Engineering Wiki is here to help me to go through the processes.</p>
+<p>Although some of the engineering processes are heavy, many automations are here to save your time. For example, there are many well-defined git hooks. My favourite part is marley — a bot build upon HUBOT on Yelp’s IRC channel. Marley knows everythings — traffic split, who is pushing code, etc. And he/she also does many funny things like sending your LOVE to someone else.</p>
+<p>Yelp seems like data-driven now, which I found really interesting. Data always makes me think, although I am not a Data Science expert.</p>
+<p>In a word, Yelp has a fantastic engineering culture. You are always welcomed to bring up your new ideas and just make it happen with your team. Which is highly appreciated.</p>
+<p>Tech stuff aside, Yelp HQ is a fantastic place for working. I actually would like to take it as living and playing funny stuff instead of working. They have in-house cafe which makes great cafe, and also a pingpong table here for people to play with. You get on-demand beverages and snacks on each floor, which is a privilege I am using carefully (oh, calories again!). I hope I can achieve a great work-life balance here</p>
+<p>My favorite part is the social gene of this company. @ Yelp, People chat and exchange ideas at lunch, talking about many interesting things. To be honest, I just didn’t get many things they were talking about at the beginning, but I think I am starting to catch up. And even though, I can still get many great ideas from other, even it was just five days!</p>
+<p>Hopefully everything will go pretty well and enjoyable in the coming weeks. Great thanks to my team and all my friends here @ Yelp.</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>This week is my first week @ Yelp, and I ❤ed it!</p>]]>
+    
+    </summary>
+    
+      <category term="Life" scheme="http://blog.leapoahead.com/categories/life/"/>
     
   </entry>
   
