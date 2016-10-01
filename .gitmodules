@@ -1,3 +1,6 @@
 [submodule "themes/tranquilpeak-hexo-theme"]
 	path = themes/tranquilpeak-hexo-theme
 	url = git@github.com:tjwudi/tranquilpeak-hexo-theme-fork.git
+[submodule "themes/hexium"]
+	path = themes/hexium
+	url = git@github.com:tjwudi/hexium.git
