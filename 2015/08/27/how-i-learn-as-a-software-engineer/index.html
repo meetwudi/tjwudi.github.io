@@ -5,8 +5,8 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="generator" content="回田园 - 子回的私人创作">
-    <title>我是如何对待学习编程这件事的 - 回田园 - 子回的私人创作</title>
+    <meta name="generator" content="回田园">
+    <title>我是如何对待学习编程这件事的 - 回田园</title>
     <meta name="author" content="子回">
     
     
@@ -17,7 +17,7 @@
 <meta property="og:type" content="blog">
 <meta property="og:title" content="我是如何对待学习编程这件事的">
 <meta property="og:url" content="http://blog.leapoahead.com/2015/08/27/how-i-learn-as-a-software-engineer/index.html">
-<meta property="og:site_name" content="回田园 - 子回的私人创作">
+<meta property="og:site_name" content="回田园">
 <meta property="og:description" content="十一年前，我在电脑爱好者论坛上面发布了自己的第一个软件，DocumentsManager。那是一个用C# 3.0编写的文档分类、索引软件，五脏不全，但麻雀不小。今天他还在精华索引里面。不只是他，精华帖中Leap.ahead和ASUSTek发布的帖子都是我发的，总共有22个。
 对于我而言，不仅创造是一种乐趣，学习如何创造同样也是一种很大的乐趣。在我的学生生涯中，在不同的时段，我学习创造的方式也不同。">
 <meta property="og:updated_time" content="2015-08-28T04:14:38.000Z">
@@ -29,7 +29,7 @@
     
     
     
-        <meta property="og:image" content="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=640"/>
+        <meta property="og:image" content="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=640"/>
     
     
         <meta property="og:image" content="/2015/08/27/how-i-learn-as-a-software-engineer/engineering.jpeg"/>
@@ -39,39 +39,36 @@
     
     
     <!--STYLES-->
-    <link rel="stylesheet" href="/assets/css/font-awesome.css" type="text/css">
-    <link rel="stylesheet" href="/assets/css/jquery.fancybox.css" type="text/css">
-    <link rel="stylesheet" href="/assets/css/jquery.fancybox-thumbs.css" type="text/css">
-    <link rel="stylesheet" href="/assets/css/tranquilpeak.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/style.min.css">
     <!--STYLES END-->
     
     <script type="text/javascript">
-        var _gaq = _gaq || [];
-        _gaq.push(['_setAccount', 'UA-50843289-7']);
-        _gaq.push(['_trackPageview']);
-        (function() {
-            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-        })();
+        if (location.host.indexOf('leapoahead.com') > 0) {
+            // Only send online traffic
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-50843289-7']);
+            _gaq.push(['_trackPageview']);
+            (function() {
+                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
+        }
     </script>
+
 
 </head>
 
     <body>
         <div id="blog">
-            <header id="header" data-behavior="2">
+            <header id="header" data-behavior="1">
     <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
     <h1 class="header-title">
-        <a class="header-title-link" href="/ ">回田园 - 子回的私人创作</a>
+        <a class="header-title-link" href="/ ">回田园</a>
     </h1>
-    
-        <a class="header-right-picture" href="/#about">
-            <img class="header-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90"/>
-        </a>
-    
 </header>
-            <nav id="sidebar" data-behavior="2">
+
+            <nav id="sidebar" data-behavior="1">
     
         <ul class="sidebar-buttons">
         
@@ -83,7 +80,7 @@
                     >
                 
                     <i class="sidebar-button-icon fa fa-lg fa-home"></i>
-                    <span class="sidebar-button-desc">Home</span>
+                    <span class="sidebar-button-desc">主页</span>
                 </a>
         </li>
         
@@ -95,7 +92,7 @@
                     >
                 
                     <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
-                    <span class="sidebar-button-desc">Categories</span>
+                    <span class="sidebar-button-desc">分类</span>
                 </a>
         </li>
         
@@ -135,7 +132,7 @@
                     <a  class="sidebar-button-link " href="https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A" target="_blank">
                 
                     <i class="sidebar-button-icon fa fa-lg fa-linkedin"></i>
-                    <span class="sidebar-button-desc">Linked In</span>
+                    <span class="sidebar-button-desc">LinkedIn</span>
                 </a>
         </li>
         
@@ -144,7 +141,7 @@
                     <a  class="sidebar-button-link " href="mailto:webmaster@leapoahead.com" target="_blank">
                 
                     <i class="sidebar-button-icon fa fa-lg fa-envelope-o"></i>
-                    <span class="sidebar-button-desc">Mail</span>
+                    <span class="sidebar-button-desc">Email</span>
                 </a>
         </li>
         
@@ -169,7 +166,7 @@
 </nav>
 
             
-            <div id="main" data-behavior="2"
+            <div id="main" data-behavior="1"
                  class="
                         hasCoverMetaIn
                         ">
@@ -203,16 +200,16 @@
         <div class="main-content-wrap">
             <p>十一年前，我在电脑爱好者论坛上面发布了自己的第一个软件，DocumentsManager。那是一个用C# 3.0编写的文档分类、索引软件，五脏不全，但麻雀不小。今天他还在<a href="http://bbs.cfan.com.cn/thread-688798-1-1.html" target="_blank" rel="external">精华索引</a>里面。不只是他，精华帖中Leap.ahead和ASUSTek发布的帖子都是我发的，总共有22个。</p>
 <p>对于我而言，不仅创造是一种乐趣，学习如何创造同样也是一种很大的乐趣。在我的学生生涯中，在不同的时段，我学习创造的方式也不同。这是一个需要时间来演进的过程，所以时间一长，也需要总结一下。今天难得有了总结的冲动，便简略地说说我的一些心得。</p>
-<h3 id="深入才能浅出">深入才能浅出</h3><p>学计算机的人都研究抽象。有句话是这样说的，所有的计算机科学问题都可以用抽象来解决，除了过多的抽象。</p>
+<h3 id="深入才能浅出"><a href="#深入才能浅出" class="headerlink" title="深入才能浅出"></a>深入才能浅出</h3><p>学计算机的人都研究抽象。有句话是这样说的，所有的计算机科学问题都可以用抽象来解决，除了过多的抽象。</p>
 <p>由于接触了太多的“抽象”，我曾经有一种心态，那就是要学就学顶端的设计，要做架构师。我还问过我的一个大学学长，“学什么课才能成为架构师”？在那时的我心目中，架构师就是画图的，然后程序员实现就是了。</p>
 <p>但是在有了工作经历后，我发现实际上如果对底层没有很深入的了解，是根本没有办法对顶层设计做出好的判断的。可能我只是知道一些名词，诸如cache、CDN、负载均衡等。但是真的要到用到这些东西的时候，其实是只能用到最粗浅的那一层。连螺丝是怎么拧的都不知道的人，别人怎么放心让你去建桥呢？</p>
 <p>这就是所谓的“深入浅出”。深入到每一分每一毫，是为“深入”。然后再跳出来，纵观全局，是为“浅出”。</p>
-<h3 id="广撒网，但别做捞鱼的打算">广撒网，但别做捞鱼的打算</h3><p>既然要深入浅出，那么这个深入真的是要把一个具体的技术钻研得很深吗？这也是一直以来很受争议的地方：到底是学一个领域学得精通好，还是学很多领域好？</p>
+<h3 id="广撒网，但别做捞鱼的打算"><a href="#广撒网，但别做捞鱼的打算" class="headerlink" title="广撒网，但别做捞鱼的打算"></a>广撒网，但别做捞鱼的打算</h3><p>既然要深入浅出，那么这个深入真的是要把一个具体的技术钻研得很深吗？这也是一直以来很受争议的地方：到底是学一个领域学得精通好，还是学很多领域好？</p>
 <p>我的答案是，能真的学得精的人必然学得广，能真的学得广的人必然能学得精，而且能学得很快。仔细想想，我们的时间真的有少得窘迫到一定要在广和精之间二选一吗？如果纠结于这个问题，那么一定是放错了重点。重点不在于选择广或是精，而是如何让自己变得更会学习。</p>
 <p>我在国内外的大公司实习，感觉到的明显区别就是，国内公司“专家”居多，国外公司“工程师”居多。国内把工程师的职责分得非常清楚，哪怕是一个五六个人的小团队，也得有个明确的后端、前端、算法工程师云云。而国外的定义基本上都是软件工程师，职责很宽泛，你随时可以做其他团队做的事情。</p>
 <p>关于公司的这种现象，可以写另一篇单独的文章出来聊聊。但是可以确定的是，不管是国外还是国内，都有很多成功的技术公司。从来没有听人抱怨过，“我们这儿的工程师都只会一两样东西，其他啥也不会”，或者是“我们这儿的工程师啥都会一点儿，但就是不精”。</p>
 <p>所以，广撒网是没有错的，但是别做捞鱼的打算。当你自己感兴趣的时候，你自然会深入去研究，做出自己想要的东西。</p>
-<h3 id="学习规则，但不要相信它们">学习规则，但不要相信它们</h3><p>我喜欢规则，但是也很讨厌规则。</p>
+<h3 id="学习规则，但不要相信它们"><a href="#学习规则，但不要相信它们" class="headerlink" title="学习规则，但不要相信它们"></a>学习规则，但不要相信它们</h3><p>我喜欢规则，但是也很讨厌规则。</p>
 <p>在学习技术的时候经常会遇到所谓的Best Practice（最佳实践）。面对最佳实践，有三种态度：</p>
 <ul>
 <li>我代码连跑都跑不通，还管你最佳实践？</li>
@@ -222,7 +219,7 @@
 <p>我认为，这三种态度没有谁对谁错，但是需要被理性地看待。诚然，最佳实践是一种规则。但是，我们在面对规则的时候，不要忘记了自己做选择的权利。</p>
 <p>其实做工程、技术就是做选择，而且选择一般都很明显。不像做研究，有时候你的选择可能非常难以被发现。规则应该是让我们变得更有主见的。我们应该把它们拿出来理解、讨论、思考，让它们千变万化。到最后，要我们做选择的时候，才有资本拿出来给别人看。</p>
 <p>除了最佳实践外，我还经常想：这门语言的这个语法简直是一个败笔、这个变量起的这个名字实在是糟透了……我们不应该做一个hater，见到什么都否定。但是只要我拿得出理由，哪怕理由本身是有问题的，那我都敢去质疑。</p>
-<h3 id="关于兴趣">关于兴趣</h3><p>最后我想简短地说说兴趣。</p>
+<h3 id="关于兴趣"><a href="#关于兴趣" class="headerlink" title="关于兴趣"></a>关于兴趣</h3><p>最后我想简短地说说兴趣。</p>
 <p>我不相信兴趣是可以培养出来的，只不过需要一点时间去发现它而已。就好像胡子总是会长的，但是个姑娘那就没辙了。如果硬要做自己不喜欢的事情，那就是让姑娘变小伙子，想起来就羞羞的。</p>
 
             
@@ -311,7 +308,7 @@
 
             </div>
             
-                <div id="bottom-bar" class="post-bottom-bar" data-behavior="2">
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="1">
                     <div class="post-actions-wrap">
     <ul class="post-actions post-action-share">
         <li class="post-action hide-lg hide-md hide-sm">
@@ -346,7 +343,7 @@
 
 
                 </div>
-                <div id="share-options-bar" class="share-options-bar" data-behavior="2">
+                <div id="share-options-bar" class="share-options-bar" data-behavior="1">
     <ul class="share-options">
         <li class="share-option">
             <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/08/27/how-i-learn-as-a-software-engineer/">
@@ -368,44 +365,10 @@
 <div id="share-options-mask" class="share-options-mask"></div>
             
         </div>
-        <div id="about">
-    <div id="about-card">
-        <div id="about-btn-close">
-            <i class="fa fa-remove"></i>
-        </div>
-        
-            <img id="about-card-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=110"/>
-        
-            <h4 id="about-card-name">子回</h4>
-        
-            <h5 id="about-card-bio"><p>Life is all about A/B testing</p>
-</h5>
-        
-        
-            <h5 id="about-card-job">
-                <i class="fa fa-briefcase"></i>
-                <br/>
-                <p>Software Engineer Intern at Yelp</p>
-
-            </h5>
-        
-        
-            <h5 id="about-card-location">
-                <i class="fa fa-map-marker"></i>
-                <br/>
-                San Francisco, CA
-            </h5>
-        
-    </div>
-</div>
-
         <div id="cover" style="background-image:url('http://res.cloudinary.com/tranquilpeak-hexo-theme/image/upload/v1438975482/v1.3.0-cover.jpg');"></div>
     </body>
     <!--SCRIPTS-->
-<script src="/assets/js/jquery.js" type="text/javascript"></script>
-<script src="/assets/js/jquery.fancybox.js" type="text/javascript"></script>
-<script src="/assets/js/jquery.fancybox-thumbs.js" type="text/javascript"></script>
-<script src="/assets/js/tranquilpeak.js" type="text/javascript"></script>
+<script src="/assets/js/script.min.js"></script>
 <!--SCRIPTS END-->
 
     <script type="text/javascript">

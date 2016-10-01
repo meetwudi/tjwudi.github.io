@@ -5,8 +5,8 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="generator" content="回田园 - 子回的私人创作">
-    <title>Galley - 为基于Docker架构本地开发与测试提速 - 回田园 - 子回的私人创作</title>
+    <meta name="generator" content="回田园">
+    <title>Galley - 为基于Docker架构本地开发与测试提速 - 回田园</title>
     <meta name="author" content="子回">
     
     
@@ -17,7 +17,7 @@
 <meta property="og:type" content="blog">
 <meta property="og:title" content="Galley - 为基于Docker架构本地开发与测试提速">
 <meta property="og:url" content="http://blog.leapoahead.com/2015/10/23/intro-to-galley/index.html">
-<meta property="og:site_name" content="回田园 - 子回的私人创作">
+<meta property="og:site_name" content="回田园">
 <meta property="og:description" content="（本文投稿于InfoQ，无论其是否刊登，其他第三方转载请务必注明出处）
 现如今，Docker已经成为了很多公司部署应用、服务的首选方案。依靠容器技术，我们能在不同的体系结构之上轻松部署几乎任何种类的应用。在洛杉矶时间2015年10月21日于旧金山展开的Twitter Flight开发者大会上，来自Fabric的工程师Joan Smith再次谈到了这一点。">
 <meta property="og:image" content="http://blog.leapoahead.com/2015/10/23/intro-to-galley/1.png">
@@ -27,50 +27,48 @@
 <meta name="twitter:title" content="Galley - 为基于Docker架构本地开发与测试提速">
 <meta name="twitter:description" content="（本文投稿于InfoQ，无论其是否刊登，其他第三方转载请务必注明出处）
 现如今，Docker已经成为了很多公司部署应用、服务的首选方案。依靠容器技术，我们能在不同的体系结构之上轻松部署几乎任何种类的应用。在洛杉矶时间2015年10月21日于旧金山展开的Twitter Flight开发者大会上，来自Fabric的工程师Joan Smith再次谈到了这一点。">
+<meta name="twitter:image" content="http://blog.leapoahead.com/2015/10/23/intro-to-galley/1.png">
 <meta name="twitter:creator" content="@leapoahead">
     
     
     
-        <meta property="og:image" content="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=640"/>
+        <meta property="og:image" content="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=640"/>
     
     
     
     
     
     <!--STYLES-->
-    <link rel="stylesheet" href="/assets/css/font-awesome.css" type="text/css">
-    <link rel="stylesheet" href="/assets/css/jquery.fancybox.css" type="text/css">
-    <link rel="stylesheet" href="/assets/css/jquery.fancybox-thumbs.css" type="text/css">
-    <link rel="stylesheet" href="/assets/css/tranquilpeak.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/style.min.css">
     <!--STYLES END-->
     
     <script type="text/javascript">
-        var _gaq = _gaq || [];
-        _gaq.push(['_setAccount', 'UA-50843289-7']);
-        _gaq.push(['_trackPageview']);
-        (function() {
-            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-        })();
+        if (location.host.indexOf('leapoahead.com') > 0) {
+            // Only send online traffic
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-50843289-7']);
+            _gaq.push(['_trackPageview']);
+            (function() {
+                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
+        }
     </script>
+
 
 </head>
 
     <body>
         <div id="blog">
-            <header id="header" data-behavior="2">
+            <header id="header" data-behavior="1">
     <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
     <h1 class="header-title">
-        <a class="header-title-link" href="/ ">回田园 - 子回的私人创作</a>
+        <a class="header-title-link" href="/ ">回田园</a>
     </h1>
-    
-        <a class="header-right-picture" href="/#about">
-            <img class="header-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90"/>
-        </a>
-    
 </header>
-            <nav id="sidebar" data-behavior="2">
+
+            <nav id="sidebar" data-behavior="1">
     
         <ul class="sidebar-buttons">
         
@@ -82,7 +80,7 @@
                     >
                 
                     <i class="sidebar-button-icon fa fa-lg fa-home"></i>
-                    <span class="sidebar-button-desc">Home</span>
+                    <span class="sidebar-button-desc">主页</span>
                 </a>
         </li>
         
@@ -94,7 +92,7 @@
                     >
                 
                     <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
-                    <span class="sidebar-button-desc">Categories</span>
+                    <span class="sidebar-button-desc">分类</span>
                 </a>
         </li>
         
@@ -134,7 +132,7 @@
                     <a  class="sidebar-button-link " href="https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A" target="_blank">
                 
                     <i class="sidebar-button-icon fa fa-lg fa-linkedin"></i>
-                    <span class="sidebar-button-desc">Linked In</span>
+                    <span class="sidebar-button-desc">LinkedIn</span>
                 </a>
         </li>
         
@@ -143,7 +141,7 @@
                     <a  class="sidebar-button-link " href="mailto:webmaster@leapoahead.com" target="_blank">
                 
                     <i class="sidebar-button-icon fa fa-lg fa-envelope-o"></i>
-                    <span class="sidebar-button-desc">Mail</span>
+                    <span class="sidebar-button-desc">Email</span>
                 </a>
         </li>
         
@@ -168,7 +166,7 @@
 </nav>
 
             
-            <div id="main" data-behavior="2"
+            <div id="main" data-behavior="1"
                  class="
                         hasCoverMetaIn
                         ">
@@ -217,7 +215,7 @@
 <p>她还风趣地提到，Vagrant的意思漂泊的，Chef的意思是厨师，而Galley的意思就是漂泊的厨师（原意是船上的厨房）。</p>
 <p>Galley最大的优点就是能让工程师在本地基于自己的代码构建镜像并运行，这些本地构建的代码是他们当前在完成的特性所关心的部分；而对于他们不关心的部分，例如上面提到的crash service，Galley则自动改用Docker Hub（或者私有的Hub）中已经构建好了的镜像来直接运行。</p>
 <p>Galley采用一个集中的Galleyfile描述整个应用的架构。Galleyfile是一个JavaScript文件，它的module.exports对象即为你所有服务容器的描述。例如下面就是一个合法的Galleyfile的例子。</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  CONFIG: &#123;</span><br><span class="line">    registry: <span class="string">'docker-registry.your-biz.com'</span></span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  <span class="string">'config-files'</span>: &#123;&#125;,</span><br><span class="line">  <span class="string">'beanstalk'</span>: &#123;&#125;,</span><br><span class="line"></span><br><span class="line">  <span class="string">'www-mysql'</span>: &#123;</span><br><span class="line">    image: <span class="string">'mysql'</span>,</span><br><span class="line">    stateful: <span class="literal">true</span></span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  <span class="string">'www'</span>: &#123;</span><br><span class="line">    env: &#123;</span><br><span class="line">      RAILS_ENV: &#123;</span><br><span class="line">       <span class="string">'dev'</span>: <span class="string">'development'</span>,</span><br><span class="line">       <span class="string">'test'</span>: <span class="string">'test'</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    links: &#123;</span><br><span class="line">      <span class="string">'dev'</span>: [<span class="string">'www-mysql:mysql'</span>, <span class="string">'beanstalk'</span>],</span><br><span class="line">      <span class="string">'test'</span>: [<span class="string">'www-mysql'</span>]</span><br><span class="line">    &#125;,</span><br><span class="line">    ports: &#123;</span><br><span class="line">      <span class="string">'dev'</span>: [<span class="string">'3000:3000'</span>]</span><br><span class="line">    &#125;,</span><br><span class="line">    source: <span class="string">'/code/www'</span>,</span><br><span class="line">    volumesFrom: [<span class="string">'config-files'</span>]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">module</span>.exports = &#123;</div><div class="line">  <span class="attr">CONFIG</span>: &#123;</div><div class="line">    <span class="attr">registry</span>: <span class="string">'docker-registry.your-biz.com'</span></div><div class="line">  &#125;,</div><div class="line"></div><div class="line">  <span class="string">'config-files'</span>: &#123;&#125;,</div><div class="line">  <span class="string">'beanstalk'</span>: &#123;&#125;,</div><div class="line"></div><div class="line">  <span class="string">'www-mysql'</span>: &#123;</div><div class="line">    <span class="attr">image</span>: <span class="string">'mysql'</span>,</div><div class="line">    <span class="attr">stateful</span>: <span class="literal">true</span></div><div class="line">  &#125;,</div><div class="line"></div><div class="line">  <span class="string">'www'</span>: &#123;</div><div class="line">    <span class="attr">env</span>: &#123;</div><div class="line">      <span class="attr">RAILS_ENV</span>: &#123;</div><div class="line">       <span class="string">'dev'</span>: <span class="string">'development'</span>,</div><div class="line">       <span class="string">'test'</span>: <span class="string">'test'</span></div><div class="line">      &#125;</div><div class="line">    &#125;,</div><div class="line">    <span class="attr">links</span>: &#123;</div><div class="line">      <span class="string">'dev'</span>: [<span class="string">'www-mysql:mysql'</span>, <span class="string">'beanstalk'</span>],</div><div class="line">      <span class="string">'test'</span>: [<span class="string">'www-mysql'</span>]</div><div class="line">    &#125;,</div><div class="line">    <span class="attr">ports</span>: &#123;</div><div class="line">      <span class="string">'dev'</span>: [<span class="string">'3000:3000'</span>]</div><div class="line">    &#125;,</div><div class="line">    <span class="attr">source</span>: <span class="string">'/code/www'</span>,</div><div class="line">    <span class="attr">volumesFrom</span>: [<span class="string">'config-files'</span>]</div><div class="line">  &#125;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
 <p>在上面，我们定义了所有容器来源的Registry。一般情况下，这会是你自己公司内部的私有Registry。另外，我们还定义了四个容器config-files、beanstalk、www-mysql和www。这四个容器都是在上面指定的Registry可以下载到的。</p>
 <p>假设www容器是我们正在开发的服务，那么我们一般会用”galley run www.dev –rsync -s .” 命令启动www容器，并且是在dev环境。在Galley里有两个环境，一个是dev，一个是test。这时候Galley会为我们做几件事情：</p>
 <p>将source属性指定的文件夹（在容器内）和当前galley run指定的目录同步。Galley的支持使用rsync将源码拷贝到Docker所在的机器中。这对于在Mac下开发的人们来说是个很好的特性，因为Docker的volume支持默认采用VirtualBox的Shared Folder功能，而这一功能的效率很低。<br>links属性中的dev属性指明了在dev环境下www应用的依赖项。Galley会为我们将这些依赖的容器全部pull到本地并且启动，并自动和www链接在一起。在这里，Galley就会pull并link两个容器，一个是www-mysql:mysql，一个是beanstalk。对于在volumesFrom（对应Docker的volumes-from）指定的容器，Galley也会自动pull并部署。<br>应用环境变量。在这里，www是一个小型Rails应用，于是我们可以应用一些Rails应用的环境变量。<br>进行端口映射</p>
@@ -225,7 +223,7 @@
 <p>我们可以注意到，在第二点中，Galley只会帮我们获取我们当前开发所关心的服务，其他不相关的服务，Galley不会获取并部署它们。</p>
 <p>默认情况下，galley run每次都会重新创建我们当前正在开发的应用的容器。对于依赖项，在满足一定条件的时候也会重新创建（见文档）。我们注意到www-mysql容器是stateful（有状态的）的，因为它是一个数据库容器。对于stateful的容器，Galley不会自动重新创建它们，保证开发用的数据不会因为重新创建容器而丢失。</p>
 <p>Galley另外一点很有趣的地方是可以创建附加项（Addons）。所谓附加项就是允许开发者通过命令行来手动指定一些容器的行为。这样说很抽象，我们来看一个例子。下面是一段Addons的配置。</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  …</span><br><span class="line">  ADDONS: &#123;</span><br><span class="line">    <span class="string">'beta'</span>: &#123;</span><br><span class="line">      <span class="string">'www'</span>: &#123;</span><br><span class="line">        env: &#123;</span><br><span class="line">          <span class="string">'USE_BETA_SERVICE'</span>: <span class="string">'1'</span></span><br><span class="line">        &#125;,</span><br><span class="line">        links: [<span class="string">'beta'</span>, <span class="string">'uploader'</span>]</span><br><span class="line">      &#125;,</span><br><span class="line">      <span class="string">'uploader'</span>: &#123;</span><br><span class="line">        env: &#123;</span><br><span class="line">          <span class="string">'USE_BETA_SERVICE'</span>: <span class="string">'1'</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  …</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">module</span>.exports = &#123;</div><div class="line">  …</div><div class="line">  ADDONS: &#123;</div><div class="line">    <span class="string">'beta'</span>: &#123;</div><div class="line">      <span class="string">'www'</span>: &#123;</div><div class="line">        <span class="attr">env</span>: &#123;</div><div class="line">          <span class="string">'USE_BETA_SERVICE'</span>: <span class="string">'1'</span></div><div class="line">        &#125;,</div><div class="line">        <span class="attr">links</span>: [<span class="string">'beta'</span>, <span class="string">'uploader'</span>]</div><div class="line">      &#125;,</div><div class="line">      <span class="string">'uploader'</span>: &#123;</div><div class="line">        <span class="attr">env</span>: &#123;</div><div class="line">          <span class="string">'USE_BETA_SERVICE'</span>: <span class="string">'1'</span></div><div class="line">        &#125;</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">  …</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
 <p>在用galley run运行的时候，加入-a beta参数，那么在ADDONS.beta对象里面的所有配置也会被应用。例如，在这里www服务就被应用了额外的环境变量USE_BETA_SERVICE，而且还应用了额外的link containers。</p>
 <p>聪明的读者可以猜猜，USE_BETA_SERVICE这个环境变量的作用是什么？启动Mock模式！在前面我们提到，很多时候我们可以使用Mock的方式来模拟一个正常运作的服务（一般是依赖项），从而我们最多只需要关注直接依赖项，而不需要关注依赖项的依赖项。当然了，从笔者本人的角度来看，Mock这种方法并不是银弹。即便如此，在一些情景下它也能缩小我们所要关心的范围。</p>
 <p>基于Vagrant开发的又一问题是，Docker的Vagrant配置是Hostonly网络，也就是说你没有办法直接从除了你自己本地机器外其他的地方很容易地连接到你的Docker容器。对此，Galley的进程还启动了TCP Proxy，将发往本地机器端口的流量代理到Docker的Vagrant虚拟机，这样即便你是在调试手机应用，也可以轻松、直接地访问到自己的机器了。</p>
@@ -319,7 +317,7 @@
 
             </div>
             
-                <div id="bottom-bar" class="post-bottom-bar" data-behavior="2">
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="1">
                     <div class="post-actions-wrap">
     <ul class="post-actions post-action-share">
         <li class="post-action hide-lg hide-md hide-sm">
@@ -355,7 +353,7 @@
 
 
                 </div>
-                <div id="share-options-bar" class="share-options-bar" data-behavior="2">
+                <div id="share-options-bar" class="share-options-bar" data-behavior="1">
     <ul class="share-options">
         <li class="share-option">
             <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/10/23/intro-to-galley/">
@@ -377,44 +375,10 @@
 <div id="share-options-mask" class="share-options-mask"></div>
             
         </div>
-        <div id="about">
-    <div id="about-card">
-        <div id="about-btn-close">
-            <i class="fa fa-remove"></i>
-        </div>
-        
-            <img id="about-card-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=110"/>
-        
-            <h4 id="about-card-name">子回</h4>
-        
-            <h5 id="about-card-bio"><p>Life is all about A/B testing</p>
-</h5>
-        
-        
-            <h5 id="about-card-job">
-                <i class="fa fa-briefcase"></i>
-                <br/>
-                <p>Software Engineer Intern at Yelp</p>
-
-            </h5>
-        
-        
-            <h5 id="about-card-location">
-                <i class="fa fa-map-marker"></i>
-                <br/>
-                San Francisco, CA
-            </h5>
-        
-    </div>
-</div>
-
         <div id="cover" style="background-image:url('http://res.cloudinary.com/tranquilpeak-hexo-theme/image/upload/v1438975482/v1.3.0-cover.jpg');"></div>
     </body>
     <!--SCRIPTS-->
-<script src="/assets/js/jquery.js" type="text/javascript"></script>
-<script src="/assets/js/jquery.fancybox.js" type="text/javascript"></script>
-<script src="/assets/js/jquery.fancybox-thumbs.js" type="text/javascript"></script>
-<script src="/assets/js/tranquilpeak.js" type="text/javascript"></script>
+<script src="/assets/js/script.min.js"></script>
 <!--SCRIPTS END-->
 
     <script type="text/javascript">

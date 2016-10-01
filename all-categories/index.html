@@ -5,8 +5,8 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="generator" content="回田园 - 子回的私人创作">
-    <title>all-categories - 回田园 - 子回的私人创作</title>
+    <meta name="generator" content="回田园">
+    <title>all-categories - 回田园</title>
     <meta name="author" content="子回">
     
     
@@ -16,7 +16,7 @@
 <meta property="og:type" content="blog">
 <meta property="og:title" content="all-categories">
 <meta property="og:url" content="http://blog.leapoahead.com/all-categories/index.html">
-<meta property="og:site_name" content="回田园 - 子回的私人创作">
+<meta property="og:site_name" content="回田园">
 <meta property="og:description" content="这里写满了有关我和编程、设计和产品的所有故事">
 <meta property="og:updated_time" content="2015-08-27T03:19:39.000Z">
 <meta name="twitter:card" content="summary">
@@ -26,46 +26,43 @@
     
     
     
-        <meta property="og:image" content="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=640"/>
+        <meta property="og:image" content="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=640"/>
     
     
     
     
     
     <!--STYLES-->
-    <link rel="stylesheet" href="/assets/css/font-awesome.css" type="text/css">
-    <link rel="stylesheet" href="/assets/css/jquery.fancybox.css" type="text/css">
-    <link rel="stylesheet" href="/assets/css/jquery.fancybox-thumbs.css" type="text/css">
-    <link rel="stylesheet" href="/assets/css/tranquilpeak.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/style.min.css">
     <!--STYLES END-->
     
     <script type="text/javascript">
-        var _gaq = _gaq || [];
-        _gaq.push(['_setAccount', 'UA-50843289-7']);
-        _gaq.push(['_trackPageview']);
-        (function() {
-            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-        })();
+        if (location.host.indexOf('leapoahead.com') > 0) {
+            // Only send online traffic
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-50843289-7']);
+            _gaq.push(['_trackPageview']);
+            (function() {
+                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
+        }
     </script>
+
 
 </head>
 
     <body>
         <div id="blog">
-            <header id="header" data-behavior="2">
+            <header id="header" data-behavior="1">
     <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
     <h1 class="header-title">
-        <a class="header-title-link" href="/ ">回田园 - 子回的私人创作</a>
+        <a class="header-title-link" href="/ ">回田园</a>
     </h1>
-    
-        <a class="header-right-picture" href="/#about">
-            <img class="header-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90"/>
-        </a>
-    
 </header>
-            <nav id="sidebar" data-behavior="2">
+
+            <nav id="sidebar" data-behavior="1">
     
         <ul class="sidebar-buttons">
         
@@ -77,7 +74,7 @@
                     >
                 
                     <i class="sidebar-button-icon fa fa-lg fa-home"></i>
-                    <span class="sidebar-button-desc">Home</span>
+                    <span class="sidebar-button-desc">主页</span>
                 </a>
         </li>
         
@@ -89,7 +86,7 @@
                     >
                 
                     <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
-                    <span class="sidebar-button-desc">Categories</span>
+                    <span class="sidebar-button-desc">分类</span>
                 </a>
         </li>
         
@@ -129,7 +126,7 @@
                     <a  class="sidebar-button-link " href="https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A" target="_blank">
                 
                     <i class="sidebar-button-icon fa fa-lg fa-linkedin"></i>
-                    <span class="sidebar-button-desc">Linked In</span>
+                    <span class="sidebar-button-desc">LinkedIn</span>
                 </a>
         </li>
         
@@ -138,7 +135,7 @@
                     <a  class="sidebar-button-link " href="mailto:webmaster@leapoahead.com" target="_blank">
                 
                     <i class="sidebar-button-icon fa fa-lg fa-envelope-o"></i>
-                    <span class="sidebar-button-desc">Mail</span>
+                    <span class="sidebar-button-desc">Email</span>
                 </a>
         </li>
         
@@ -163,7 +160,7 @@
 </nav>
 
             
-            <div id="main" data-behavior="2"
+            <div id="main" data-behavior="1"
                  class="
                         hasCoverMetaIn
                         ">
@@ -209,13 +206,13 @@
                     <ul class="archive-posts">
                         
                             <li class="archive-post">
-                                <a class="archive-post-title" href="/2015/10/23/intro-to-galley/">Galley - 为基于Docker架构本地开发与测试提速</a>
-                                <span class="archive-post-date"> - 10月 23, 2015</span>
+                                <a class="archive-post-title" href="/2015/10/07/docker-lessons-learned-md/">我从开源项目中学习到的Docker经验</a>
+                                <span class="archive-post-date"> - 10月 07, 2015</span>
                             </li>
                         
                             <li class="archive-post">
-                                <a class="archive-post-title" href="/2015/10/07/docker-lessons-learned-md/">我从开源项目中学习到的Docker经验</a>
-                                <span class="archive-post-date"> - 10月 07, 2015</span>
+                                <a class="archive-post-title" href="/2015/10/23/intro-to-galley/">Galley - 为基于Docker架构本地开发与测试提速</a>
+                                <span class="archive-post-date"> - 10月 23, 2015</span>
                             </li>
                         
                         
@@ -231,43 +228,8 @@
                     <ul class="archive-posts">
                         
                             <li class="archive-post">
-                                <a class="archive-post-title" href="/2016/03/02/introduction-to-reactive-programming/">指路Reactive Programming</a>
-                                <span class="archive-post-date"> - 3月 02, 2016</span>
-                            </li>
-                        
-                            <li class="archive-post">
-                                <a class="archive-post-title" href="/2016/01/03/iterative-recursive-process/">迭代、递归与Tail Call Optimization</a>
-                                <span class="archive-post-date"> - 1月 03, 2016</span>
-                            </li>
-                        
-                            <li class="archive-post">
-                                <a class="archive-post-title" href="/2015/09/19/function-as-first-class-citizen/">“函数是一等公民”背后的含义</a>
-                                <span class="archive-post-date"> - 9月 19, 2015</span>
-                            </li>
-                        
-                            <li class="archive-post">
-                                <a class="archive-post-title" href="/2015/09/15/js-closure/">JavaScript闭包的底层运行机制</a>
-                                <span class="archive-post-date"> - 9月 15, 2015</span>
-                            </li>
-                        
-                            <li class="archive-post">
-                                <a class="archive-post-title" href="/2015/09/09/unittesting-express-middlewares/">Workshop - 对Express中间件进行单元测试</a>
-                                <span class="archive-post-date"> - 9月 09, 2015</span>
-                            </li>
-                        
-                            <li class="archive-post">
-                                <a class="archive-post-title" href="/2015/09/07/user-authentication-with-jwt/">八幅漫画理解使用JSON Web Token设计单点登录系统</a>
-                                <span class="archive-post-date"> - 9月 07, 2015</span>
-                            </li>
-                        
-                            <li class="archive-post">
-                                <a class="archive-post-title" href="/2015/09/06/understanding-jwt/">JSON Web Token - 在Web应用间安全地传递信息</a>
-                                <span class="archive-post-date"> - 9月 06, 2015</span>
-                            </li>
-                        
-                            <li class="archive-post">
-                                <a class="archive-post-title" href="/2015/09/04/managing-env-constants/">以Node应用为例谈如何管理Web应用的环境常量</a>
-                                <span class="archive-post-date"> - 9月 04, 2015</span>
+                                <a class="archive-post-title" href="/2015/08/31/understanding-js-this-keyword/">用自然语言的角度理解JavaScript中的this关键字</a>
+                                <span class="archive-post-date"> - 8月 31, 2015</span>
                             </li>
                         
                             <li class="archive-post">
@@ -276,8 +238,43 @@
                             </li>
                         
                             <li class="archive-post">
-                                <a class="archive-post-title" href="/2015/08/31/understanding-js-this-keyword/">用自然语言的角度理解JavaScript中的this关键字</a>
-                                <span class="archive-post-date"> - 8月 31, 2015</span>
+                                <a class="archive-post-title" href="/2015/09/04/managing-env-constants/">以Node应用为例谈如何管理Web应用的环境常量</a>
+                                <span class="archive-post-date"> - 9月 04, 2015</span>
+                            </li>
+                        
+                            <li class="archive-post">
+                                <a class="archive-post-title" href="/2015/09/06/understanding-jwt/">JSON Web Token - 在Web应用间安全地传递信息</a>
+                                <span class="archive-post-date"> - 9月 06, 2015</span>
+                            </li>
+                        
+                            <li class="archive-post">
+                                <a class="archive-post-title" href="/2015/09/07/user-authentication-with-jwt/">八幅漫画理解使用JSON Web Token设计单点登录系统</a>
+                                <span class="archive-post-date"> - 9月 07, 2015</span>
+                            </li>
+                        
+                            <li class="archive-post">
+                                <a class="archive-post-title" href="/2015/09/09/unittesting-express-middlewares/">Workshop - 对Express中间件进行单元测试</a>
+                                <span class="archive-post-date"> - 9月 09, 2015</span>
+                            </li>
+                        
+                            <li class="archive-post">
+                                <a class="archive-post-title" href="/2015/09/15/js-closure/">JavaScript闭包的底层运行机制</a>
+                                <span class="archive-post-date"> - 9月 15, 2015</span>
+                            </li>
+                        
+                            <li class="archive-post">
+                                <a class="archive-post-title" href="/2015/09/19/function-as-first-class-citizen/">“函数是一等公民”背后的含义</a>
+                                <span class="archive-post-date"> - 9月 19, 2015</span>
+                            </li>
+                        
+                            <li class="archive-post">
+                                <a class="archive-post-title" href="/2016/01/03/iterative-recursive-process/">迭代、递归与Tail Call Optimization</a>
+                                <span class="archive-post-date"> - 1月 03, 2016</span>
+                            </li>
+                        
+                            <li class="archive-post">
+                                <a class="archive-post-title" href="/2016/03/02/introduction-to-reactive-programming/">指路Reactive Programming</a>
+                                <span class="archive-post-date"> - 3月 02, 2016</span>
                             </li>
                         
                         
@@ -293,8 +290,8 @@
                     <ul class="archive-posts">
                         
                             <li class="archive-post">
-                                <a class="archive-post-title" href="/2015/08/08/first-week-intern-at-yelp/">First Week Intern at Yelp</a>
-                                <span class="archive-post-date"> - 8月 08, 2015</span>
+                                <a class="archive-post-title" href="/2015/08/27/how-i-learn-as-a-software-engineer/">我是如何对待学习编程这件事的</a>
+                                <span class="archive-post-date"> - 8月 27, 2015</span>
                             </li>
                         
                             <li class="archive-post">
@@ -303,8 +300,8 @@
                             </li>
                         
                             <li class="archive-post">
-                                <a class="archive-post-title" href="/2015/08/27/how-i-learn-as-a-software-engineer/">我是如何对待学习编程这件事的</a>
-                                <span class="archive-post-date"> - 8月 27, 2015</span>
+                                <a class="archive-post-title" href="/2015/08/08/first-week-intern-at-yelp/">First Week Intern at Yelp</a>
+                                <span class="archive-post-date"> - 8月 08, 2015</span>
                             </li>
                         
                         
@@ -337,13 +334,13 @@
                     <ul class="archive-posts">
                         
                             <li class="archive-post">
-                                <a class="archive-post-title" href="/2015/11/27/debugging-with-strace/">Debugging with strace</a>
-                                <span class="archive-post-date"> - 11月 27, 2015</span>
+                                <a class="archive-post-title" href="/2015/09/12/react-es6-webpack-in-5-minutes/">5分钟内使用React、Webpack与ES6构建应用</a>
+                                <span class="archive-post-date"> - 9月 12, 2015</span>
                             </li>
                         
                             <li class="archive-post">
-                                <a class="archive-post-title" href="/2015/09/12/react-es6-webpack-in-5-minutes/">5分钟内使用React、Webpack与ES6构建应用</a>
-                                <span class="archive-post-date"> - 9月 12, 2015</span>
+                                <a class="archive-post-title" href="/2015/11/27/debugging-with-strace/">Debugging with strace</a>
+                                <span class="archive-post-date"> - 11月 27, 2015</span>
                             </li>
                         
                         
@@ -380,44 +377,10 @@
             </div>
             
         </div>
-        <div id="about">
-    <div id="about-card">
-        <div id="about-btn-close">
-            <i class="fa fa-remove"></i>
-        </div>
-        
-            <img id="about-card-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=110"/>
-        
-            <h4 id="about-card-name">子回</h4>
-        
-            <h5 id="about-card-bio"><p>Life is all about A/B testing</p>
-</h5>
-        
-        
-            <h5 id="about-card-job">
-                <i class="fa fa-briefcase"></i>
-                <br/>
-                <p>Software Engineer Intern at Yelp</p>
-
-            </h5>
-        
-        
-            <h5 id="about-card-location">
-                <i class="fa fa-map-marker"></i>
-                <br/>
-                San Francisco, CA
-            </h5>
-        
-    </div>
-</div>
-
         <div id="cover" style="background-image:url('http://res.cloudinary.com/tranquilpeak-hexo-theme/image/upload/v1438975482/v1.3.0-cover.jpg');"></div>
     </body>
     <!--SCRIPTS-->
-<script src="/assets/js/jquery.js" type="text/javascript"></script>
-<script src="/assets/js/jquery.fancybox.js" type="text/javascript"></script>
-<script src="/assets/js/jquery.fancybox-thumbs.js" type="text/javascript"></script>
-<script src="/assets/js/tranquilpeak.js" type="text/javascript"></script>
+<script src="/assets/js/script.min.js"></script>
 <!--SCRIPTS END-->
 
 

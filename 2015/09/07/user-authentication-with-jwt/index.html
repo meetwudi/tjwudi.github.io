@@ -5,8 +5,8 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="generator" content="回田园 - 子回的私人创作">
-    <title>八幅漫画理解使用JSON Web Token设计单点登录系统 - 回田园 - 子回的私人创作</title>
+    <meta name="generator" content="回田园">
+    <title>八幅漫画理解使用JSON Web Token设计单点登录系统 - 回田园</title>
     <meta name="author" content="子回">
     
     
@@ -16,7 +16,7 @@
 <meta property="og:type" content="blog">
 <meta property="og:title" content="八幅漫画理解使用JSON Web Token设计单点登录系统">
 <meta property="og:url" content="http://blog.leapoahead.com/2015/09/07/user-authentication-with-jwt/index.html">
-<meta property="og:site_name" content="回田园 - 子回的私人创作">
+<meta property="og:site_name" content="回田园">
 <meta property="og:description" content="上次在《JSON Web Token - 在Web应用间安全地传递信息》中我提到了JSON Web Token可以用来设计单点登录系统。我尝试用八幅漫画先让大家理解如何设计正常的用户认证系统，然后再延伸到单点登录系统。">
 <meta property="og:image" content="http://blog.leapoahead.com/2015/09/07/user-authentication-with-jwt/jwtauth1.png">
 <meta property="og:image" content="http://blog.leapoahead.com/2015/09/07/user-authentication-with-jwt/jwtauth2.png">
@@ -31,11 +31,12 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="八幅漫画理解使用JSON Web Token设计单点登录系统">
 <meta name="twitter:description" content="上次在《JSON Web Token - 在Web应用间安全地传递信息》中我提到了JSON Web Token可以用来设计单点登录系统。我尝试用八幅漫画先让大家理解如何设计正常的用户认证系统，然后再延伸到单点登录系统。">
+<meta name="twitter:image" content="http://blog.leapoahead.com/2015/09/07/user-authentication-with-jwt/jwtauth1.png">
 <meta name="twitter:creator" content="@leapoahead">
     
     
     
-        <meta property="og:image" content="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=640"/>
+        <meta property="og:image" content="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=640"/>
     
     
         <meta property="og:image" content="/2015/09/07/user-authentication-with-jwt/jwtauth1.png"/>
@@ -45,39 +46,36 @@
     
     
     <!--STYLES-->
-    <link rel="stylesheet" href="/assets/css/font-awesome.css" type="text/css">
-    <link rel="stylesheet" href="/assets/css/jquery.fancybox.css" type="text/css">
-    <link rel="stylesheet" href="/assets/css/jquery.fancybox-thumbs.css" type="text/css">
-    <link rel="stylesheet" href="/assets/css/tranquilpeak.css" type="text/css">
+    <link rel="stylesheet" href="/assets/css/style.min.css">
     <!--STYLES END-->
     
     <script type="text/javascript">
-        var _gaq = _gaq || [];
-        _gaq.push(['_setAccount', 'UA-50843289-7']);
-        _gaq.push(['_trackPageview']);
-        (function() {
-            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-        })();
+        if (location.host.indexOf('leapoahead.com') > 0) {
+            // Only send online traffic
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-50843289-7']);
+            _gaq.push(['_trackPageview']);
+            (function() {
+                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
+        }
     </script>
+
 
 </head>
 
     <body>
         <div id="blog">
-            <header id="header" data-behavior="2">
+            <header id="header" data-behavior="1">
     <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
     <h1 class="header-title">
-        <a class="header-title-link" href="/ ">回田园 - 子回的私人创作</a>
+        <a class="header-title-link" href="/ ">回田园</a>
     </h1>
-    
-        <a class="header-right-picture" href="/#about">
-            <img class="header-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90"/>
-        </a>
-    
 </header>
-            <nav id="sidebar" data-behavior="2">
+
+            <nav id="sidebar" data-behavior="1">
     
         <ul class="sidebar-buttons">
         
@@ -89,7 +87,7 @@
                     >
                 
                     <i class="sidebar-button-icon fa fa-lg fa-home"></i>
-                    <span class="sidebar-button-desc">Home</span>
+                    <span class="sidebar-button-desc">主页</span>
                 </a>
         </li>
         
@@ -101,7 +99,7 @@
                     >
                 
                     <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
-                    <span class="sidebar-button-desc">Categories</span>
+                    <span class="sidebar-button-desc">分类</span>
                 </a>
         </li>
         
@@ -141,7 +139,7 @@
                     <a  class="sidebar-button-link " href="https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A" target="_blank">
                 
                     <i class="sidebar-button-icon fa fa-lg fa-linkedin"></i>
-                    <span class="sidebar-button-desc">Linked In</span>
+                    <span class="sidebar-button-desc">LinkedIn</span>
                 </a>
         </li>
         
@@ -150,7 +148,7 @@
                     <a  class="sidebar-button-link " href="mailto:webmaster@leapoahead.com" target="_blank">
                 
                     <i class="sidebar-button-icon fa fa-lg fa-envelope-o"></i>
-                    <span class="sidebar-button-desc">Mail</span>
+                    <span class="sidebar-button-desc">Email</span>
                 </a>
         </li>
         
@@ -175,7 +173,7 @@
 </nav>
 
             
-            <div id="main" data-behavior="2"
+            <div id="main" data-behavior="1"
                  class="
                         hasCoverMetaIn
                         ">
@@ -210,7 +208,7 @@
             <p>上次在<a href="/2015/09/06/understanding-jwt/">《JSON Web Token - 在Web应用间安全地传递信息》</a>中我提到了JSON Web Token可以用来设计单点登录系统。我尝试用八幅漫画先让大家理解如何设计正常的用户认证系统，然后再延伸到单点登录系统。</p>
 <a id="more"></a>
 <p>如果还没有阅读<a href="/2015/09/06/understanding-jwt/">《JSON Web Token - 在Web应用间安全地传递信息》</a>，我强烈建议你花十分钟阅读它，理解JWT的生成过程和原理。</p>
-<h3 id="用户认证八步走">用户认证八步走</h3><p>所谓用户认证（Authentication），就是让用户登录，并且在接下来的一段时间内让用户访问网站时可以使用其账户，而不需要再次登录的机制。</p>
+<h3 id="用户认证八步走"><a href="#用户认证八步走" class="headerlink" title="用户认证八步走"></a>用户认证八步走</h3><p>所谓用户认证（Authentication），就是让用户登录，并且在接下来的一段时间内让用户访问网站时可以使用其账户，而不需要再次登录的机制。</p>
 <blockquote>
 <p>小知识：可别把用户认证和用户授权（Authorization）搞混了。用户授权指的是规定并允许用户使用自己的权限，例如发布帖子、管理站点等。</p>
 </blockquote>
@@ -232,10 +230,10 @@
 <img src="/2015/09/07/user-authentication-with-jwt/jwtauth8.png" alt="jwtauth8.png" title="">
 <p>应用根据用户请求进行响应。</p>
 <img src="/2015/09/07/user-authentication-with-jwt/jwtauth9.png" alt="jwtauth9.png" title="">
-<h3 id="和Session方式存储id的差异">和Session方式存储id的差异</h3><p>Session方式存储用户id的最大弊病在于要占用大量服务器内存，对于较大型应用而言可能还要保存许多的状态。一般而言，大型应用还需要借助一些KV数据库和一系列缓存机制来实现Session的存储。</p>
+<h3 id="和Session方式存储id的差异"><a href="#和Session方式存储id的差异" class="headerlink" title="和Session方式存储id的差异"></a>和Session方式存储id的差异</h3><p>Session方式存储用户id的最大弊病在于要占用大量服务器内存，对于较大型应用而言可能还要保存许多的状态。一般而言，大型应用还需要借助一些KV数据库和一系列缓存机制来实现Session的存储。</p>
 <p>而JWT方式将用户状态分散到了客户端中，可以明显减轻服务端的内存压力。除了用户id之外，还可以存储其他的和用户相关的信息，例如该用户是否是管理员、用户所在的分桶（见[《你所应该知道的A/B测试基础》一文](/2015/08/27/introduction-to-ab-testing/）等。</p>
 <p>虽说JWT方式让服务器有一些计算压力（例如加密、编码和解码），但是这些压力相比磁盘I/O而言或许是半斤八两。具体是否采用，需要在不同场景下用数据说话。</p>
-<h3 id="单点登录">单点登录</h3><p>Session方式来存储用户id，一开始用户的Session只会存储在一台服务器上。对于有多个子域名的站点，每个子域名至少会对应一台不同的服务器，例如：</p>
+<h3 id="单点登录"><a href="#单点登录" class="headerlink" title="单点登录"></a>单点登录</h3><p>Session方式来存储用户id，一开始用户的Session只会存储在一台服务器上。对于有多个子域名的站点，每个子域名至少会对应一台不同的服务器，例如：</p>
 <ul>
 <li>www.taobao.com</li>
 <li>nv.taobao.com</li>
@@ -244,7 +242,7 @@
 </ul>
 <p>所以如果要实现在<code>login.taobao.com</code>登录后，在其他的子域名下依然可以取到Session，这要求我们在多台服务器上同步Session。</p>
 <p>使用JWT的方式则没有这个问题的存在，因为用户的状态已经被传送到了客户端。因此，我们只需要将含有JWT的Cookie的<code>domain</code>设置为顶级域名即可，例如</p>
-<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">Set-Cookie</span>: <span class="string">jwt=lll.zzz.xxx; HttpOnly; max-age=980000; domain=.taobao.com</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight gams"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">Set</span>-Cookie: jwt=lll.zzz.xxx; HttpOnly; <span class="built-in">max</span>-age=<span class="number">980000</span>; domain=.taobao.com</div></pre></td></tr></table></figure>
 <p>注意<code>domain</code>必须设置为一个点加顶级域名，即<code>.taobao.com</code>。这样，taobao.com和*.taobao.com就都可以接受到这个Cookie，并获取JWT了。</p>
 <p>对于JWT的两篇文章有相关问题的同学请直接在下面的评论区与我讨论（请勿邮件讨论）。如果你感兴趣，你可以在下方订阅我的半月刊，我将给你推送更多精彩的内容；）</p>
 
@@ -334,7 +332,7 @@
 
             </div>
             
-                <div id="bottom-bar" class="post-bottom-bar" data-behavior="2">
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="1">
                     <div class="post-actions-wrap">
     <ul class="post-actions post-action-share">
         <li class="post-action hide-lg hide-md hide-sm">
@@ -369,7 +367,7 @@
 
 
                 </div>
-                <div id="share-options-bar" class="share-options-bar" data-behavior="2">
+                <div id="share-options-bar" class="share-options-bar" data-behavior="1">
     <ul class="share-options">
         <li class="share-option">
             <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/09/07/user-authentication-with-jwt/">
@@ -391,44 +389,10 @@
 <div id="share-options-mask" class="share-options-mask"></div>
             
         </div>
-        <div id="about">
-    <div id="about-card">
-        <div id="about-btn-close">
-            <i class="fa fa-remove"></i>
-        </div>
-        
-            <img id="about-card-picture" src="http://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=110"/>
-        
-            <h4 id="about-card-name">子回</h4>
-        
-            <h5 id="about-card-bio"><p>Life is all about A/B testing</p>
-</h5>
-        
-        
-            <h5 id="about-card-job">
-                <i class="fa fa-briefcase"></i>
-                <br/>
-                <p>Software Engineer Intern at Yelp</p>
-
-            </h5>
-        
-        
-            <h5 id="about-card-location">
-                <i class="fa fa-map-marker"></i>
-                <br/>
-                San Francisco, CA
-            </h5>
-        
-    </div>
-</div>
-
         <div id="cover" style="background-image:url('http://res.cloudinary.com/tranquilpeak-hexo-theme/image/upload/v1438975482/v1.3.0-cover.jpg');"></div>
     </body>
     <!--SCRIPTS-->
-<script src="/assets/js/jquery.js" type="text/javascript"></script>
-<script src="/assets/js/jquery.fancybox.js" type="text/javascript"></script>
-<script src="/assets/js/jquery.fancybox-thumbs.js" type="text/javascript"></script>
-<script src="/assets/js/tranquilpeak.js" type="text/javascript"></script>
+<script src="/assets/js/script.min.js"></script>
 <!--SCRIPTS END-->
 
     <script type="text/javascript">
