@@ -1,0 +1,406 @@
+
+<!DOCTYPE html>
+<html lang="zh_CN">
+    
+<head>
+    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="回田园">
+    <title>让代码审查扮演更好的角色 - 回田园</title>
+    <meta name="author" content="子回（John Wu）">
+    
+    
+        <link rel="alternative" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <meta name="description" content="代码审查（Code Review）是很多大公司里面都有的一个流程。它指的是一个人编码，另有几个人负责审查，并提出修改意见。代码审查在大多数情况下对公司整体的工程质量是有提高的，但是如果使用不当的话，很可能反倒会降低工程质量。代码审查究竟在一个组织里面是有正面效应或者是负面效应取决于很多因素，而我认为其中最重要的是代码审查在开发过程中扮演的角色。">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="让代码审查扮演更好的角色">
+<meta property="og:url" content="http://blog.leapoahead.com/2016/10/04/code-review-one-step-further/index.html">
+<meta property="og:site_name" content="回田园">
+<meta property="og:description" content="代码审查（Code Review）是很多大公司里面都有的一个流程。它指的是一个人编码，另有几个人负责审查，并提出修改意见。代码审查在大多数情况下对公司整体的工程质量是有提高的，但是如果使用不当的话，很可能反倒会降低工程质量。代码审查究竟在一个组织里面是有正面效应或者是负面效应取决于很多因素，而我认为其中最重要的是代码审查在开发过程中扮演的角色。">
+<meta property="og:image" content="http://blog.leapoahead.com/2016/10/04/code-review-one-step-further/1.jpg">
+<meta property="og:image" content="http://blog.leapoahead.com/2016/10/04/code-review-one-step-further/3.png">
+<meta property="og:image" content="http://blog.leapoahead.com/2016/10/04/code-review-one-step-further/2.png">
+<meta property="og:updated_time" content="2016-10-05T07:15:37.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="让代码审查扮演更好的角色">
+<meta name="twitter:description" content="代码审查（Code Review）是很多大公司里面都有的一个流程。它指的是一个人编码，另有几个人负责审查，并提出修改意见。代码审查在大多数情况下对公司整体的工程质量是有提高的，但是如果使用不当的话，很可能反倒会降低工程质量。代码审查究竟在一个组织里面是有正面效应或者是负面效应取决于很多因素，而我认为其中最重要的是代码审查在开发过程中扮演的角色。">
+<meta name="twitter:image" content="http://blog.leapoahead.com/2016/10/04/code-review-one-step-further/1.jpg">
+<meta name="twitter:creator" content="@leapoahead">
+    
+    
+    
+        <meta property="og:image" content="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=640"/>
+    
+    
+        <meta property="og:image" content="/2016/10/04/code-review-one-step-further/1.jpg"/>
+        <meta class="swiftype" name="image" data-type="enum" content="http://blog.leapoahead.com/2016/10/04/code-review-one-step-further/1.jpg" />
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/style.min.css">
+    <!--STYLES END-->
+    
+    <script type="text/javascript">
+        if (location.host.indexOf('leapoahead.com') > 0) {
+            // Only send online traffic
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-50843289-7']);
+            _gaq.push(['_trackPageview']);
+            (function() {
+                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
+        }
+    </script>
+
+
+</head>
+
+    <body>
+        <div id="blog">
+            <header id="header" data-behavior="1">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <h1 class="header-title">
+        <a class="header-title-link" href="/ ">回田园</a>
+    </h1>
+</header>
+
+            <nav id="sidebar" data-behavior="1">
+    
+    <div class="sidebar-profile">
+        <div class="avatar-wrap">
+            <a href="/?action_from=sidebar-profile-picture">
+                <img class="sidebar-profile-picture" src="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90" alt="John Wu">
+            </a>
+        </div>
+        <p class="no-margin-bottom"><strong>子回（John Wu）</strong></p>
+        <p>Software Engineer at Yelp</p>
+
+    </div>
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/?action_from=sidebar-button-link"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-home"></i>
+                    <span class="sidebar-button-desc">主页</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/all-categories?action_from=sidebar-button-link"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
+                    <span class="sidebar-button-desc">分类</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                  <a  class="sidebar-button-link " href="https://github.com/tjwudi?action_from=sidebar-button-link" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-github"></i>
+                    <span class="sidebar-button-desc">GitHub</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                  <a  class="sidebar-button-link " href="https://twitter.com/leapoahead?action_from=sidebar-button-link" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-twitter"></i>
+                    <span class="sidebar-button-desc">Twitter</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                  <a  class="sidebar-button-link " href="https://facebook.com/leapoahead?action_from=sidebar-button-link" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-facebook"></i>
+                    <span class="sidebar-button-desc">Facebook</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                  <a  class="sidebar-button-link " href="https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A?action_from=sidebar-button-link" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-linkedin"></i>
+                    <span class="sidebar-button-desc">LinkedIn</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                  <a  class="sidebar-button-link " href="mailto:webmaster@leapoahead.com?action_from=sidebar-button-link" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-envelope-o"></i>
+                    <span class="sidebar-button-desc">Email</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/atom.xml?action_from=sidebar-button-link"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-rss"></i>
+                    <span class="sidebar-button-desc">RSS</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+</nav>
+
+            
+            <div id="main" data-behavior="1"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post" itemscope itemType="http://schema.org/BlogPosting">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title" itemprop="headline">
+            让代码审查扮演更好的角色
+        </h1>
+    
+    <div class="post-meta">
+    <time itemprop="datePublished" content="Tue Oct 04 2016 23:17:23 GMT-0700">
+	
+		    10月 04, 2016
+    	
+    </time>
+    
+        <span>in </span>
+        
+    <a class="category-link" href="/categories/Engineering/">Engineering</a>
+
+
+    
+</div>
+</div>
+    
+    <div class="post-content markdown" itemprop="articleBody">
+        <div class="main-content-wrap">
+            <p>代码审查（Code Review）是很多大公司里面都有的一个流程。它指的是一个人编码，另有几个人负责审查，并提出修改意见。代码审查在大多数情况下对公司整体的工程质量是有提高的，但是如果使用不当的话，很可能反倒会降低工程质量。代码审查究竟在一个组织里面是有正面效应或者是负面效应取决于很多因素，而我认为其中最重要的是代码审查在开发过程中扮演的角色。</p>
+<a id="more"></a>
+<img src="/2016/10/04/code-review-one-step-further/1.jpg" alt="Code Review" title="Code Review">
+<p>首先，我们先看看在代码审查中所需要找出的问题类型。它们可以是：</p>
+<ol>
+<li>语法及代码风格问题：一般有静态检查工具可以解决，但难免有疏漏。</li>
+<li>效率问题：需要有一定经验的人来辨别低效的部分。</li>
+<li>命名问题：这其实是一个很经常出现也很重要的问题。对于一个人来讲说得通的命名不见得对于团队而言说得通，所以很多时候较难的命名要由团队通过代码审查协同解决。</li>
+<li>设计问题：小到接口的设计，大到服务间通信的协议，都属于设计问题，根据情况可以由小部分人或者整个团队解决。设计问题是代码审查中最常见的问题。</li>
+</ol>
+<p>对于前三种问题，相对来讲都很好解决。其中相对棘手的莫过效率问题，但实际上基本上知道效率问题的人都知道优化方案。然而，如果一个审查的人突然提出一个很合理的设计问题，需要你重新修改源代码，你会发现你需要花大量地时间重新编写。</p>
+<p>例如，在编写一个JavaScript库packageA的时候，你提交了代码审查。有人可能会提醒你：packageA是用于桌面端网站的库，相对应的还有一个移动端的库packageB。为了保持工程上的一致性，建议把packageA改成盒packageB一样的API。一致性一直以来是一个让人无法反驳的设计追求，所以你只好把辛辛苦苦自己设计好的API全部重改…</p>
+<p>所以，若你的代码里面被提出存在设计问题，消耗的工程时间会增加。而工程时间对公司来讲就是金钱。</p>
+<p>造成存在需要大改的设计问题的原因其实无非三个：</p>
+<ol>
+<li>设计能力不足</li>
+<li>对开发的系统不熟悉，缺乏上下文（Context）</li>
+<li>过晚提交代码审查</li>
+</ol>
+<p>前两个原因都很直白，但是第三个原因有点匪夷所思。什么叫做过晚提交代码审查？</p>
+<p>我想是代码审查英文单词中的”Review”给予人的误导，很多人是在代码几乎完成或者已经完成后才提交代码审查的。就好像在做一盘菜，做到最后一步的时候才想起来要尝一小口看看味道对不对，结果发现没加盐。</p>
+<p>在最后一步进行代码审查，还会因为审查者一下子接收太多信息，而造成他可能无法发现一些应该发现的问题。</p>
+<img src="/2016/10/04/code-review-one-step-further/3.png" alt="Gas" title="Gas">
+<p>显然“审查”扮演的角色在这里出现了问题，它不应该是传统意义上的到最后一步进行把关，而应该是贯穿整个编码过程的一个辅助过程。用比较老式的软件工程“土话”说，它应该是一个Umbrella Activity（雨伞活动），全程保护编码过程的质量。</p>
+<p>现在，我的代码审查流程是这样的：首先完成一个基本的设计，加上基本的注释，达到一个完成度——最可能出现大设计问题的完成度。接着commit，并推入到代码审查中，邀请其他人来审查。这基本上就是对他们说，“看，这是我写的，很简单，可能烂得跟一坨屎一样，麻烦你们帮我看看有没有什么大问题”。</p>
+<img src="/2016/10/04/code-review-one-step-further/2.png" alt="Gas" title="Gas">
+<p>稍微有点开发经验的人，都可以大概估计出自己手头的工作进行到哪一步可能出现大的设计问题。例如，当你在设计一个新的模块，那么可能出现大的设计问题的时候可能就是设计API的时候。再紧接着，下一个可能出现大的设计问题的就是类之间的抽象关系，等等。</p>
+<p>我甚至还会自己给自己的代码进行审查。这并不是在做验算，而是在通过代码审查告诉团队自己的疑问，提出自己的想法，这样大家就能更好地与你沟通。相信我，把有疑问、犹豫不决的地方提出来；有自己独特想法的地方，也要指出来，因为你的独特想法有时候对团队来讲就是不好的想法。</p>
+<p>每当遇到心里觉得可能出现大的设计问题的时候，尽量利用代码审查，让团队和你一起解决。对于工程经验少的人来说（比如我），更应该多做一点这样的事。一开始这样做可能反倒会开销更多人的时间，但是过一阵子之后，你就更有把握做好的设计决策。换句话说，发生大设计问题的概率就会降低。因为你总能在和别人沟通的时候学到新东西。</p>
+<p>然而，如果每次都在编码完成之后再进行代码审查，虽说最后经过代码审查可能也会产出高质量的代码，可你将花大部分时间在烦闷上，而花很少的时间真正体会他人提出的意见的真正价值。</p>
+<p>长此以往，整个工程团队的工程时间可以得到显著的下降。首先是因为每个人的经验都能通过代码审查增长得更快，因此总体工程效率会提高；第二是因为全程保护的代码审查很好地解决（或缓解）各种层面的设计问题，让工程无论从短期还是长期来讲，需要花费的工程时间降低，并且技术债务（technical debt）也会减少。</p>
+<p>幸运的是，虽说这里提到的是比较宏观的流程问题，却是一件落实到每个工程师自身的事情。也就是说，代码审查如何执行最终还是归结于编码的工程师个人。整个流程的转换无需有新的工具加入，也不需要有很多复杂的文档。所需要的只不过是对团队的一次培训——这篇文章或许就是一个不错的素材。</p>
+
+            
+                
+
+            
+        </div>
+    </div>
+    
+    <div class="post-rmds main-content-wrap">
+        <h4>猜你想读</h4>
+        <ul>
+            
+            
+                <li><a href="http://blog.leapoahead.com/2016/03/02/introduction-to-reactive-programming/">指路Reactive Programming</a></li>
+            
+        </ul>
+        
+    </div>
+
+    <div class="post-mailchimp">
+    <div class="main-content-wrap mailchimp-wrap">
+        <h3>让有趣易懂的知识主动找到你</h3>
+        <p>订阅我的Email半月刊，让我们共同学习、成长。绝无广告！</p>
+        <form action="//leapoahead.us8.list-manage.com/subscribe/post?u=f3a6e2f843ac1be03e00f7bed&amp;amp;id=58e28559b1" method="post" name="mc-embedded-subscribe-form" class="mailchimp-form" target="_blank" novalidate>
+            <label for="mce-EMAIL" style="display: none">Email地址</label>
+            <input type="email" value="" name="EMAIL" id="mce-EMAIL" placeholder="您常用的Email地址" class="mailchimp-input">
+            <input type="submit" value="订阅" name="subscribe" id="mc-embedded-subscribe" class="mailchimp-input mailchimp-subscribe">
+            <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+            <div style="position: absolute; left: -5000px;"><input type="text" name="b_f3a6e2f843ac1be03e00f7bed_58e28559b1" tabindex="-1" value=""></div>
+        </form>
+    </div>
+</div>
+    <div class="post-footer main-content-wrap">
+        
+        <div class="post-actions-wrap">
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
+                <i class="fa fa-share-alt"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2016/10/04/code-review-one-step-further/">
+                <i class="fa fa-facebook-official"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2016/10/04/code-review-one-step-further/">
+                <i class="fa fa-twitter"></i>
+            </a>
+        </li>
+        
+            <li class="post-action">
+                <a class="post-action-btn btn btn--default" href="#disqus_thread">
+                    <i class="fa fa-comment-o"></i>
+                </a>
+            </li>
+        
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default jiathis_button_tsina" href="http://www.jiathis.com/send/?webid=tsina&uid=1399172634630776&summary=&lt;p&gt;代码审查（Code Review）是很多大公司里面都有的一个流程。它指的是一个人编码，另有几个人负责审查，并提出修改意见。代码审查在大多数情况下对公司整体的工程质量是有提高的，但是如果使用不当的话，很可能反倒会降低工程质量。代码审查究竟在一个组织里面是有正面效应或者是负面效应取决于很多因素，而我认为其中最重要的是代码审查在开发过程中扮演的角色。&lt;/p&gt;&title=让代码审查扮演更好的角色&url=http://blog.leapoahead.com/2016/10/04/code-review-one-step-further/" target="new">
+                <i class="fa fa-weibo"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+            <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2016 子回（John Wu）. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="1">
+                    <div class="post-actions-wrap">
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
+                <i class="fa fa-share-alt"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2016/10/04/code-review-one-step-further/">
+                <i class="fa fa-facebook-official"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2016/10/04/code-review-one-step-further/">
+                <i class="fa fa-twitter"></i>
+            </a>
+        </li>
+        
+            <li class="post-action">
+                <a class="post-action-btn btn btn--default" href="#disqus_thread">
+                    <i class="fa fa-comment-o"></i>
+                </a>
+            </li>
+        
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default jiathis_button_tsina" href="http://www.jiathis.com/send/?webid=tsina&uid=1399172634630776&summary=&lt;p&gt;代码审查（Code Review）是很多大公司里面都有的一个流程。它指的是一个人编码，另有几个人负责审查，并提出修改意见。代码审查在大多数情况下对公司整体的工程质量是有提高的，但是如果使用不当的话，很可能反倒会降低工程质量。代码审查究竟在一个组织里面是有正面效应或者是负面效应取决于很多因素，而我认为其中最重要的是代码审查在开发过程中扮演的角色。&lt;/p&gt;&title=让代码审查扮演更好的角色&url=http://blog.leapoahead.com/2016/10/04/code-review-one-step-further/" target="new">
+                <i class="fa fa-weibo"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                <div id="share-options-bar" class="share-options-bar" data-behavior="1">
+    <ul class="share-options">
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2016/10/04/code-review-one-step-further/">
+                <i class="fa fa-google-plus"></i><span class="">Share on Google Plus</span>
+            </a>
+        </li>
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2016/10/04/code-review-one-step-further/">
+                <i class="fa fa-facebook-official"></i><span>Share on Facebook</span>
+            </a>
+        </li>
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2016/10/04/code-review-one-step-further/">
+                <i class="fa fa-twitter"></i><span>Share on Twitter</span>
+            </a>
+        </li>
+    </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
+            
+        </div>
+        <div id="cover" style="background-image:url('http://res.cloudinary.com/tranquilpeak-hexo-theme/image/upload/v1438975482/v1.3.0-cover.jpg');"></div>
+    </body>
+    <!--SCRIPTS-->
+<script src="/assets/js/script.min.js"></script>
+<!--SCRIPTS END-->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'johnweng';
+        (function() {
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+
+
+
+</html>
