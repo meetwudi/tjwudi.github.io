@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://blog.leapoahead.com/"/>
-  <updated>2016-10-05T07:15:37.000Z</updated>
+  <updated>2016-10-26T05:32:33.000Z</updated>
   <id>http://blog.leapoahead.com/</id>
   
   <author>
@@ -14,6 +14,81 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Function variations in Python</title>
+    <link href="http://blog.leapoahead.com/2016/10/25/python-function-variations/"/>
+    <id>http://blog.leapoahead.com/2016/10/25/python-function-variations/</id>
+    <published>2016-10-26T04:00:08.000Z</published>
+    <updated>2016-10-26T05:32:33.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>In Object Oriented Programming, we deal with classes and their variations. A subclass is conceptually a more concrete realization of it’s superclass. Subclasses appear to be a family of classes with certain extent of variation.</p>
+<p>Variations are also introduced in functions. A function can derive a family of functions that are similar but with the same purpose. We will use Python functions as example to demonstrate the use of function variations, and effectively how it changes our way of writing clean code and tests.</p>
+<a id="more"></a>
+<h3 id="Partial-functions"><a href="#Partial-functions" class="headerlink" title="Partial functions"></a>Partial functions</h3><p>Let’s assume we have a website that has four versions of different languages with English as major language.</p>
+<p>A <code>translate</code> function translate a English sentence into a sentence in target language (<code>to_language</code>). It uses <code>tokenizer</code> to split English sentence into words, find corresponding words in target language, then uses <code>composer</code> to put them into a sentence.</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">translate</span><span class="params">(</span></span></div><div class="line">    sentence_in_english,</div><div class="line">    to_language,</div><div class="line">    language_dictionary,</div><div class="line">    tokenizer,</div><div class="line">    composer,</div><div class="line">):</div><div class="line">    tokens = tokenizer(sentence_in_english)</div><div class="line">    tokens_translated = [</div><div class="line">        language_dictionary[token]</div><div class="line">        <span class="keyword">for</span> token <span class="keyword">in</span> tokens</div><div class="line">    ]</div><div class="line">    <span class="keyword">return</span> composer(tokens_translated).to_string()</div></pre></td></tr></table></figure>
+<p>Because we have four languages, each has corresponding <code>language_dictionary</code>, <code>tokenizer</code> and <code>composer</code>. We do not want the user of <code>translate</code> function to actually initialize those arguments since it would be error-prone. Hence we write another four functions for users to use.</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">translate_mandarin</span><span class="params">(sentence_in_english)</span>:</span></div><div class="line">    language_dictionary = LanguageDictionary(...)</div><div class="line">    tokenizer = MandarinTokenizer(...)</div><div class="line">    composer = MandarinComoser(...)</div><div class="line">    <span class="keyword">return</span> translate(</div><div class="line">        sentence_in_english,</div><div class="line">        <span class="string">'mandarin'</span>,</div><div class="line">        language_dictionary,</div><div class="line">        tokenizer,</div><div class="line">        composer,</div><div class="line">    )</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">translate_german</span><span class="params">(sentence_in_english)</span>:</span></div><div class="line">    ...</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">translate_cantonese</span><span class="params">(sentence_in_english)</span>:</span></div><div class="line">    ...</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">translate_japanese</span><span class="params">(sentence_in_english)</span>:</span></div><div class="line">    ...</div></pre></td></tr></table></figure>
+<p>We find that the whole set of <code>translate_*</code> function are merely creating parameters and call <code>translate</code>. <strong>They have different implementations logic but are with exact same purpose</strong>.</p>
+<p>For this kind of function variations, we could simplify them using <code>functools.partial</code>. <code>partial</code> takes a original function and returns a new function. Calling new function is simply a call to original function with certain positional or keyword arguments set in advance.</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">from</span> functools <span class="keyword">import</span> partial</div><div class="line"></div><div class="line">translate_mandarin = partial(</div><div class="line">    translate,</div><div class="line">    to_language=<span class="string">'mandarin'</span>,</div><div class="line">    language_dictionary=MandarinDictionary(...),</div><div class="line">    tokenizer=MandarinTokenizer(...),</div><div class="line">    composer=MandarinComoser(...),</div><div class="line">)</div><div class="line">translate_german = partial(translate, ...)</div><div class="line">translate_cantonese = partial(translate, ...)</div><div class="line">translate_japanese = partial(translate, ...)</div></pre></td></tr></table></figure>
+<p>Here <code>translate_*</code> function are exactly identical to those we created before.</p>
+<p>Using <code>partial</code> function doesn’t necessarily save a lots a keystrokes, but brings some benefits for writing function variations of functions like <code>translate</code>:</p>
+<ol>
+<li>Prevent addtional functionalities to be attached to <code>translate_*</code>. They are a set of functions that are meant for a same purpose.</li>
+<li>You can skip testing function variations when you can test <code>tranlate</code> throughly.</li>
+<li>Could create cascading function variations (see below).</li>
+</ol>
+<figure class="highlight nix"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># `ChineseTokenizer`, `ChineseComposer` could be used for either mandarin and cantonese</span></div><div class="line"><span class="attr">translate_chinese</span> = partial(</div><div class="line">    translate,</div><div class="line">    <span class="attr">tokenizer=ChineseTokenizer(...),</span> </div><div class="line">    <span class="attr">composer=ChineseComposer(...),</span></div><div class="line">)</div><div class="line"><span class="attr">translate_mandarin</span> = partial(</div><div class="line">    translate_chinese,</div><div class="line">    <span class="attr">to_language='mandarin',</span></div><div class="line">    <span class="attr">language_dictionary=MandarinDictionary(...),</span></div><div class="line">)</div><div class="line"><span class="attr">translate_cantonese</span> = partial(</div><div class="line">    translate_chinese,</div><div class="line">    <span class="attr">to_language='cantonese',</span></div><div class="line">    <span class="attr">language_dictionary=CantoneseDictionary(...),</span></div><div class="line">)</div></pre></td></tr></table></figure>
+<h3 id="Dispatch-functions"><a href="#Dispatch-functions" class="headerlink" title="Dispatch functions"></a>Dispatch functions</h3><p>We have a function <code>inc</code> that takes either a number or a list of number then return a number or a list with every number increased by given amount.</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">inc</span><span class="params">(obj, amount)</span>:</span></div><div class="line">    <span class="keyword">if</span> isinstance(obj, numbers.Number):</div><div class="line">        <span class="keyword">return</span> obj + amount</div><div class="line">    <span class="keyword">elif</span> isinstance(obj, list):</div><div class="line">        <span class="keyword">return</span> [inc(item, amount) <span class="keyword">for</span> item <span class="keyword">in</span> obj]</div><div class="line">    <span class="keyword">else</span>:</div><div class="line">        <span class="keyword">raise</span> TypeError()</div><div class="line"></div><div class="line"><span class="keyword">assert</span> inc(<span class="number">1</span>, <span class="number">2</span>) == <span class="number">3</span></div><div class="line"><span class="keyword">assert</span> inc([<span class="number">1</span>, <span class="number">2</span>], <span class="number">2</span>) == [<span class="number">3</span>, <span class="number">4</span>]</div></pre></td></tr></table></figure>
+<p>This is a very common use case, where you want to provide both versions for single object or a list of object, even a dictionary.</p>
+<p>We can rewrite this function using decorator <code>functools.singledispatch</code>. <code>singledispatch</code> takes a look at the type of the type of the first argument when the decorated function is called, and call the right version for that type. It’s available since Python 3.4.</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">from</span> functools <span class="keyword">import</span> singledispatch</div><div class="line"></div><div class="line"><span class="meta">@singledispatch</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">inc</span><span class="params">(other_types_arg, amount)</span>:</span></div><div class="line">    <span class="keyword">raise</span> TypeError()</div><div class="line"></div><div class="line"><span class="meta">@inc.register(numbers.Number)</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">__inc_number</span><span class="params">(number, amount)</span>:</span></div><div class="line">    <span class="keyword">return</span> number + amount</div><div class="line"></div><div class="line"><span class="meta">@inc.register(list)</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">___inc_list</span><span class="params">(list_of_number, amount)</span>:</span></div><div class="line">    <span class="keyword">return</span> [inc(number, amount) <span class="keyword">for</span> number <span class="keyword">in</span> list_of_number]</div><div class="line"></div><div class="line"><span class="keyword">assert</span> inc(<span class="number">1</span>, <span class="number">2</span>) == <span class="number">3</span></div><div class="line"><span class="keyword">assert</span> inc([<span class="number">1</span>, <span class="number">2</span>], <span class="number">2</span>) == [<span class="number">3</span>, <span class="number">4</span>]</div></pre></td></tr></table></figure>
+<p>When the first positional argument is of type <code>list</code>, <code>__inc_list</code> will be called by <code>singledispatch</code>. <code>__inc_list</code> in turn calls <code>inc</code> with first positional argument is a number. If the first positional argument is neither list nor number, the original <code>inc</code> function will be called and triggers <code>TypeError</code>.</p>
+<p>Usage of <code>singledispatch</code> here created a family of function variations without any branch. Functionalities for each type could be maintained separately but still serving the same purpose. It’s also easiler to test thanks to the absence of branches.</p>
+<h3 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h3><p>Creating function variations using <code>partial</code> and <code>singledispatch</code> is interesting that variations can be consistently focused on a single purpose. This is very helpful for an evolving large scale system to provide a set of limited but varied interfaces, without introducing terrible complexity and frustrations.</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;In Object Oriented Programming, we deal with classes and their variations. A subclass is conceptually a more concrete realization of it’s superclass. Subclasses appear to be a family of classes with certain extent of variation.&lt;/p&gt;
+&lt;p&gt;Variations are also introduced in functions. A function can derive a family of functions that are similar but with the same purpose. We will use Python functions as example to demonstrate the use of function variations, and effectively how it changes our way of writing clean code and tests.&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="Engineering" scheme="http://blog.leapoahead.com/categories/Engineering/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>Don&#39;t Make Pub/Sub a Code Smell</title>
+    <link href="http://blog.leapoahead.com/2016/10/06/dont-make-pubsub-a-code-smell/"/>
+    <id>http://blog.leapoahead.com/2016/10/06/dont-make-pubsub-a-code-smell/</id>
+    <published>2016-10-07T05:13:36.000Z</published>
+    <updated>2016-10-26T03:58:35.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>Pub/Sub pattern is an event-driven approach to design software systems. Many programming languages allow engineers to leverage the power of Pub/Sub pattern. Using Pub/Sub pattern in a right way could decouple different components better. But there is still a change that Pub/Sub pattern could turn into code smell.</p>
+<a id="more"></a>
+<h3 id="Refresher-on-Pub-Sub"><a href="#Refresher-on-Pub-Sub" class="headerlink" title="Refresher on Pub/Sub"></a>Refresher on Pub/Sub</h3><p>Just to give you a refresher on what Pub/Sub pattern is, here is an implementation using jQuery.</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> body$ = $(<span class="built_in">document</span>.body);</div><div class="line">body$.on(<span class="string">'click'</span>, <span class="function"><span class="keyword">function</span> <span class="title">clickHandler</span> (<span class="params"></span>) </span>&#123;</div><div class="line">  <span class="built_in">console</span>.log(<span class="string">'DO NOT TOUCH ME'</span>);</div><div class="line">&#125;);</div></pre></td></tr></table></figure>
+<p>Whenever the page is clicked, a <em>click</em> event will be fired. The event handler <code>clickHandler</code> will be called, hence the log gets printed to console.</p>
+<p>Here <code>body$</code> serves as publisher, who publishes event when something happens. Our code is subscriber, who subscribes to those events, receive event data, and react.</p>
+<p>This seems so far so good. But when working on some event-heavy code like JavaScript, we could sometimes create code smell by using Pub/Sub pattern.</p>
+<h3 id="Listening-on-local-variable"><a href="#Listening-on-local-variable" class="headerlink" title="Listening on local variable"></a>Listening on local variable</h3><h3 id="Event-naming"><a href="#Event-naming" class="headerlink" title="Event naming"></a>Event naming</h3>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;Pub/Sub pattern is an event-driven approach to design software systems. Many programming languages allow engineers to leverage the power of Pub/Sub pattern. Using Pub/Sub pattern in a right way could decouple different components better. But there is still a change that Pub/Sub pattern could turn into code smell.&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="Engineering" scheme="http://blog.leapoahead.com/categories/Engineering/"/>
+    
+    
+  </entry>
   
   <entry>
     <title>让代码审查扮演更好的角色</title>
@@ -1268,84 +1343,6 @@
     </summary>
     
       <category term="Software Engineering" scheme="http://blog.leapoahead.com/categories/engineering/"/>
-    
-    
-  </entry>
-  
-  <entry>
-    <title>我是如何对待学习编程这件事的</title>
-    <link href="http://blog.leapoahead.com/2015/08/27/how-i-learn-as-a-software-engineer/"/>
-    <id>http://blog.leapoahead.com/2015/08/27/how-i-learn-as-a-software-engineer/</id>
-    <published>2015-08-28T04:10:09.000Z</published>
-    <updated>2015-08-28T04:14:38.000Z</updated>
-    
-    <content type="html"><![CDATA[<p>十一年前，我在电脑爱好者论坛上面发布了自己的第一个软件，DocumentsManager。那是一个用C# 3.0编写的文档分类、索引软件，五脏不全，但麻雀不小。今天他还在<a href="http://bbs.cfan.com.cn/thread-688798-1-1.html" target="_blank" rel="external">精华索引</a>里面。不只是他，精华帖中Leap.ahead和ASUSTek发布的帖子都是我发的，总共有22个。</p>
-<p>对于我而言，不仅创造是一种乐趣，学习如何创造同样也是一种很大的乐趣。在我的学生生涯中，在不同的时段，我学习创造的方式也不同。这是一个需要时间来演进的过程，所以时间一长，也需要总结一下。今天难得有了总结的冲动，便简略地说说我的一些心得。</p>
-<h3 id="深入才能浅出"><a href="#深入才能浅出" class="headerlink" title="深入才能浅出"></a>深入才能浅出</h3><p>学计算机的人都研究抽象。有句话是这样说的，所有的计算机科学问题都可以用抽象来解决，除了过多的抽象。</p>
-<p>由于接触了太多的“抽象”，我曾经有一种心态，那就是要学就学顶端的设计，要做架构师。我还问过我的一个大学学长，“学什么课才能成为架构师”？在那时的我心目中，架构师就是画图的，然后程序员实现就是了。</p>
-<p>但是在有了工作经历后，我发现实际上如果对底层没有很深入的了解，是根本没有办法对顶层设计做出好的判断的。可能我只是知道一些名词，诸如cache、CDN、负载均衡等。但是真的要到用到这些东西的时候，其实是只能用到最粗浅的那一层。连螺丝是怎么拧的都不知道的人，别人怎么放心让你去建桥呢？</p>
-<p>这就是所谓的“深入浅出”。深入到每一分每一毫，是为“深入”。然后再跳出来，纵观全局，是为“浅出”。</p>
-<h3 id="广撒网，但别做捞鱼的打算"><a href="#广撒网，但别做捞鱼的打算" class="headerlink" title="广撒网，但别做捞鱼的打算"></a>广撒网，但别做捞鱼的打算</h3><p>既然要深入浅出，那么这个深入真的是要把一个具体的技术钻研得很深吗？这也是一直以来很受争议的地方：到底是学一个领域学得精通好，还是学很多领域好？</p>
-<p>我的答案是，能真的学得精的人必然学得广，能真的学得广的人必然能学得精，而且能学得很快。仔细想想，我们的时间真的有少得窘迫到一定要在广和精之间二选一吗？如果纠结于这个问题，那么一定是放错了重点。重点不在于选择广或是精，而是如何让自己变得更会学习。</p>
-<p>我在国内外的大公司实习，感觉到的明显区别就是，国内公司“专家”居多，国外公司“工程师”居多。国内把工程师的职责分得非常清楚，哪怕是一个五六个人的小团队，也得有个明确的后端、前端、算法工程师云云。而国外的定义基本上都是软件工程师，职责很宽泛，你随时可以做其他团队做的事情。</p>
-<p>关于公司的这种现象，可以写另一篇单独的文章出来聊聊。但是可以确定的是，不管是国外还是国内，都有很多成功的技术公司。从来没有听人抱怨过，“我们这儿的工程师都只会一两样东西，其他啥也不会”，或者是“我们这儿的工程师啥都会一点儿，但就是不精”。</p>
-<p>所以，广撒网是没有错的，但是别做捞鱼的打算。当你自己感兴趣的时候，你自然会深入去研究，做出自己想要的东西。</p>
-<h3 id="学习规则，但不要相信它们"><a href="#学习规则，但不要相信它们" class="headerlink" title="学习规则，但不要相信它们"></a>学习规则，但不要相信它们</h3><p>我喜欢规则，但是也很讨厌规则。</p>
-<p>在学习技术的时候经常会遇到所谓的Best Practice（最佳实践）。面对最佳实践，有三种态度：</p>
-<ul>
-<li>我代码连跑都跑不通，还管你最佳实践？</li>
-<li>最佳实践是要遵守的，能让我们的代码更加如何如何……</li>
-<li>最佳实践值得学习，要打破的时候也要适当打破</li>
-</ul>
-<p>我认为，这三种态度没有谁对谁错，但是需要被理性地看待。诚然，最佳实践是一种规则。但是，我们在面对规则的时候，不要忘记了自己做选择的权利。</p>
-<p>其实做工程、技术就是做选择，而且选择一般都很明显。不像做研究，有时候你的选择可能非常难以被发现。规则应该是让我们变得更有主见的。我们应该把它们拿出来理解、讨论、思考，让它们千变万化。到最后，要我们做选择的时候，才有资本拿出来给别人看。</p>
-<p>除了最佳实践外，我还经常想：这门语言的这个语法简直是一个败笔、这个变量起的这个名字实在是糟透了……我们不应该做一个hater，见到什么都否定。但是只要我拿得出理由，哪怕理由本身是有问题的，那我都敢去质疑。</p>
-<h3 id="关于兴趣"><a href="#关于兴趣" class="headerlink" title="关于兴趣"></a>关于兴趣</h3><p>最后我想简短地说说兴趣。</p>
-<p>我不相信兴趣是可以培养出来的，只不过需要一点时间去发现它而已。就好像胡子总是会长的，但是个姑娘那就没辙了。如果硬要做自己不喜欢的事情，那就是让姑娘变小伙子，想起来就羞羞的。</p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;十一年前，我在电脑爱好者论坛上面发布了自己的第一个软件，DocumentsManager。那是一个用C# 3.0编写的文档分类、索引软件，五脏不全，但麻雀不小。今天他还在&lt;a href=&quot;http://bbs.cfan.com.cn/thread-688798-1-1.ht
-    
-    </summary>
-    
-      <category term="Life" scheme="http://blog.leapoahead.com/categories/life/"/>
-    
-    
-  </entry>
-  
-  <entry>
-    <title>First Week Intern at Yelp</title>
-    <link href="http://blog.leapoahead.com/2015/08/08/first-week-intern-at-yelp/"/>
-    <id>http://blog.leapoahead.com/2015/08/08/first-week-intern-at-yelp/</id>
-    <published>2015-08-09T05:03:00.000Z</published>
-    <updated>2015-08-27T03:13:57.000Z</updated>
-    
-    <content type="html"><![CDATA[<p>This week is my first week @ Yelp, and I ❤ed it!</p>
-<a id="more"></a>
-<img src="/2015/08/08/first-week-intern-at-yelp/yelp-logo.png" alt="yelp-logo.png" title="">
-<p>[FIREWORKS !!!]</p>
-<p>[SCREAMING !!!]</p>
-<p>It was my first time being here in the US. I am here for internship @ Yelp as a Software Engineer Intern for six months.</p>
-<p>I was well-guided and firmly welcomed during the first week. The overall on-boarding process was quite mature.</p>
-<p>After exploring the Yelp HQ building with Krista — our Intern Program Manager and the New Engineer Orientation, I was introduced to my team, and also my mentor Andrew.</p>
-<p>My hands got dirty and busy at the very first day. I mean, really dirty. I even started writing python code on the first day. Besides that, Engineering Wiki is here to help me to go through the processes.</p>
-<p>Although some of the engineering processes are heavy, many automations are here to save your time. For example, there are many well-defined git hooks. My favourite part is marley — a bot build upon HUBOT on Yelp’s IRC channel. Marley knows everythings — traffic split, who is pushing code, etc. And he/she also does many funny things like sending your LOVE to someone else.</p>
-<p>Yelp seems like data-driven now, which I found really interesting. Data always makes me think, although I am not a Data Science expert.</p>
-<p>In a word, Yelp has a fantastic engineering culture. You are always welcomed to bring up your new ideas and just make it happen with your team. Which is highly appreciated.</p>
-<p>Tech stuff aside, Yelp HQ is a fantastic place for working. I actually would like to take it as living and playing funny stuff instead of working. They have in-house cafe which makes great cafe, and also a pingpong table here for people to play with. You get on-demand beverages and snacks on each floor, which is a privilege I am using carefully (oh, calories again!). I hope I can achieve a great work-life balance here</p>
-<p>My favorite part is the social gene of this company. @ Yelp, People chat and exchange ideas at lunch, talking about many interesting things. To be honest, I just didn’t get many things they were talking about at the beginning, but I think I am starting to catch up. And even though, I can still get many great ideas from other, even it was just five days!</p>
-<p>Hopefully everything will go pretty well and enjoyable in the coming weeks. Great thanks to my team and all my friends here @ Yelp.</p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;This week is my first week @ Yelp, and I ❤ed it!&lt;/p&gt;
-    
-    </summary>
-    
-      <category term="Life" scheme="http://blog.leapoahead.com/categories/life/"/>
     
     
   </entry>

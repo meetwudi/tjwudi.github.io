@@ -1,0 +1,396 @@
+
+<!DOCTYPE html>
+<html lang="zh_CN">
+    
+<head>
+    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="回田园">
+    <title>Function variations in Python - 回田园</title>
+    <meta name="author" content="子回（John Wu）">
+    
+    
+        <link rel="alternative" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <meta name="description" content="In Object Oriented Programming, we deal with classes and their variations. A subclass is conceptually a more concrete realization of it’s superclass. Subclasses appear to be a family of classes with c">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="Function variations in Python">
+<meta property="og:url" content="http://blog.leapoahead.com/2016/10/25/python-function-variations/index.html">
+<meta property="og:site_name" content="回田园">
+<meta property="og:description" content="In Object Oriented Programming, we deal with classes and their variations. A subclass is conceptually a more concrete realization of it’s superclass. Subclasses appear to be a family of classes with c">
+<meta property="og:updated_time" content="2016-10-26T05:32:33.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Function variations in Python">
+<meta name="twitter:description" content="In Object Oriented Programming, we deal with classes and their variations. A subclass is conceptually a more concrete realization of it’s superclass. Subclasses appear to be a family of classes with c">
+<meta name="twitter:creator" content="@leapoahead">
+    
+    
+    
+        <meta property="og:image" content="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=640"/>
+    
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/style.min.css">
+    <!--STYLES END-->
+    
+    <script type="text/javascript">
+        if (location.host.indexOf('leapoahead.com') > 0) {
+            // Only send online traffic
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-50843289-7']);
+            _gaq.push(['_trackPageview']);
+            (function() {
+                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
+        }
+    </script>
+
+
+</head>
+
+    <body>
+        <div id="blog">
+            <header id="header" data-behavior="1">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <h1 class="header-title">
+        <a class="header-title-link" href="/ ">回田园</a>
+    </h1>
+</header>
+
+            <nav id="sidebar" data-behavior="1">
+    
+    <div class="sidebar-profile">
+        <div class="avatar-wrap">
+            <a href="/?action_from=sidebar-profile-picture">
+                <img class="sidebar-profile-picture" src="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90" alt="John Wu">
+            </a>
+        </div>
+        <p class="no-margin-bottom"><strong>子回（John Wu）</strong></p>
+        <p>Software Engineer at Yelp</p>
+
+    </div>
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/?action_from=sidebar-button-link"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-home"></i>
+                    <span class="sidebar-button-desc">主页</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/all-categories?action_from=sidebar-button-link"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
+                    <span class="sidebar-button-desc">分类</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                  <a  class="sidebar-button-link " href="https://github.com/tjwudi?action_from=sidebar-button-link" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-github"></i>
+                    <span class="sidebar-button-desc">GitHub</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                  <a  class="sidebar-button-link " href="https://twitter.com/leapoahead?action_from=sidebar-button-link" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-twitter"></i>
+                    <span class="sidebar-button-desc">Twitter</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                  <a  class="sidebar-button-link " href="https://facebook.com/leapoahead?action_from=sidebar-button-link" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-facebook"></i>
+                    <span class="sidebar-button-desc">Facebook</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                  <a  class="sidebar-button-link " href="https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A?action_from=sidebar-button-link" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-linkedin"></i>
+                    <span class="sidebar-button-desc">LinkedIn</span>
+                </a>
+        </li>
+        
+            <li class="sidebar-button">
+                
+                  <a  class="sidebar-button-link " href="mailto:webmaster@leapoahead.com?action_from=sidebar-button-link" target="_blank">
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-envelope-o"></i>
+                    <span class="sidebar-button-desc">Email</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+        <ul class="sidebar-buttons">
+        
+            <li class="sidebar-button">
+                
+                    <a  class="sidebar-button-link "
+                         href="/atom.xml?action_from=sidebar-button-link"
+                        
+                    >
+                
+                    <i class="sidebar-button-icon fa fa-lg fa-rss"></i>
+                    <span class="sidebar-button-desc">RSS</span>
+                </a>
+        </li>
+        
+    </ul>
+    
+</nav>
+
+            
+            <div id="main" data-behavior="1"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post" itemscope itemType="http://schema.org/BlogPosting">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title" itemprop="headline">
+            Function variations in Python
+        </h1>
+    
+    <div class="post-meta">
+    <time itemprop="datePublished" content="Tue Oct 25 2016 21:00:08 GMT-0700">
+	
+		    10月 25, 2016
+    	
+    </time>
+    
+        <span>in </span>
+        
+    <a class="category-link" href="/categories/Engineering/">Engineering</a>
+
+
+    
+</div>
+</div>
+    
+    <div class="post-content markdown" itemprop="articleBody">
+        <div class="main-content-wrap">
+            <p>In Object Oriented Programming, we deal with classes and their variations. A subclass is conceptually a more concrete realization of it’s superclass. Subclasses appear to be a family of classes with certain extent of variation.</p>
+<p>Variations are also introduced in functions. A function can derive a family of functions that are similar but with the same purpose. We will use Python functions as example to demonstrate the use of function variations, and effectively how it changes our way of writing clean code and tests.</p>
+<a id="more"></a>
+<h3 id="Partial-functions"><a href="#Partial-functions" class="headerlink" title="Partial functions"></a>Partial functions</h3><p>Let’s assume we have a website that has four versions of different languages with English as major language.</p>
+<p>A <code>translate</code> function translate a English sentence into a sentence in target language (<code>to_language</code>). It uses <code>tokenizer</code> to split English sentence into words, find corresponding words in target language, then uses <code>composer</code> to put them into a sentence.</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">translate</span><span class="params">(</span></span></div><div class="line">    sentence_in_english,</div><div class="line">    to_language,</div><div class="line">    language_dictionary,</div><div class="line">    tokenizer,</div><div class="line">    composer,</div><div class="line">):</div><div class="line">    tokens = tokenizer(sentence_in_english)</div><div class="line">    tokens_translated = [</div><div class="line">        language_dictionary[token]</div><div class="line">        <span class="keyword">for</span> token <span class="keyword">in</span> tokens</div><div class="line">    ]</div><div class="line">    <span class="keyword">return</span> composer(tokens_translated).to_string()</div></pre></td></tr></table></figure>
+<p>Because we have four languages, each has corresponding <code>language_dictionary</code>, <code>tokenizer</code> and <code>composer</code>. We do not want the user of <code>translate</code> function to actually initialize those arguments since it would be error-prone. Hence we write another four functions for users to use.</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">translate_mandarin</span><span class="params">(sentence_in_english)</span>:</span></div><div class="line">    language_dictionary = LanguageDictionary(...)</div><div class="line">    tokenizer = MandarinTokenizer(...)</div><div class="line">    composer = MandarinComoser(...)</div><div class="line">    <span class="keyword">return</span> translate(</div><div class="line">        sentence_in_english,</div><div class="line">        <span class="string">'mandarin'</span>,</div><div class="line">        language_dictionary,</div><div class="line">        tokenizer,</div><div class="line">        composer,</div><div class="line">    )</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">translate_german</span><span class="params">(sentence_in_english)</span>:</span></div><div class="line">    ...</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">translate_cantonese</span><span class="params">(sentence_in_english)</span>:</span></div><div class="line">    ...</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">translate_japanese</span><span class="params">(sentence_in_english)</span>:</span></div><div class="line">    ...</div></pre></td></tr></table></figure>
+<p>We find that the whole set of <code>translate_*</code> function are merely creating parameters and call <code>translate</code>. <strong>They have different implementations logic but are with exact same purpose</strong>.</p>
+<p>For this kind of function variations, we could simplify them using <code>functools.partial</code>. <code>partial</code> takes a original function and returns a new function. Calling new function is simply a call to original function with certain positional or keyword arguments set in advance.</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">from</span> functools <span class="keyword">import</span> partial</div><div class="line"></div><div class="line">translate_mandarin = partial(</div><div class="line">    translate,</div><div class="line">    to_language=<span class="string">'mandarin'</span>,</div><div class="line">    language_dictionary=MandarinDictionary(...),</div><div class="line">    tokenizer=MandarinTokenizer(...),</div><div class="line">    composer=MandarinComoser(...),</div><div class="line">)</div><div class="line">translate_german = partial(translate, ...)</div><div class="line">translate_cantonese = partial(translate, ...)</div><div class="line">translate_japanese = partial(translate, ...)</div></pre></td></tr></table></figure>
+<p>Here <code>translate_*</code> function are exactly identical to those we created before.</p>
+<p>Using <code>partial</code> function doesn’t necessarily save a lots a keystrokes, but brings some benefits for writing function variations of functions like <code>translate</code>:</p>
+<ol>
+<li>Prevent addtional functionalities to be attached to <code>translate_*</code>. They are a set of functions that are meant for a same purpose.</li>
+<li>You can skip testing function variations when you can test <code>tranlate</code> throughly.</li>
+<li>Could create cascading function variations (see below).</li>
+</ol>
+<figure class="highlight nix"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># `ChineseTokenizer`, `ChineseComposer` could be used for either mandarin and cantonese</span></div><div class="line"><span class="attr">translate_chinese</span> = partial(</div><div class="line">    translate,</div><div class="line">    <span class="attr">tokenizer=ChineseTokenizer(...),</span> </div><div class="line">    <span class="attr">composer=ChineseComposer(...),</span></div><div class="line">)</div><div class="line"><span class="attr">translate_mandarin</span> = partial(</div><div class="line">    translate_chinese,</div><div class="line">    <span class="attr">to_language='mandarin',</span></div><div class="line">    <span class="attr">language_dictionary=MandarinDictionary(...),</span></div><div class="line">)</div><div class="line"><span class="attr">translate_cantonese</span> = partial(</div><div class="line">    translate_chinese,</div><div class="line">    <span class="attr">to_language='cantonese',</span></div><div class="line">    <span class="attr">language_dictionary=CantoneseDictionary(...),</span></div><div class="line">)</div></pre></td></tr></table></figure>
+<h3 id="Dispatch-functions"><a href="#Dispatch-functions" class="headerlink" title="Dispatch functions"></a>Dispatch functions</h3><p>We have a function <code>inc</code> that takes either a number or a list of number then return a number or a list with every number increased by given amount.</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">inc</span><span class="params">(obj, amount)</span>:</span></div><div class="line">    <span class="keyword">if</span> isinstance(obj, numbers.Number):</div><div class="line">        <span class="keyword">return</span> obj + amount</div><div class="line">    <span class="keyword">elif</span> isinstance(obj, list):</div><div class="line">        <span class="keyword">return</span> [inc(item, amount) <span class="keyword">for</span> item <span class="keyword">in</span> obj]</div><div class="line">    <span class="keyword">else</span>:</div><div class="line">        <span class="keyword">raise</span> TypeError()</div><div class="line"></div><div class="line"><span class="keyword">assert</span> inc(<span class="number">1</span>, <span class="number">2</span>) == <span class="number">3</span></div><div class="line"><span class="keyword">assert</span> inc([<span class="number">1</span>, <span class="number">2</span>], <span class="number">2</span>) == [<span class="number">3</span>, <span class="number">4</span>]</div></pre></td></tr></table></figure>
+<p>This is a very common use case, where you want to provide both versions for single object or a list of object, even a dictionary.</p>
+<p>We can rewrite this function using decorator <code>functools.singledispatch</code>. <code>singledispatch</code> takes a look at the type of the type of the first argument when the decorated function is called, and call the right version for that type. It’s available since Python 3.4.</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">from</span> functools <span class="keyword">import</span> singledispatch</div><div class="line"></div><div class="line"><span class="meta">@singledispatch</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">inc</span><span class="params">(other_types_arg, amount)</span>:</span></div><div class="line">    <span class="keyword">raise</span> TypeError()</div><div class="line"></div><div class="line"><span class="meta">@inc.register(numbers.Number)</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">__inc_number</span><span class="params">(number, amount)</span>:</span></div><div class="line">    <span class="keyword">return</span> number + amount</div><div class="line"></div><div class="line"><span class="meta">@inc.register(list)</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">___inc_list</span><span class="params">(list_of_number, amount)</span>:</span></div><div class="line">    <span class="keyword">return</span> [inc(number, amount) <span class="keyword">for</span> number <span class="keyword">in</span> list_of_number]</div><div class="line"></div><div class="line"><span class="keyword">assert</span> inc(<span class="number">1</span>, <span class="number">2</span>) == <span class="number">3</span></div><div class="line"><span class="keyword">assert</span> inc([<span class="number">1</span>, <span class="number">2</span>], <span class="number">2</span>) == [<span class="number">3</span>, <span class="number">4</span>]</div></pre></td></tr></table></figure>
+<p>When the first positional argument is of type <code>list</code>, <code>__inc_list</code> will be called by <code>singledispatch</code>. <code>__inc_list</code> in turn calls <code>inc</code> with first positional argument is a number. If the first positional argument is neither list nor number, the original <code>inc</code> function will be called and triggers <code>TypeError</code>.</p>
+<p>Usage of <code>singledispatch</code> here created a family of function variations without any branch. Functionalities for each type could be maintained separately but still serving the same purpose. It’s also easiler to test thanks to the absence of branches.</p>
+<h3 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h3><p>Creating function variations using <code>partial</code> and <code>singledispatch</code> is interesting that variations can be consistently focused on a single purpose. This is very helpful for an evolving large scale system to provide a set of limited but varied interfaces, without introducing terrible complexity and frustrations.</p>
+
+            
+                
+
+            
+        </div>
+    </div>
+    
+    <div class="post-rmds main-content-wrap">
+        <h4>猜你想读</h4>
+        <ul>
+            
+            
+                <li><a href="http://blog.leapoahead.com/2016/10/06/dont-make-pubsub-a-code-smell/">Don&#39;t Make Pub/Sub a Code Smell</a></li>
+            
+        </ul>
+        
+    </div>
+
+    <div class="post-mailchimp">
+    <div class="main-content-wrap mailchimp-wrap">
+        <h3>让有趣易懂的知识主动找到你</h3>
+        <p>订阅我的Email半月刊，让我们共同学习、成长。绝无广告！</p>
+        <form action="//leapoahead.us8.list-manage.com/subscribe/post?u=f3a6e2f843ac1be03e00f7bed&amp;amp;id=58e28559b1" method="post" name="mc-embedded-subscribe-form" class="mailchimp-form" target="_blank" novalidate>
+            <label for="mce-EMAIL" style="display: none">Email地址</label>
+            <input type="email" value="" name="EMAIL" id="mce-EMAIL" placeholder="您常用的Email地址" class="mailchimp-input">
+            <input type="submit" value="订阅" name="subscribe" id="mc-embedded-subscribe" class="mailchimp-input mailchimp-subscribe">
+            <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+            <div style="position: absolute; left: -5000px;"><input type="text" name="b_f3a6e2f843ac1be03e00f7bed_58e28559b1" tabindex="-1" value=""></div>
+        </form>
+    </div>
+</div>
+    <div class="post-footer main-content-wrap">
+        
+        <div class="post-actions-wrap">
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
+                <i class="fa fa-share-alt"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2016/10/25/python-function-variations/">
+                <i class="fa fa-facebook-official"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2016/10/25/python-function-variations/">
+                <i class="fa fa-twitter"></i>
+            </a>
+        </li>
+        
+            <li class="post-action">
+                <a class="post-action-btn btn btn--default" href="#disqus_thread">
+                    <i class="fa fa-comment-o"></i>
+                </a>
+            </li>
+        
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default jiathis_button_tsina" href="http://www.jiathis.com/send/?webid=tsina&uid=1399172634630776&summary=&lt;p&gt;In Object Oriented Programming, we deal with classes and their variations. A subclass is conceptually a more concrete realization of it’s superclass. Subclasses appear to be a family of classes with certain extent of variation.&lt;/p&gt;
+&lt;p&gt;Variations are also introduced in functions. A function can derive a family of functions that are similar but with the same purpose. We will use Python functions as example to demonstrate the use of function variations, and effectively how it changes our way of writing clean code and tests.&lt;/p&gt;&title=Function variations in Python&url=http://blog.leapoahead.com/2016/10/25/python-function-variations/" target="new">
+                <i class="fa fa-weibo"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+            <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2016 子回（John Wu）. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="1">
+                    <div class="post-actions-wrap">
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
+                <i class="fa fa-share-alt"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2016/10/25/python-function-variations/">
+                <i class="fa fa-facebook-official"></i>
+            </a>
+        </li>
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2016/10/25/python-function-variations/">
+                <i class="fa fa-twitter"></i>
+            </a>
+        </li>
+        
+            <li class="post-action">
+                <a class="post-action-btn btn btn--default" href="#disqus_thread">
+                    <i class="fa fa-comment-o"></i>
+                </a>
+            </li>
+        
+        <li class="post-action hide-xs">
+            <a class="post-action-btn btn btn--default jiathis_button_tsina" href="http://www.jiathis.com/send/?webid=tsina&uid=1399172634630776&summary=&lt;p&gt;In Object Oriented Programming, we deal with classes and their variations. A subclass is conceptually a more concrete realization of it’s superclass. Subclasses appear to be a family of classes with certain extent of variation.&lt;/p&gt;
+&lt;p&gt;Variations are also introduced in functions. A function can derive a family of functions that are similar but with the same purpose. We will use Python functions as example to demonstrate the use of function variations, and effectively how it changes our way of writing clean code and tests.&lt;/p&gt;&title=Function variations in Python&url=http://blog.leapoahead.com/2016/10/25/python-function-variations/" target="new">
+                <i class="fa fa-weibo"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                <div id="share-options-bar" class="share-options-bar" data-behavior="1">
+    <ul class="share-options">
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2016/10/25/python-function-variations/">
+                <i class="fa fa-google-plus"></i><span class="">Share on Google Plus</span>
+            </a>
+        </li>
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2016/10/25/python-function-variations/">
+                <i class="fa fa-facebook-official"></i><span>Share on Facebook</span>
+            </a>
+        </li>
+        <li class="share-option">
+            <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2016/10/25/python-function-variations/">
+                <i class="fa fa-twitter"></i><span>Share on Twitter</span>
+            </a>
+        </li>
+    </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
+            
+        </div>
+        <div id="cover" style="background-image:url('http://res.cloudinary.com/tranquilpeak-hexo-theme/image/upload/v1438975482/v1.3.0-cover.jpg');"></div>
+    </body>
+    <!--SCRIPTS-->
+<script src="/assets/js/script.min.js"></script>
+<!--SCRIPTS END-->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'johnweng';
+        (function() {
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+
+
+
+</html>
