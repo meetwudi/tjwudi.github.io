@@ -1,23 +1,26 @@
 
 <!DOCTYPE html>
-<html lang="zh_CN">
+<html lang="en">
     
 <head>
-    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="generator" content="回田园">
     <title>当你打开网页的时候，世界都发生了什么（1） - 回田园</title>
     <meta name="author" content="子回（John Wu）">
     
     
-        <link rel="alternative" type="application/atom+xml" title="RSS" href="/atom.xml">
     
+        <link rel="alternate" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"子回（John Wu）","sameAs":["https://github.com/tjwudi","https://twitter.com/leapoahead","https://facebook.com/leapoahead","https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A","mailto:webmaster@leapoahead.com"],"image":"https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b"},"articleBody":"你有没有好奇过，当你试图打开一个网页的时候，这个世界上都发生了一些什么事情？会不会因为你手气键落，产生了蝴蝶效应，指尖的风拂起千年后你梦中的那个女孩的刘海？咳，也不是没有可能。今天我就来告诉你会发生什么事情，你可以沏一壶茶，坐在躺椅上，慢慢品味……\n\n\n时光倒流到你刚才打开这个页面的那一瞬间…\n\nHi！大家好，我的名字叫做浏览器，我还有个很酷的英文名字叫做Browser！很高兴认识你！\n\n什么，你想上百度？没问题！请你告诉我一下，百度的地址是什么？或者说，百度的URL是什么？\n对了，给你介绍一下URL，全称Unified Resource Locator，中文名为统一资源定位符，也就是我们俗称的网址。它就像互联网上的门牌一样，而浏览器就好像的士司机。你只要告诉浏览器你想要看的网页的URL，他就会把你载到那里啦！\n\n嗯，百度的地址是http://baidu.com是吧，好嘞！我现在就开始帮你去把这个网页给请过来。\n首先，我先要找到这个网页的家在哪里。网页的家有一个名字叫做服务器，它的英文名叫做Server。服务器本身其实也是一台电脑，跟你家中的电脑其实是非常相似的。只不过相比起来，服务器性能会比普通的电脑的性能来得强劲，因为它需要服务成千上万个人！\n\n那么这么多的服务器，我怎么找到百度所在的那个服务器呢？就靠你刚才告诉我的URL了！URL只是服务器地址的一个比较好听的名字而已，我没有办法直接通过这个地址找到服务器。其实啊，在服务器的世界里面，他们还有一种更精确的地址表达方式，叫做IP地址。\n\n插一嘴：IP地址是什么，它是怎么工作的，恐怕可以写好几本书了。简单地说，IP地址就是形同192.168.0.1这种形式的数字和英文句号的组合。你可以把它当做相对URL来讲更加准确的地址。\n\n我找到IP地址的方式其实很简单，我只要请操作系统（OS, Operating System）帮忙就好了。所谓的操作系统，就是类似Windows、Mac OS一样的软件，你能够在它们上面安装各种各样的软件。其中Mac OS是苹果电脑专用的操作系统。\n\n这个从URL到IP地址的过程叫做DNS查找，即DNS Lookup。天啊，又一个新名词！没关系，你不需要记住这个名词。你所需要知道的是，这里看似操作系统独自很快地完成了这个过程，但是其实它为此所做的事情相当复杂。我们今后将有专门的文章用来介绍这一过程。\n建立连接和发送请求已经顺利拿到了服务器的IP地址，接下来我就要向他要东西啦！首先我希望它把baidu.com对应的网页传送给我。我们之间传输信息的方式比较特殊，不需要我坐地铁去找它然后搬回来，而是我会跟服务器建立一个连接。\n连接，英文名叫做Connection。实际上，它就像开辟了一个专用的通道，供我们互相之间传递信息。\n\n接下来，我就会通过这个专用通道，向服务器发起一个请求（Request）。在这个请求里面，我会像服务器阐明我想要的资源是什么，例如在这里，我想要的资源就是百度的首页。\n那么具体这个资源的位置我是怎么告诉服务器的呢？还得回到刚才的URL来说！\n\n一个URL一般由六个部分组成，这里我们只介绍主机名（服务器名）和资源位置（或者说是资源路径）。一个服务器上可以有很多的资源，对应着不同的页面或者文件，例如http://xxx.com/login可以是某网站的登录页面，http://xxx.com/register则可以是某网站的注册页面。这里的/login和/register就代表了两个不同的资源（这里是页面）。/是比较特殊的资源路径，叫做“根路径”，通常就是网站的首页了。其实，这里的原理就和我们电脑上的文件夹是一模一样的。\n在知道了需要的资源的位置之后，我就会给服务器发送一个请求。这个请求实际上就是一系列的英文字符，就像一篇文章一样。\n1234GET / HTTP/1.1User-Agent: curl/7.37.1Host: baidu.comAccept: */*\n怎么样，我也是很有文采的吧！在这里，你需要知道的是，GET /即代表，我现在要从服务器上拿下来一个资源，这个资源的位置是/。另外，Host: baidu.com代表我要请求的主机名叫做baidu.com。Host这个英文单词就是有主机的意思！\n好了，请求已经准备完毕了，我现在就通过之前建立的连接将这个请求直接送给服务器！\n获得响应当服务器获得请求之后，经过一系列的工作（可能是类似翻箱倒柜找材料之类的吧），最后将要送还给我的材料，包括网页的代码，全部打包起来形成一个响应（Response），通过连接返回给我。\n响应是和请求对应的，一个请求对应一个响应。这就好像问问题一样，一问一答。所以，响应本身其实也就是一系列的英文字符，就像这样：（下面的响应是被简化的版本）\n123456789101112131415HTTP/1.1 200 OKDate: Mon, 31 Aug 2015 03:06:34 GMTServer: ApacheCache-Control: max-age=86400Expires: Tue, 01 Sep 2015 03:06:34 GMTLast-Modified: Tue, 12 Jan 2010 13:48:00 GMTETag: \"51-4b4c7d90\"Accept-Ranges: bytesContent-Length: 81Connection: Keep-AliveContent-Type: text/html &lt;html&gt;    .... 此处省略N多行&lt;/html&gt;\n你可以注意到，响应分为两个部分。在13行之上的部分称作响应头（Response Head），下面的部分称作响应主体（Response Body）。在这里，响应主体就是网页的代码了。\n\n好了，到目前为止，我已经拿到了网页的代码。\n等等…啥是代码？好问题！\n网页本身其实是由一系列的英文字符编写成的，这些英文字符称作“代码”（Code）。这些英文字符和普通的英文文章看起来差不多，但是它们都是用一种我（浏览器）可以看得懂的格式写成的。我通过阅读这些英文字符，理解它，然后按照它的意思将你想要看的页面渲染出来。\n别急，关于这些，我们在接下来的文章中慢慢道来。\n","dateCreated":"2015-08-30T20:47:04-07:00","dateModified":"2015-08-30T21:55:14-07:00","datePublished":"2015-08-30T20:47:04-07:00","description":"你有没有好奇过，当你试图打开一个网页的时候，这个世界上都发生了一些什么事情？会不会因为你手气键落，产生了蝴蝶效应，指尖的风拂起千年后你梦中的那个女孩的刘海？咳，也不是没有可能。今天我就来告诉你会发生什么事情，你可以沏一壶茶，坐在躺椅上，慢慢品味……","headline":"当你打开网页的时候，世界都发生了什么（1）","image":["browser.png"],"mainEntityOfPage":{"@type":"WebPage","@id":"http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/"},"publisher":{"@type":"Organization","name":"子回（John Wu）","sameAs":["https://github.com/tjwudi","https://twitter.com/leapoahead","https://facebook.com/leapoahead","https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A","mailto:webmaster@leapoahead.com"],"image":"https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b","logo":{"@type":"ImageObject","url":"https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b"}},"url":"http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/","thumbnailUrl":"browser.png"}</script>
     <meta name="description" content="你有没有好奇过，当你试图打开一个网页的时候，这个世界上都发生了一些什么事情？会不会因为你手气键落，产生了蝴蝶效应，指尖的风拂起千年后你梦中的那个女孩的刘海？咳，也不是没有可能。今天我就来告诉你会发生什么事情，你可以沏一壶茶，坐在躺椅上，慢慢品味……">
 <meta property="og:type" content="blog">
 <meta property="og:title" content="当你打开网页的时候，世界都发生了什么（1）">
 <meta property="og:url" content="http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/index.html">
 <meta property="og:site_name" content="回田园">
 <meta property="og:description" content="你有没有好奇过，当你试图打开一个网页的时候，这个世界上都发生了一些什么事情？会不会因为你手气键落，产生了蝴蝶效应，指尖的风拂起千年后你梦中的那个女孩的刘海？咳，也不是没有可能。今天我就来告诉你会发生什么事情，你可以沏一壶茶，坐在躺椅上，慢慢品味……">
+<meta property="og:locale" content="en">
 <meta property="og:image" content="http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/browser.png">
 <meta property="og:image" content="http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/baidu-url.png">
 <meta property="og:image" content="http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/many-servers.png">
@@ -33,18 +36,20 @@
 <meta name="twitter:creator" content="@leapoahead">
     
     
+        
+    
     
         <meta property="og:image" content="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=640"/>
     
     
-        <meta property="og:image" content="/2015/08/30/what-happens-when-you-open-a-webpage/browser.png"/>
+        <meta property="og:image" content="http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/browser.png"/>
         <meta class="swiftype" name="image" data-type="enum" content="http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/browser.png" />
     
     
     
     
     <!--STYLES-->
-    <link rel="stylesheet" href="/assets/css/style.min.css">
+    <link rel="stylesheet" href="/assets/css/style-ofaazzmie6zorbkvxsyjh4p3coouliollv7rrwszuqeqxzl7trwkzzisuvjp.min.css">
     <!--STYLES END-->
     
     <script type="text/javascript">
@@ -62,144 +67,173 @@
     </script>
 
 
+    
 </head>
 
     <body>
         <div id="blog">
-            <header id="header" data-behavior="1">
-    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
-    <h1 class="header-title">
-        <a class="header-title-link" href="/ ">回田园</a>
-    </h1>
-</header>
+            <!-- Define author's picture -->
 
-            <nav id="sidebar" data-behavior="1">
+
     
-    <div class="sidebar-profile">
-        <div class="avatar-wrap">
-            <a href="/?action_from=sidebar-profile-picture">
-                <img class="sidebar-profile-picture" src="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90" alt="John Wu">
-            </a>
-        </div>
-        <p class="no-margin-bottom"><strong>子回（John Wu）</strong></p>
-        <p>Software Engineer at Yelp</p>
+        
+    
 
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a class="header-title-link" href="/ ">回田园</a>
     </div>
     
-        <ul class="sidebar-buttons">
         
-            <li class="sidebar-button">
-                
-                    <a  class="sidebar-button-link "
-                         href="/?action_from=sidebar-button-link"
-                        
-                    >
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-home"></i>
-                    <span class="sidebar-button-desc">主页</span>
-                </a>
-        </li>
+            <a  class="header-right-picture "
+                href="#about">
         
-            <li class="sidebar-button">
-                
-                    <a  class="sidebar-button-link "
-                         href="/all-categories?action_from=sidebar-button-link"
-                        
-                    >
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
-                    <span class="sidebar-button-desc">分类</span>
-                </a>
-        </li>
         
-    </ul>
+            <img class="header-picture" src="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90" alt="Author&#39;s picture"/>
+        
+        </a>
     
-        <ul class="sidebar-buttons">
-        
-            <li class="sidebar-button">
-                
-                  <a  class="sidebar-button-link " href="https://github.com/tjwudi?action_from=sidebar-button-link" target="_blank">
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-github"></i>
-                    <span class="sidebar-button-desc">GitHub</span>
-                </a>
-        </li>
-        
-            <li class="sidebar-button">
-                
-                  <a  class="sidebar-button-link " href="https://twitter.com/leapoahead?action_from=sidebar-button-link" target="_blank">
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-twitter"></i>
-                    <span class="sidebar-button-desc">Twitter</span>
-                </a>
-        </li>
-        
-            <li class="sidebar-button">
-                
-                  <a  class="sidebar-button-link " href="https://facebook.com/leapoahead?action_from=sidebar-button-link" target="_blank">
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-facebook"></i>
-                    <span class="sidebar-button-desc">Facebook</span>
-                </a>
-        </li>
-        
-            <li class="sidebar-button">
-                
-                  <a  class="sidebar-button-link " href="https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A?action_from=sidebar-button-link" target="_blank">
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-linkedin"></i>
-                    <span class="sidebar-button-desc">LinkedIn</span>
-                </a>
-        </li>
-        
-            <li class="sidebar-button">
-                
-                  <a  class="sidebar-button-link " href="mailto:webmaster@leapoahead.com?action_from=sidebar-button-link" target="_blank">
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-envelope-o"></i>
-                    <span class="sidebar-button-desc">Email</span>
-                </a>
-        </li>
-        
-    </ul>
+</header>
+
+            
+
     
-        <ul class="sidebar-buttons">
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
         
-            <li class="sidebar-button">
-                
-                    <a  class="sidebar-button-link "
-                         href="/atom.xml?action_from=sidebar-button-link"
-                        
-                    >
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-rss"></i>
-                    <span class="sidebar-button-desc">RSS</span>
+            <div class="sidebar-profile">
+                <a href="/#about">
+                    <img class="sidebar-profile-picture" src="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=110" alt="Author&#39;s picture"/>
                 </a>
-        </li>
+                <h4 class="sidebar-profile-name">子回（John Wu）</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p>Strong opinion, weakly held.</p>
+</h5>
+                
+            </div>
         
-    </ul>
-    
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/ "
+                            
+                            title="主页"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">主页</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-categories"
+                            
+                            title="分类"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">分类</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://github.com/tjwudi" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://twitter.com/leapoahead" target="_blank" rel="noopener" title="Twitter">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-twitter" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Twitter</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://facebook.com/leapoahead" target="_blank" rel="noopener" title="Facebook">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-facebook" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Facebook</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A" target="_blank" rel="noopener" title="LinkedIn">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-linkedin" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">LinkedIn</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="mailto:webmaster@leapoahead.com" target="_blank" rel="noopener" title="Email">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-envelope-o" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Email</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/atom.xml"
+                            
+                            title="RSS"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-rss" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">RSS</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
 </nav>
 
             
-            <div id="main" data-behavior="1"
+            <div id="main" data-behavior="4"
                  class="
                         hasCoverMetaIn
                         ">
                 
-<article class="post" itemscope itemType="http://schema.org/BlogPosting">
+<article class="post">
     
     
         <div class="post-header main-content-wrap text-left">
     
-        <h1 class="post-title" itemprop="headline">
+        <h1 class="post-title">
             当你打开网页的时候，世界都发生了什么（1）
         </h1>
     
-    <div class="post-meta">
-    <time itemprop="datePublished" content="Sun Aug 30 2015 20:47:04 GMT-0700">
+    
+        <div class="post-meta">
+    <time datetime="2015-08-30T20:47:04-07:00">
 	
-		    8月 30, 2015
+		    Aug 30, 2015
     	
     </time>
     
@@ -210,9 +244,12 @@
 
     
 </div>
-</div>
+
     
-    <div class="post-content markdown" itemprop="articleBody">
+</div>
+
+    
+    <div class="post-content markdown">
         <div class="main-content-wrap">
             <p>你有没有好奇过，当你试图打开一个网页的时候，这个世界上都发生了一些什么事情？会不会因为你手气键落，产生了蝴蝶效应，指尖的风拂起千年后你梦中的那个女孩的刘海？咳，也不是没有可能。今天我就来告诉你会发生什么事情，你可以沏一壶茶，坐在躺椅上，慢慢品味……</p>
 <a id="more"></a>
@@ -220,45 +257,43 @@
 <p>时光倒流到你刚才打开这个页面的那一瞬间…</p>
 </blockquote>
 <p>Hi！大家好，我的名字叫做浏览器，我还有个很酷的英文名字叫做Browser！很高兴认识你！</p>
-<img src="/2015/08/30/what-happens-when-you-open-a-webpage/browser.png" alt="浏览器" title="浏览器">
+<img src="/2015/08/30/what-happens-when-you-open-a-webpage/browser.png" title="浏览器">
 <p>什么，你想上百度？没问题！请你告诉我一下，百度的地址是什么？或者说，百度的<strong>URL</strong>是什么？</p>
 <p>对了，给你介绍一下URL，全称Unified Resource Locator，中文名为统一资源定位符，也就是我们俗称的<strong>网址</strong>。它就像互联网上的门牌一样，而浏览器就好像的士司机。你只要告诉浏览器你想要看的网页的URL，他就会把你载到那里啦！</p>
-<img src="/2015/08/30/what-happens-when-you-open-a-webpage/baidu-url.png" alt="浏览器：访问百度页面" title="浏览器：访问百度页面">
+<img src="/2015/08/30/what-happens-when-you-open-a-webpage/baidu-url.png" title="浏览器：访问百度页面">
 <p>嗯，百度的地址是<code>http://baidu.com</code>是吧，好嘞！我现在就开始帮你去把这个网页给请过来。</p>
 <p>首先，我先要找到这个网页的家在哪里。网页的家有一个名字叫做<strong>服务器</strong>，它的英文名叫做Server。服务器本身其实也是一台电脑，跟你家中的电脑其实是非常相似的。只不过相比起来，服务器性能会比普通的电脑的性能来得强劲，因为它需要服务成千上万个人！</p>
-<img src="/2015/08/30/what-happens-when-you-open-a-webpage/many-servers.png" alt="互联网上的服务器" title="互联网上的服务器">
+<img src="/2015/08/30/what-happens-when-you-open-a-webpage/many-servers.png" title="互联网上的服务器">
 <p>那么这么多的服务器，我怎么找到百度所在的那个服务器呢？就靠你刚才告诉我的URL了！URL只是服务器地址的一个比较好听的名字而已，我没有办法直接通过这个地址找到服务器。其实啊，在服务器的世界里面，他们还有一种更精确的地址表达方式，叫做IP地址。</p>
 <blockquote>
 <p>插一嘴：IP地址是什么，它是怎么工作的，恐怕可以写好几本书了。简单地说，IP地址就是形同<code>192.168.0.1</code>这种形式的数字和英文句号的组合。你可以把它当做相对URL来讲更加准确的地址。</p>
 </blockquote>
 <p>我找到IP地址的方式其实很简单，我只要请操作系统（OS, Operating System）帮忙就好了。所谓的操作系统，就是类似Windows、Mac OS一样的软件，你能够在它们上面安装各种各样的软件。其中Mac OS是苹果电脑专用的操作系统。</p>
-<img src="/2015/08/30/what-happens-when-you-open-a-webpage/dnslookup.png" alt="dnslookup.png" title="">
+<img src="/2015/08/30/what-happens-when-you-open-a-webpage/dnslookup.png">
 <p>这个从URL到IP地址的过程叫做DNS查找，即DNS Lookup。天啊，又一个新名词！没关系，你不需要记住这个名词。你所需要知道的是，这里看似操作系统独自很快地完成了这个过程，但是其实它为此所做的事情相当复杂。我们今后将有专门的文章用来介绍这一过程。</p>
 <h3 id="建立连接和发送请求"><a href="#建立连接和发送请求" class="headerlink" title="建立连接和发送请求"></a>建立连接和发送请求</h3><p>已经顺利拿到了服务器的IP地址，接下来我就要向他要东西啦！首先我希望它把baidu.com对应的网页传送给我。我们之间传输信息的方式比较特殊，不需要我坐地铁去找它然后搬回来，而是我会跟服务器建立一个<strong>连接</strong>。</p>
 <p>连接，英文名叫做Connection。实际上，它就像开辟了一个专用的通道，供我们互相之间传递信息。</p>
-<img src="/2015/08/30/what-happens-when-you-open-a-webpage/connection.png" alt="连接的建立" title="连接的建立">
+<img src="/2015/08/30/what-happens-when-you-open-a-webpage/connection.png" title="连接的建立">
 <p>接下来，我就会通过这个专用通道，向服务器发起一个请求（Request）。在这个请求里面，我会像服务器阐明我想要的资源是什么，例如在这里，我想要的资源就是百度的首页。</p>
 <p>那么具体这个资源的位置我是怎么告诉服务器的呢？还得回到刚才的URL来说！</p>
-<img src="/2015/08/30/what-happens-when-you-open-a-webpage/url.png" alt="URL的组成" title="URL的组成">
+<img src="/2015/08/30/what-happens-when-you-open-a-webpage/url.png" title="URL的组成">
 <p>一个URL一般由六个部分组成，这里我们只介绍主机名（服务器名）和资源位置（或者说是资源路径）。一个服务器上可以有很多的资源，对应着不同的页面或者文件，例如<code>http://xxx.com/login</code>可以是某网站的登录页面，<code>http://xxx.com/register</code>则可以是某网站的注册页面。这里的<code>/login</code>和<code>/register</code>就代表了两个不同的资源（这里是页面）。<code>/</code>是比较特殊的资源路径，叫做“根路径”，通常就是网站的首页了。其实，这里的原理就和我们电脑上的文件夹是一模一样的。</p>
 <p>在知道了需要的资源的位置之后，我就会给服务器发送一个请求。这个请求实际上就是一系列的英文字符，就像一篇文章一样。</p>
-<figure class="highlight http"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">GET</span> <span class="string">/</span> HTTP/1.1</div><div class="line"><span class="attribute">User-Agent</span>: curl/7.37.1</div><div class="line"><span class="attribute">Host</span>: baidu.com</div><div class="line"><span class="attribute">Accept</span>: */*</div></pre></td></tr></table></figure>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">GET</span> <span class="string">/</span> HTTP/1.1</span><br><span class="line"><span class="attribute">User-Agent</span>: curl/7.37.1</span><br><span class="line"><span class="attribute">Host</span>: baidu.com</span><br><span class="line"><span class="attribute">Accept</span>: */*</span><br></pre></td></tr></table></figure>
 <p>怎么样，我也是很有文采的吧！在这里，你需要知道的是，<code>GET /</code>即代表，我现在要从服务器上拿下来一个资源，这个资源的位置是<code>/</code>。另外，<code>Host: baidu.com</code>代表我要请求的主机名叫做<code>baidu.com</code>。Host这个英文单词就是有主机的意思！</p>
 <p>好了，请求已经准备完毕了，我现在就通过之前建立的连接将这个请求直接送给服务器！</p>
 <h3 id="获得响应"><a href="#获得响应" class="headerlink" title="获得响应"></a>获得响应</h3><p>当服务器获得请求之后，经过一系列的工作（可能是类似翻箱倒柜找材料之类的吧），最后将要送还给我的材料，包括网页的代码，全部打包起来形成一个<strong>响应</strong>（Response），通过连接返回给我。</p>
 <p>响应是和请求对应的，一个请求对应一个响应。这就好像问问题一样，一问一答。所以，响应本身其实也就是一系列的英文字符，就像这样：（下面的响应是被简化的版本）</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">HTTP/1.1 200 OK</div><div class="line">Date: Mon, 31 Aug 2015 03:06:34 GMT</div><div class="line">Server: Apache</div><div class="line"><span class="keyword">Cache</span>-Control: <span class="keyword">max</span>-age=<span class="number">86400</span></div><div class="line">Expires: Tue, <span class="number">01</span> Sep <span class="number">2015</span> <span class="number">03</span>:<span class="number">06</span>:<span class="number">34</span> GMT</div><div class="line"><span class="keyword">Last</span>-Modified: Tue, <span class="number">12</span> Jan <span class="number">2010</span> <span class="number">13</span>:<span class="number">48</span>:<span class="number">00</span> GMT</div><div class="line">ETag: <span class="string">"51-4b4c7d90"</span></div><div class="line"><span class="keyword">Accept</span>-Ranges: <span class="keyword">bytes</span></div><div class="line"><span class="keyword">Content</span>-<span class="keyword">Length</span>: <span class="number">81</span></div><div class="line"><span class="keyword">Connection</span>: <span class="keyword">Keep</span>-Alive</div><div class="line"><span class="keyword">Content</span>-<span class="keyword">Type</span>: <span class="built_in">text</span>/html</div><div class="line"> </div><div class="line">&lt;html&gt;</div><div class="line">    .... 此处省略N多行</div><div class="line">&lt;/html&gt;</div></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">HTTP/1.1 200 OK</span><br><span class="line">Date: Mon, 31 Aug 2015 03:06:34 GMT</span><br><span class="line">Server: Apache</span><br><span class="line"><span class="keyword">Cache</span>-Control: <span class="keyword">max</span>-age=<span class="number">86400</span></span><br><span class="line">Expires: Tue, <span class="number">01</span> Sep <span class="number">2015</span> <span class="number">03</span>:<span class="number">06</span>:<span class="number">34</span> GMT</span><br><span class="line"><span class="keyword">Last</span>-Modified: Tue, <span class="number">12</span> Jan <span class="number">2010</span> <span class="number">13</span>:<span class="number">48</span>:<span class="number">00</span> GMT</span><br><span class="line">ETag: <span class="string">"51-4b4c7d90"</span></span><br><span class="line"><span class="keyword">Accept</span>-Ranges: <span class="keyword">bytes</span></span><br><span class="line"><span class="keyword">Content</span>-<span class="keyword">Length</span>: <span class="number">81</span></span><br><span class="line"><span class="keyword">Connection</span>: <span class="keyword">Keep</span>-Alive</span><br><span class="line"><span class="keyword">Content</span>-<span class="keyword">Type</span>: <span class="built_in">text</span>/html</span><br><span class="line"> </span><br><span class="line">&lt;html&gt;</span><br><span class="line">    .... 此处省略N多行</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
 <p>你可以注意到，响应分为两个部分。在13行之上的部分称作响应头（Response Head），下面的部分称作响应主体（Response Body）。在这里，响应主体就是网页的代码了。</p>
-<img src="/2015/08/30/what-happens-when-you-open-a-webpage/req-res.png" alt="请求-响应" title="请求-响应">
+<img src="/2015/08/30/what-happens-when-you-open-a-webpage/req-res.png" title="请求-响应">
 <p>好了，到目前为止，我已经拿到了网页的代码。</p>
 <h3 id="等等…啥是代码？"><a href="#等等…啥是代码？" class="headerlink" title="等等…啥是代码？"></a>等等…啥是代码？</h3><p>好问题！</p>
 <p>网页本身其实是由一系列的英文字符编写成的，这些英文字符称作“代码”（Code）。这些英文字符和普通的英文文章看起来差不多，但是它们都是用一种我（浏览器）可以看得懂的格式写成的。我通过阅读这些英文字符，理解它，然后按照它的意思将你想要看的页面渲染出来。</p>
 <p>别急，关于这些，我们在接下来的文章中慢慢道来。</p>
 
             
-                
 
-            
         </div>
     </div>
     
@@ -288,13 +323,36 @@
         </form>
     </div>
 </div>
-    <div class="post-footer main-content-wrap">
+    <div id="post-footer" class="post-footer main-content-wrap">
         
-        <div class="post-actions-wrap">
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/08/31/understanding-js-this-keyword/" data-tooltip="用自然语言的角度理解JavaScript中的this关键字" aria-label="PREVIOUS: 用自然语言的角度理解JavaScript中的this关键字">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">PREVIOUS</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/08/27/introduction-to-ab-testing/" data-tooltip="你所应该知道的A/B测试基础" aria-label="NEXT: 你所应该知道的A/B测试基础">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">NEXT</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
     <ul class="post-actions post-action-share">
         <li class="post-action hide-lg hide-md hide-sm">
-            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
-                <i class="fa fa-share-alt"></i>
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="Share this post">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
             </a>
         </li>
         <li class="post-action hide-xs">
@@ -324,9 +382,12 @@
 
 
         
-            <div id="disqus_thread">
+        
+            
+                <div id="disqus_thread">
     <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 </div>
+            
         
     </div>
 </article>
@@ -335,18 +396,40 @@
 
                 <footer id="footer" class="main-content-wrap">
     <span class="copyrights">
-        Copyrights &copy; 2017 子回（John Wu）. All Rights Reserved.
+        Copyrights &copy; 2018 子回（John Wu）. All Rights Reserved.
     </span>
 </footer>
 
             </div>
             
-                <div id="bottom-bar" class="post-bottom-bar" data-behavior="1">
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
                     <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/08/31/understanding-js-this-keyword/" data-tooltip="用自然语言的角度理解JavaScript中的this关键字" aria-label="PREVIOUS: 用自然语言的角度理解JavaScript中的this关键字">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">PREVIOUS</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/08/27/introduction-to-ab-testing/" data-tooltip="你所应该知道的A/B测试基础" aria-label="NEXT: 你所应该知道的A/B测试基础">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">NEXT</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
     <ul class="post-actions post-action-share">
         <li class="post-action hide-lg hide-md hide-sm">
-            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
-                <i class="fa fa-share-alt"></i>
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="Share this post">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
             </a>
         </li>
         <li class="post-action hide-xs">
@@ -376,45 +459,102 @@
 
 
                 </div>
-                <div id="share-options-bar" class="share-options-bar" data-behavior="1">
+                <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+    <i id="btn-close-shareoptions" class="fa fa-close"></i>
     <ul class="share-options">
-        <li class="share-option">
-            <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/">
-                <i class="fa fa-google-plus"></i><span class="">Share on Google Plus</span>
-            </a>
-        </li>
-        <li class="share-option">
-            <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/">
-                <i class="fa fa-facebook-official"></i><span>Share on Facebook</span>
-            </a>
-        </li>
-        <li class="share-option">
-            <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/">
-                <i class="fa fa-twitter"></i><span>Share on Twitter</span>
-            </a>
-        </li>
+        
+            
+            
+            <li class="share-option">
+                <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/">
+                    <i class="fa fa-facebook-official" aria-hidden="true"></i><span>Share on Facebook</span>
+                </a>
+            </li>
+        
+            
+            
+            <li class="share-option">
+                <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/">
+                    <i class="fa fa-twitter" aria-hidden="true"></i><span>Share on Twitter</span>
+                </a>
+            </li>
+        
+            
+            
+            <li class="share-option">
+                <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/">
+                    <i class="fa fa-google-plus" aria-hidden="true"></i><span>Share on Google+</span>
+                </a>
+            </li>
+        
     </ul>
 </div>
-<div id="share-options-mask" class="share-options-mask"></div>
+
             
         </div>
-        <div id="cover" style="background-image:url('http://res.cloudinary.com/tranquilpeak-hexo-theme/image/upload/v1438975482/v1.3.0-cover.jpg');"></div>
-    </body>
-    <!--SCRIPTS-->
-<script src="/assets/js/script.min.js"></script>
+        
+
+
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-remove"></i>
+        </div>
+        
+            <img id="about-card-picture" src="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=110" alt="Author&#39;s picture"/>
+        
+            <h4 id="about-card-name">子回（John Wu）</h4>
+        
+            <div id="about-card-bio"><p>Strong opinion, weakly held.</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>Software Engineer at Facebook</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker"></i>
+                <br/>
+                San Francisco, CA
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-plvqpdisosqesdacqcnrardusldtgvjkw3tfmpjbhf0aa6t4lalcoshprtxn.min.js"></script>
 <!--SCRIPTS END-->
 
-    <script type="text/javascript">
-        var disqus_shortname = 'johnweng';
-        (function() {
-            var dsq = document.createElement('script');
-            dsq.type = 'text/javascript';
-            dsq.async = true;
-            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-        })();
-    </script>
+    
+        <script>
+             var disqus_config = function () {
+                 this.page.url = 'http://blog.leapoahead.com/2015/08/30/what-happens-when-you-open-a-webpage/';
+                 
+                    this.page.identifier = '2015/08/30/what-happens-when-you-open-a-webpage/';
+                 
+             };
+            (function() {
+                var d = document, s = d.createElement('script');
+                var disqus_shortname = 'johnweng';
+                s.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+
+                s.setAttribute('data-timestamp', +new Date());
+                (d.head || d.body).appendChild(s);
+            })();
+        </script>
+    
 
 
 
+    </body>
 </html>

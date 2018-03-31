@@ -1,23 +1,26 @@
 
 <!DOCTYPE html>
-<html lang="zh_CN">
+<html lang="en">
     
 <head>
-    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="generator" content="回田园">
     <title>在Node应用中避免“Dot Hell” - 回田园</title>
     <meta name="author" content="子回（John Wu）">
     
     
-        <link rel="alternative" type="application/atom+xml" title="RSS" href="/atom.xml">
     
+        <link rel="alternate" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"子回（John Wu）","sameAs":["https://github.com/tjwudi","https://twitter.com/leapoahead","https://facebook.com/leapoahead","https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A","mailto:webmaster@leapoahead.com"],"image":"https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b"},"articleBody":"在Node应用中，我们使用require来加载模块。在目录层次相对复杂的应用中，总是会出现类似require(&#39;../../../../../module&#39;)的调用，我把它称之为Dot Hell。我用了一些时间研究现有的解决方案，并介绍我个人认为最好的方法。\n\n\n在Node中的全局对象是global，它就像浏览器的window对象一样。global对象下面的方法都可以直接调用。\n12global.a = 1require('assert').equal(1, a)\n因此最简单的方法，也是我认为最好的方式就是在global下创建一个appRequire方法作为require方法的包装，appRequire方法专门用于调用应用内的包。\n1234var path = require('path')global.appRequire = function(path) &#123;    return require(path.resolve(__dirname, path))&#125;\n假设我们的项目目录结构如下\n12345678├── app│   ├── controller│   │   └── AppController.js│   ├── model│   │   └── User.js│   └── view│       └── AppView.js└── app.js\n其中app.js是应用的入口。那么我们只需要在app.js中应用上面的代码，那么在整个应用程序中就都可以使用了。\n例如，现在在app/controller/AppController.js中，我们可以用下面的语句调用app/model/User.js。\n1var User = appRequire('app/model/User')\nOh Yeah! 一切都很优雅，很顺利。\n但是一个应用中一定还会有测试代码。以单元测试为例，我们如果用mocha之类的Task Runner去运行测试的话，就得在每个测试前面都加上这一段代码，这样做很容易出错，而且很麻烦。\n所以，我们可以把上述的封装代码单独封装成一个文件global-bootstrap.js，在运行mocha的时候，用mocha的require参数来指定每次运行测试之前要加载global-bootstrap.js。\n123# 用Mocha运行tests文件夹下面的所有测试# 在运行的时候加载should库，以及我们封装的含有appRequire函数的文件mocha --require should --require global-bootstrap.js --recursive tests\n其他方案对于解决这个问题，还有两种方案：NODE_ENV方案（及其变种）和Symlink方案，你可以在这里看到。\n我认为应该避免使用这两种方案。虽然这两种方案都可行，但是它们都会可能导致应用自身的目录名和node模块名冲突。例如，在下面的结构中，使用require(&#39;request&#39;)就很容易产生二义性。\n12345.├── node_modules│   └── request└── request    └── index.js\n总结我一直认为Node的模块引用方式的设计是有问题的，Dot Hell就很能说明这点。而Python相对而言就优雅很多，你可以直接通过路径的形式来导入包（在正确配置的情况下）。本文的解决方案允许我们用类似Python的方式去加载模块，你可以在我的项目webcraft中看到其应用。\n","dateCreated":"2015-09-03T00:38:51-07:00","dateModified":"2016-09-28T22:13:23-07:00","datePublished":"2015-09-03T00:38:51-07:00","description":"在Node应用中，我们使用require来加载模块。在目录层次相对复杂的应用中，总是会出现类似require(&#39;../../../../../module&#39;)的调用，我把它称之为Dot Hell。我用了一些时间研究现有的解决方案，并介绍我个人认为最好的方法。","headline":"在Node应用中避免“Dot Hell”","image":["cat.png"],"mainEntityOfPage":{"@type":"WebPage","@id":"http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/"},"publisher":{"@type":"Organization","name":"子回（John Wu）","sameAs":["https://github.com/tjwudi","https://twitter.com/leapoahead","https://facebook.com/leapoahead","https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A","mailto:webmaster@leapoahead.com"],"image":"https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b","logo":{"@type":"ImageObject","url":"https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b"}},"url":"http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/","thumbnailUrl":"cat.png"}</script>
     <meta name="description" content="在Node应用中，我们使用require来加载模块。在目录层次相对复杂的应用中，总是会出现类似require(&amp;#39;../../../../../module&amp;#39;)的调用，我把它称之为Dot Hell。我用了一些时间研究现有的解决方案，并介绍我个人认为最好的方法。">
 <meta property="og:type" content="blog">
 <meta property="og:title" content="在Node应用中避免“Dot Hell”">
 <meta property="og:url" content="http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/index.html">
 <meta property="og:site_name" content="回田园">
 <meta property="og:description" content="在Node应用中，我们使用require来加载模块。在目录层次相对复杂的应用中，总是会出现类似require(&amp;#39;../../../../../module&amp;#39;)的调用，我把它称之为Dot Hell。我用了一些时间研究现有的解决方案，并介绍我个人认为最好的方法。">
+<meta property="og:locale" content="en">
 <meta property="og:image" content="http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/cat.png">
 <meta property="og:updated_time" content="2016-09-29T05:13:23.000Z">
 <meta name="twitter:card" content="summary">
@@ -27,18 +30,20 @@
 <meta name="twitter:creator" content="@leapoahead">
     
     
+        
+    
     
         <meta property="og:image" content="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=640"/>
     
     
-        <meta property="og:image" content="/2015/09/03/prevent-node-require-dot-hell/cat.png"/>
+        <meta property="og:image" content="http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/cat.png"/>
         <meta class="swiftype" name="image" data-type="enum" content="http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/cat.png" />
     
     
     
     
     <!--STYLES-->
-    <link rel="stylesheet" href="/assets/css/style.min.css">
+    <link rel="stylesheet" href="/assets/css/style-ofaazzmie6zorbkvxsyjh4p3coouliollv7rrwszuqeqxzl7trwkzzisuvjp.min.css">
     <!--STYLES END-->
     
     <script type="text/javascript">
@@ -56,144 +61,173 @@
     </script>
 
 
+    
 </head>
 
     <body>
         <div id="blog">
-            <header id="header" data-behavior="1">
-    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
-    <h1 class="header-title">
-        <a class="header-title-link" href="/ ">回田园</a>
-    </h1>
-</header>
+            <!-- Define author's picture -->
 
-            <nav id="sidebar" data-behavior="1">
+
     
-    <div class="sidebar-profile">
-        <div class="avatar-wrap">
-            <a href="/?action_from=sidebar-profile-picture">
-                <img class="sidebar-profile-picture" src="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90" alt="John Wu">
-            </a>
-        </div>
-        <p class="no-margin-bottom"><strong>子回（John Wu）</strong></p>
-        <p>Software Engineer at Yelp</p>
+        
+    
 
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a class="header-title-link" href="/ ">回田园</a>
     </div>
     
-        <ul class="sidebar-buttons">
         
-            <li class="sidebar-button">
-                
-                    <a  class="sidebar-button-link "
-                         href="/?action_from=sidebar-button-link"
-                        
-                    >
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-home"></i>
-                    <span class="sidebar-button-desc">主页</span>
-                </a>
-        </li>
+            <a  class="header-right-picture "
+                href="#about">
         
-            <li class="sidebar-button">
-                
-                    <a  class="sidebar-button-link "
-                         href="/all-categories?action_from=sidebar-button-link"
-                        
-                    >
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
-                    <span class="sidebar-button-desc">分类</span>
-                </a>
-        </li>
         
-    </ul>
+            <img class="header-picture" src="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90" alt="Author&#39;s picture"/>
+        
+        </a>
     
-        <ul class="sidebar-buttons">
-        
-            <li class="sidebar-button">
-                
-                  <a  class="sidebar-button-link " href="https://github.com/tjwudi?action_from=sidebar-button-link" target="_blank">
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-github"></i>
-                    <span class="sidebar-button-desc">GitHub</span>
-                </a>
-        </li>
-        
-            <li class="sidebar-button">
-                
-                  <a  class="sidebar-button-link " href="https://twitter.com/leapoahead?action_from=sidebar-button-link" target="_blank">
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-twitter"></i>
-                    <span class="sidebar-button-desc">Twitter</span>
-                </a>
-        </li>
-        
-            <li class="sidebar-button">
-                
-                  <a  class="sidebar-button-link " href="https://facebook.com/leapoahead?action_from=sidebar-button-link" target="_blank">
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-facebook"></i>
-                    <span class="sidebar-button-desc">Facebook</span>
-                </a>
-        </li>
-        
-            <li class="sidebar-button">
-                
-                  <a  class="sidebar-button-link " href="https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A?action_from=sidebar-button-link" target="_blank">
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-linkedin"></i>
-                    <span class="sidebar-button-desc">LinkedIn</span>
-                </a>
-        </li>
-        
-            <li class="sidebar-button">
-                
-                  <a  class="sidebar-button-link " href="mailto:webmaster@leapoahead.com?action_from=sidebar-button-link" target="_blank">
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-envelope-o"></i>
-                    <span class="sidebar-button-desc">Email</span>
-                </a>
-        </li>
-        
-    </ul>
+</header>
+
+            
+
     
-        <ul class="sidebar-buttons">
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
         
-            <li class="sidebar-button">
-                
-                    <a  class="sidebar-button-link "
-                         href="/atom.xml?action_from=sidebar-button-link"
-                        
-                    >
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-rss"></i>
-                    <span class="sidebar-button-desc">RSS</span>
+            <div class="sidebar-profile">
+                <a href="/#about">
+                    <img class="sidebar-profile-picture" src="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=110" alt="Author&#39;s picture"/>
                 </a>
-        </li>
+                <h4 class="sidebar-profile-name">子回（John Wu）</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p>Strong opinion, weakly held.</p>
+</h5>
+                
+            </div>
         
-    </ul>
-    
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/ "
+                            
+                            title="主页"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">主页</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-categories"
+                            
+                            title="分类"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">分类</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://github.com/tjwudi" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://twitter.com/leapoahead" target="_blank" rel="noopener" title="Twitter">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-twitter" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Twitter</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://facebook.com/leapoahead" target="_blank" rel="noopener" title="Facebook">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-facebook" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Facebook</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A" target="_blank" rel="noopener" title="LinkedIn">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-linkedin" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">LinkedIn</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="mailto:webmaster@leapoahead.com" target="_blank" rel="noopener" title="Email">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-envelope-o" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Email</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/atom.xml"
+                            
+                            title="RSS"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-rss" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">RSS</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
 </nav>
 
             
-            <div id="main" data-behavior="1"
+            <div id="main" data-behavior="4"
                  class="
                         hasCoverMetaIn
                         ">
                 
-<article class="post" itemscope itemType="http://schema.org/BlogPosting">
+<article class="post">
     
     
         <div class="post-header main-content-wrap text-left">
     
-        <h1 class="post-title" itemprop="headline">
+        <h1 class="post-title">
             在Node应用中避免“Dot Hell”
         </h1>
     
-    <div class="post-meta">
-    <time itemprop="datePublished" content="Thu Sep 03 2015 00:38:51 GMT-0700">
+    
+        <div class="post-meta">
+    <time datetime="2015-09-03T00:38:51-07:00">
 	
-		    9月 03, 2015
+		    Sep 03, 2015
     	
     </time>
     
@@ -204,35 +238,36 @@
 
     
 </div>
-</div>
+
     
-    <div class="post-content markdown" itemprop="articleBody">
+</div>
+
+    
+    <div class="post-content markdown">
         <div class="main-content-wrap">
             <p>在Node应用中，我们使用<code>require</code>来加载模块。在目录层次相对复杂的应用中，总是会出现类似<code>require(&#39;../../../../../module&#39;)</code>的调用，我把它称之为Dot Hell。我用了一些时间研究现有的解决方案，并介绍我个人认为最好的方法。</p>
 <a id="more"></a>
-<img src="/2015/09/03/prevent-node-require-dot-hell/cat.png" alt="cat.png" title="">
+<img src="/2015/09/03/prevent-node-require-dot-hell/cat.png">
 <p>在Node中的全局对象是<code>global</code>，它就像浏览器的<code>window</code>对象一样。<code>global</code>对象下面的方法都可以直接调用。</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">global.a = <span class="number">1</span></div><div class="line"><span class="built_in">require</span>(<span class="string">'assert'</span>).equal(<span class="number">1</span>, a)</div></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">global.a = <span class="number">1</span></span><br><span class="line"><span class="built_in">require</span>(<span class="string">'assert'</span>).equal(<span class="number">1</span>, a)</span><br></pre></td></tr></table></figure>
 <p>因此最简单的方法，也是我认为最好的方式就是在<code>global</code>下创建一个<code>appRequire</code>方法作为<code>require</code>方法的包装，<code>appRequire</code>方法专门用于调用应用内的包。</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> path = <span class="built_in">require</span>(<span class="string">'path'</span>)</div><div class="line">global.appRequire = <span class="function"><span class="keyword">function</span>(<span class="params">path</span>) </span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="built_in">require</span>(path.resolve(__dirname, path))</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> path = <span class="built_in">require</span>(<span class="string">'path'</span>)</span><br><span class="line">global.appRequire = <span class="function"><span class="keyword">function</span>(<span class="params">path</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">require</span>(path.resolve(__dirname, path))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>假设我们的项目目录结构如下</p>
-<figure class="highlight stylus"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">├── app</div><div class="line">│   ├── controller</div><div class="line">│   │   └── AppController<span class="selector-class">.js</span></div><div class="line">│   ├── model</div><div class="line">│   │   └── User<span class="selector-class">.js</span></div><div class="line">│   └── view</div><div class="line">│       └── AppView<span class="selector-class">.js</span></div><div class="line">└── app.js</div></pre></td></tr></table></figure>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">├── app</span><br><span class="line">│   ├── controller</span><br><span class="line">│   │   └── AppController.js</span><br><span class="line">│   ├── model</span><br><span class="line">│   │   └── User.js</span><br><span class="line">│   └── view</span><br><span class="line">│       └── AppView.js</span><br><span class="line">└── app.js</span><br></pre></td></tr></table></figure>
 <p>其中<strong>app.js</strong>是应用的入口。那么我们只需要在<strong>app.js</strong>中应用上面的代码，那么在整个应用程序中就都可以使用了。</p>
 <p>例如，现在在<strong>app/controller/AppController.js</strong>中，我们可以用下面的语句调用<strong>app/model/User.js</strong>。</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> User = appRequire(<span class="string">'app/model/User'</span>)</div></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> User = appRequire(<span class="string">'app/model/User'</span>)</span><br></pre></td></tr></table></figure>
 <p>Oh Yeah! 一切都很优雅，很顺利。</p>
-<p>但是一个应用中一定还会有测试代码。以单元测试为例，我们如果用<a href="https://mochajs.org/" target="_blank" rel="external">mocha</a>之类的Task Runner去运行测试的话，就得在每个测试前面都加上这一段代码，这样做很容易出错，而且很麻烦。</p>
+<p>但是一个应用中一定还会有测试代码。以单元测试为例，我们如果用<a href="https://mochajs.org/" target="_blank" rel="noopener">mocha</a>之类的Task Runner去运行测试的话，就得在每个测试前面都加上这一段代码，这样做很容易出错，而且很麻烦。</p>
 <p>所以，我们可以把上述的封装代码单独封装成一个文件<strong>global-bootstrap.js</strong>，在运行mocha的时候，用mocha的require参数来指定每次运行测试之前要加载<strong>global-bootstrap.js</strong>。</p>
-<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"># 用Mocha运行tests文件夹下面的所有测试</div><div class="line"># 在运行的时候加载should库，以及我们封装的含有appRequire函数的文件</div><div class="line">mocha --require should --require global-bootstrap.js --recursive tests</div></pre></td></tr></table></figure>
-<h3 id="其他方案"><a href="#其他方案" class="headerlink" title="其他方案"></a>其他方案</h3><p>对于解决这个问题，还有两种方案：<strong>NODE_ENV方案（及其变种）</strong>和<strong>Symlink方案</strong>，你可以<a href="https://gist.github.com/branneman/8048520" target="_blank" rel="external">在这里</a>看到。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># 用Mocha运行tests文件夹下面的所有测试</span><br><span class="line"># 在运行的时候加载should库，以及我们封装的含有appRequire函数的文件</span><br><span class="line">mocha --<span class="built_in">require</span> should --<span class="built_in">require</span> global-bootstrap.js --recursive tests</span><br></pre></td></tr></table></figure>
+<h3 id="其他方案"><a href="#其他方案" class="headerlink" title="其他方案"></a>其他方案</h3><p>对于解决这个问题，还有两种方案：<strong>NODE_ENV方案（及其变种）</strong>和<strong>Symlink方案</strong>，你可以<a href="https://gist.github.com/branneman/8048520" target="_blank" rel="noopener">在这里</a>看到。</p>
 <p>我认为应该避免使用这两种方案。虽然这两种方案都可行，但是它们都会可能导致应用自身的目录名和node模块名冲突。例如，在下面的结构中，使用<code>require(&#39;request&#39;)</code>就很容易产生二义性。</p>
-<figure class="highlight vbscript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">.</div><div class="line">├── node_modules</div><div class="line">│   └── <span class="built_in">request</span></div><div class="line">└── <span class="built_in">request</span></div><div class="line">    └── index.js</div></pre></td></tr></table></figure>
-<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>我一直认为Node的模块引用方式的设计是有问题的，Dot Hell就很能说明这点。而Python相对而言就优雅很多，你可以直接通过路径的形式来导入包（在正确配置的情况下）。本文的解决方案允许我们用类似Python的方式去加载模块，你可以在我的项目<a href="https://github.com/tjwudi/webcraft" target="_blank" rel="external">webcraft</a>中看到其应用。</p>
+<figure class="highlight vbscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── node_modules</span><br><span class="line">│   └── <span class="built_in">request</span></span><br><span class="line">└── <span class="built_in">request</span></span><br><span class="line">    └── index.js</span><br></pre></td></tr></table></figure>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>我一直认为Node的模块引用方式的设计是有问题的，Dot Hell就很能说明这点。而Python相对而言就优雅很多，你可以直接通过路径的形式来导入包（在正确配置的情况下）。本文的解决方案允许我们用类似Python的方式去加载模块，你可以在我的项目<a href="https://github.com/tjwudi/webcraft" target="_blank" rel="noopener">webcraft</a>中看到其应用。</p>
 
             
-                
 
-            
         </div>
     </div>
     
@@ -262,13 +297,36 @@
         </form>
     </div>
 </div>
-    <div class="post-footer main-content-wrap">
+    <div id="post-footer" class="post-footer main-content-wrap">
         
-        <div class="post-actions-wrap">
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/09/04/managing-env-constants/" data-tooltip="以Node应用为例谈如何管理Web应用的环境常量" aria-label="PREVIOUS: 以Node应用为例谈如何管理Web应用的环境常量">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">PREVIOUS</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/08/31/understanding-js-this-keyword/" data-tooltip="用自然语言的角度理解JavaScript中的this关键字" aria-label="NEXT: 用自然语言的角度理解JavaScript中的this关键字">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">NEXT</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
     <ul class="post-actions post-action-share">
         <li class="post-action hide-lg hide-md hide-sm">
-            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
-                <i class="fa fa-share-alt"></i>
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="Share this post">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
             </a>
         </li>
         <li class="post-action hide-xs">
@@ -298,9 +356,12 @@
 
 
         
-            <div id="disqus_thread">
+        
+            
+                <div id="disqus_thread">
     <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 </div>
+            
         
     </div>
 </article>
@@ -309,18 +370,40 @@
 
                 <footer id="footer" class="main-content-wrap">
     <span class="copyrights">
-        Copyrights &copy; 2017 子回（John Wu）. All Rights Reserved.
+        Copyrights &copy; 2018 子回（John Wu）. All Rights Reserved.
     </span>
 </footer>
 
             </div>
             
-                <div id="bottom-bar" class="post-bottom-bar" data-behavior="1">
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
                     <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/09/04/managing-env-constants/" data-tooltip="以Node应用为例谈如何管理Web应用的环境常量" aria-label="PREVIOUS: 以Node应用为例谈如何管理Web应用的环境常量">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">PREVIOUS</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/08/31/understanding-js-this-keyword/" data-tooltip="用自然语言的角度理解JavaScript中的this关键字" aria-label="NEXT: 用自然语言的角度理解JavaScript中的this关键字">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">NEXT</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
     <ul class="post-actions post-action-share">
         <li class="post-action hide-lg hide-md hide-sm">
-            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
-                <i class="fa fa-share-alt"></i>
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="Share this post">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
             </a>
         </li>
         <li class="post-action hide-xs">
@@ -350,45 +433,102 @@
 
 
                 </div>
-                <div id="share-options-bar" class="share-options-bar" data-behavior="1">
+                <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+    <i id="btn-close-shareoptions" class="fa fa-close"></i>
     <ul class="share-options">
-        <li class="share-option">
-            <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/">
-                <i class="fa fa-google-plus"></i><span class="">Share on Google Plus</span>
-            </a>
-        </li>
-        <li class="share-option">
-            <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/">
-                <i class="fa fa-facebook-official"></i><span>Share on Facebook</span>
-            </a>
-        </li>
-        <li class="share-option">
-            <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/">
-                <i class="fa fa-twitter"></i><span>Share on Twitter</span>
-            </a>
-        </li>
+        
+            
+            
+            <li class="share-option">
+                <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/">
+                    <i class="fa fa-facebook-official" aria-hidden="true"></i><span>Share on Facebook</span>
+                </a>
+            </li>
+        
+            
+            
+            <li class="share-option">
+                <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/">
+                    <i class="fa fa-twitter" aria-hidden="true"></i><span>Share on Twitter</span>
+                </a>
+            </li>
+        
+            
+            
+            <li class="share-option">
+                <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/">
+                    <i class="fa fa-google-plus" aria-hidden="true"></i><span>Share on Google+</span>
+                </a>
+            </li>
+        
     </ul>
 </div>
-<div id="share-options-mask" class="share-options-mask"></div>
+
             
         </div>
-        <div id="cover" style="background-image:url('http://res.cloudinary.com/tranquilpeak-hexo-theme/image/upload/v1438975482/v1.3.0-cover.jpg');"></div>
-    </body>
-    <!--SCRIPTS-->
-<script src="/assets/js/script.min.js"></script>
+        
+
+
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-remove"></i>
+        </div>
+        
+            <img id="about-card-picture" src="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=110" alt="Author&#39;s picture"/>
+        
+            <h4 id="about-card-name">子回（John Wu）</h4>
+        
+            <div id="about-card-bio"><p>Strong opinion, weakly held.</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>Software Engineer at Facebook</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker"></i>
+                <br/>
+                San Francisco, CA
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-plvqpdisosqesdacqcnrardusldtgvjkw3tfmpjbhf0aa6t4lalcoshprtxn.min.js"></script>
 <!--SCRIPTS END-->
 
-    <script type="text/javascript">
-        var disqus_shortname = 'johnweng';
-        (function() {
-            var dsq = document.createElement('script');
-            dsq.type = 'text/javascript';
-            dsq.async = true;
-            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-        })();
-    </script>
+    
+        <script>
+             var disqus_config = function () {
+                 this.page.url = 'http://blog.leapoahead.com/2015/09/03/prevent-node-require-dot-hell/';
+                 
+                    this.page.identifier = '2015/09/03/prevent-node-require-dot-hell/';
+                 
+             };
+            (function() {
+                var d = document, s = d.createElement('script');
+                var disqus_shortname = 'johnweng';
+                s.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+
+                s.setAttribute('data-timestamp', +new Date());
+                (d.head || d.body).appendChild(s);
+            })();
+        </script>
+    
 
 
 
+    </body>
 </html>

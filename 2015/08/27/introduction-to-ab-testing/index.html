@@ -1,23 +1,26 @@
 
 <!DOCTYPE html>
-<html lang="zh_CN">
+<html lang="en">
     
 <head>
-    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="generator" content="回田园">
     <title>你所应该知道的A/B测试基础 - 回田园</title>
     <meta name="author" content="子回（John Wu）">
     
     
-        <link rel="alternative" type="application/atom+xml" title="RSS" href="/atom.xml">
     
+        <link rel="alternate" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"子回（John Wu）","sameAs":["https://github.com/tjwudi","https://twitter.com/leapoahead","https://facebook.com/leapoahead","https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A","mailto:webmaster@leapoahead.com"],"image":"https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b"},"articleBody":"在互联网行业里面工作，能给我带来的一个乐趣就是“快”。天下武功，唯快不破。我们可以轻易地做到一天三次以上的产品更新速度，这是和许多传统行业的区别之一。如何利用好这个优势，在我眼里成为了产品发展的关键所在。\n\n什么是A/B测试？在快速上线的过程中，A/B测试是一个帮助我们快速试错的一种实验的方法。在统计学上，其实是Hypothesis Testing（假设测试）的一种形式。它能够帮我们了解我们对产品的改动，例如一个新的功能，是否能够吸引更多用户、让用户更加喜欢、产生更大的效益等。\nA/B测试方法的基本概括就是，将用户分为两组，一组使用旧产品（或旧功能），一组使用新的。然后对比两个用户组，通过数据来分析，新的功能究竟是好是坏。没错，就跟小学的时候做的那些有控制组、实验组的自然科学实验一样一样的。\nA/B测试的具体实施方式有很多种。桌面应用、网站、手机应用都有一些不同的A/B测试方法。本文中以网站的A/B测试为例来介绍。\n我们以天猫的购物车为例，现在的天猫购物车中，结算按钮是在最下方的。这里我浏览器窗口的高度弄得比较小，所以看起来结算按钮和物品之间距离很近，但是实际上他们之间是有很大的距离的。\n\n现在我就可以提出一个想法，让我们试着把结算按钮移动到购物车的最上方，或许可以增加这个结算按钮的点击穿透率（CTR，Click Through Rate），从而可能提高转化率（CR，Conversion Rate）。\n\n小知识&amp;题外话：CTR简单说即点击该结算按钮的次数占该页面的总访问次数的百分比。例如，在2014年10月25日这一天，一共有200万人打开了这个购物车的页面，其中有20万人点击“结算”并成功到达了结算页面，那么这一天该按钮的CTR即为20万/200万乘以100%，即10%。CR，简单来说就是实际进行了消费活动的顾客占总访客数量的百分比。\n\n\n现在，我们就有了两个版本的购物车。一个是现有版本，我们称之为A；一个是我新设计的版本，我们称之为B。我们的目标是想要知道，B的效果是否比A来得好。\n那么，为了衡量效果，我们就要明确我们要观测的数据。这里，我们选择CTR和CR作为我们的观测数据。如果新设计上线后，这两个数据如果有上升，那么就代表着这个新的设计是一个很好的改进。\n按用户（流量）划分控制组和实验组接下来我们将用户划分成用户组和实验组。按用户分组也称作按流量分组。例如，我们可以让50%来到天猫的用户看到旧的设计，另外50%来到天猫的用户看到新的设计。\n需要注意的是，我们必须尽量保证同一个用户在实验期间所能看到的是同一个设计。如果他刚才看到的结算按钮在下面，现在又看到结算按钮在上面了，那么对他而言一定是一件很困惑的事情。\n\n\n小知识：划分组的过程由服务器的特定算法完成，这类算法我们一般称之为分桶算法（Bucketing Algorithm）。分桶也就是分组，是一个概念。对网站请求进行分桶的那部分程序叫做请求分桶（Request Bucketer）。\n\n按页面划分控制组和实验组有的时候，按照用户分组会存在一些问题。例如，如果你的实验是关于搜索引擎优化（SEO）的，那么可能就需要按照页面来划分控制组和实验组。例如，对于50%的购物车页面，无论谁访问，都是看到原来的设计；对于其他50%的购物车页面，则是新的设计。\nSEO的基本目的就是让搜索引擎更好搜索到网站的页面，所以我们希望在实验期间每次对于同一个页面，搜索引擎看到的结果都是一致的。这样才可以对比两种不同设计的页面对于搜索引擎爬虫的效果孰优孰劣。\n\n典型的SEO优化包括对标题的优化。例如，控制组中的页面标题是放入了商家的宝贝数量，例如“艾迪达斯旗舰店 - 1020件商品 - 上天猫，就购了！”；实验组中的页面标题是放入了商家上传的照片的数量，例如“艾迪达斯旗舰店 - 4558张照片 - 上天猫，就购了！”。别小看这样细小的变化，业界的确有不少成功的SEO优化就是由细小的变化所产生的。\n按页面划分的细节问题按页面划分的时候，如果仅仅划分为两个组，可能会出现一些问题。比如，如果对天猫商家页面进行按页面分组，如果在实验期间正好某商家自身发生了非常疯狂的大促，那么它所在的那一组的数据可能会直线飙升。这就可能引起我们的误解，我们可能以为这是由于实验本身造成的影响，于是造成了错误判断。\n简单的解决方法就是划分为四个组，而不是两个组：\n\n控制组1\n控制组2\n实验组1\n实验组2\n\n如果在实验组1里面的某个商家因为其自身原因，数据飙升，带动了整个实验组1的数据飙升。但是，实验组2的数据却没有什么很大的起色的话，那么说明是商家自身原因导致，而非新的功能带来的影响。\n分组的比例分配分组的比例分配不一定要是50%：50%，因为有些新功能是很可能造成不好的影响的，特别是试用一些新技术。在流量或者页面很多的情况下，哪怕是99%：1%的比例分配也是可以的，因为在后面还有采样的过程。对于淘宝，就算是1%的流量也是非常巨大的，所以样本总量（population）够大，对1%流量采样和50%的流量采样一般是没什么区别的。\n互斥实验有些实验之间是互斥的，可能会互相影响结果。例如，实验A的存在会让实验B的效果适得其反。\n简单的方法就是开辟“泳道”（swimlane）。就好像在游泳的时候，你在你的泳道游你的蛙泳，我在我的泳道游我的自由泳，咱们互不侵犯。拿按页面划分来举例，我们可以让实验A所用的所有页面占网站总页面的20%，实验B占据20%，并且实验A和实验B所涉及的页面互不相交（即互斥）。\n\n在A/B测试中要注意什么不要过早下定论。一个实验上线后，不能急着在两三天内就下定论。统计学上有一个概念叫做statistical confidence，有专门的方法可以用于计算。只有当计算出来的数据达到一定阀值的时候，我们才可以（从统计学上）说这个新的设计是成功或者失败的。我们可以用现成的计算器来计算。\n尽量减小偏差（bias）。例如，如果你对页面进行分组采用的方式是让卖拐杖的页面成为控制组、不卖拐杖的页面成为实验组，那这里面就会产生很大的偏差。因为一般买拐杖都是老年人在买，或者中年的子女在帮老人买，青少年不太可能去买。所以，两组之间就会产生很大的用户的性格的差异，对实验结果的影响就可能很不好了。\n所有的产品都可以进行A/B测试A/B测试允许我们快速演进我们的产品。我认为，除了互联网行业之外，其他行业也应该学习快速进行A/B测试的思想，创造更好的、质量更高的产品。\nA/B测试的场景很多，不同的A/B测试方法每天都在帮我们创建更好的世界。建议大家可以上网搜索，并和身边的人一起讨论如何应用假设测试打造更好的产品。\n推荐阅读\nThe Ultimate Guide To A/B Testing\nThe Designer’s Guide to A/B Testing\n\n","dateCreated":"2015-08-27T21:56:52-07:00","dateModified":"2015-08-30T18:20:40-07:00","datePublished":"2015-08-27T21:56:52-07:00","description":"在互联网行业里面工作，能给我带来的一个乐趣就是“快”。天下武功，唯快不破。我们可以轻易地做到一天三次以上的产品更新速度，这是和许多传统行业的区别之一。如何利用好这个优势，在我眼里成为了产品发展的关键所在。","headline":"你所应该知道的A/B测试基础","image":["request-bucketing.png"],"mainEntityOfPage":{"@type":"WebPage","@id":"http://blog.leapoahead.com/2015/08/27/introduction-to-ab-testing/"},"publisher":{"@type":"Organization","name":"子回（John Wu）","sameAs":["https://github.com/tjwudi","https://twitter.com/leapoahead","https://facebook.com/leapoahead","https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A","mailto:webmaster@leapoahead.com"],"image":"https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b","logo":{"@type":"ImageObject","url":"https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b"}},"url":"http://blog.leapoahead.com/2015/08/27/introduction-to-ab-testing/","thumbnailUrl":"request-bucketing.png"}</script>
     <meta name="description" content="在互联网行业里面工作，能给我带来的一个乐趣就是“快”。天下武功，唯快不破。我们可以轻易地做到一天三次以上的产品更新速度，这是和许多传统行业的区别之一。如何利用好这个优势，在我眼里成为了产品发展的关键所在。">
 <meta property="og:type" content="blog">
-<meta property="og:title" content="你所应该知道的A/B测试基础">
+<meta property="og:title" content="你所应该知道的A&#x2F;B测试基础">
 <meta property="og:url" content="http://blog.leapoahead.com/2015/08/27/introduction-to-ab-testing/index.html">
 <meta property="og:site_name" content="回田园">
 <meta property="og:description" content="在互联网行业里面工作，能给我带来的一个乐趣就是“快”。天下武功，唯快不破。我们可以轻易地做到一天三次以上的产品更新速度，这是和许多传统行业的区别之一。如何利用好这个优势，在我眼里成为了产品发展的关键所在。">
+<meta property="og:locale" content="en">
 <meta property="og:image" content="http://blog.leapoahead.com/2015/08/27/introduction-to-ab-testing/tmall-cart.png">
 <meta property="og:image" content="http://blog.leapoahead.com/2015/08/27/introduction-to-ab-testing/tmall-cart-new.png">
 <meta property="og:image" content="http://blog.leapoahead.com/2015/08/27/introduction-to-ab-testing/request-bucketing.png">
@@ -25,24 +28,26 @@
 <meta property="og:image" content="http://blog.leapoahead.com/2015/08/27/introduction-to-ab-testing/swimlanes.png">
 <meta property="og:updated_time" content="2015-08-31T01:20:40.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="你所应该知道的A/B测试基础">
+<meta name="twitter:title" content="你所应该知道的A&#x2F;B测试基础">
 <meta name="twitter:description" content="在互联网行业里面工作，能给我带来的一个乐趣就是“快”。天下武功，唯快不破。我们可以轻易地做到一天三次以上的产品更新速度，这是和许多传统行业的区别之一。如何利用好这个优势，在我眼里成为了产品发展的关键所在。">
 <meta name="twitter:image" content="http://blog.leapoahead.com/2015/08/27/introduction-to-ab-testing/tmall-cart.png">
 <meta name="twitter:creator" content="@leapoahead">
     
     
+        
+    
     
         <meta property="og:image" content="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=640"/>
     
     
-        <meta property="og:image" content="/2015/08/27/introduction-to-ab-testing/request-bucketing.png"/>
+        <meta property="og:image" content="http://blog.leapoahead.com/2015/08/27/introduction-to-ab-testing/request-bucketing.png"/>
         <meta class="swiftype" name="image" data-type="enum" content="http://blog.leapoahead.com/2015/08/27/introduction-to-ab-testing/request-bucketing.png" />
     
     
     
     
     <!--STYLES-->
-    <link rel="stylesheet" href="/assets/css/style.min.css">
+    <link rel="stylesheet" href="/assets/css/style-ofaazzmie6zorbkvxsyjh4p3coouliollv7rrwszuqeqxzl7trwkzzisuvjp.min.css">
     <!--STYLES END-->
     
     <script type="text/javascript">
@@ -60,144 +65,173 @@
     </script>
 
 
+    
 </head>
 
     <body>
         <div id="blog">
-            <header id="header" data-behavior="1">
-    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
-    <h1 class="header-title">
-        <a class="header-title-link" href="/ ">回田园</a>
-    </h1>
-</header>
+            <!-- Define author's picture -->
 
-            <nav id="sidebar" data-behavior="1">
+
     
-    <div class="sidebar-profile">
-        <div class="avatar-wrap">
-            <a href="/?action_from=sidebar-profile-picture">
-                <img class="sidebar-profile-picture" src="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90" alt="John Wu">
-            </a>
-        </div>
-        <p class="no-margin-bottom"><strong>子回（John Wu）</strong></p>
-        <p>Software Engineer at Yelp</p>
+        
+    
 
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a class="header-title-link" href="/ ">回田园</a>
     </div>
     
-        <ul class="sidebar-buttons">
         
-            <li class="sidebar-button">
-                
-                    <a  class="sidebar-button-link "
-                         href="/?action_from=sidebar-button-link"
-                        
-                    >
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-home"></i>
-                    <span class="sidebar-button-desc">主页</span>
-                </a>
-        </li>
+            <a  class="header-right-picture "
+                href="#about">
         
-            <li class="sidebar-button">
-                
-                    <a  class="sidebar-button-link "
-                         href="/all-categories?action_from=sidebar-button-link"
-                        
-                    >
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
-                    <span class="sidebar-button-desc">分类</span>
-                </a>
-        </li>
         
-    </ul>
+            <img class="header-picture" src="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90" alt="Author&#39;s picture"/>
+        
+        </a>
     
-        <ul class="sidebar-buttons">
-        
-            <li class="sidebar-button">
-                
-                  <a  class="sidebar-button-link " href="https://github.com/tjwudi?action_from=sidebar-button-link" target="_blank">
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-github"></i>
-                    <span class="sidebar-button-desc">GitHub</span>
-                </a>
-        </li>
-        
-            <li class="sidebar-button">
-                
-                  <a  class="sidebar-button-link " href="https://twitter.com/leapoahead?action_from=sidebar-button-link" target="_blank">
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-twitter"></i>
-                    <span class="sidebar-button-desc">Twitter</span>
-                </a>
-        </li>
-        
-            <li class="sidebar-button">
-                
-                  <a  class="sidebar-button-link " href="https://facebook.com/leapoahead?action_from=sidebar-button-link" target="_blank">
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-facebook"></i>
-                    <span class="sidebar-button-desc">Facebook</span>
-                </a>
-        </li>
-        
-            <li class="sidebar-button">
-                
-                  <a  class="sidebar-button-link " href="https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A?action_from=sidebar-button-link" target="_blank">
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-linkedin"></i>
-                    <span class="sidebar-button-desc">LinkedIn</span>
-                </a>
-        </li>
-        
-            <li class="sidebar-button">
-                
-                  <a  class="sidebar-button-link " href="mailto:webmaster@leapoahead.com?action_from=sidebar-button-link" target="_blank">
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-envelope-o"></i>
-                    <span class="sidebar-button-desc">Email</span>
-                </a>
-        </li>
-        
-    </ul>
+</header>
+
+            
+
     
-        <ul class="sidebar-buttons">
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
         
-            <li class="sidebar-button">
-                
-                    <a  class="sidebar-button-link "
-                         href="/atom.xml?action_from=sidebar-button-link"
-                        
-                    >
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-rss"></i>
-                    <span class="sidebar-button-desc">RSS</span>
+            <div class="sidebar-profile">
+                <a href="/#about">
+                    <img class="sidebar-profile-picture" src="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=110" alt="Author&#39;s picture"/>
                 </a>
-        </li>
+                <h4 class="sidebar-profile-name">子回（John Wu）</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p>Strong opinion, weakly held.</p>
+</h5>
+                
+            </div>
         
-    </ul>
-    
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/ "
+                            
+                            title="主页"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">主页</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-categories"
+                            
+                            title="分类"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">分类</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://github.com/tjwudi" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://twitter.com/leapoahead" target="_blank" rel="noopener" title="Twitter">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-twitter" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Twitter</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://facebook.com/leapoahead" target="_blank" rel="noopener" title="Facebook">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-facebook" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Facebook</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A" target="_blank" rel="noopener" title="LinkedIn">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-linkedin" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">LinkedIn</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="mailto:webmaster@leapoahead.com" target="_blank" rel="noopener" title="Email">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-envelope-o" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Email</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/atom.xml"
+                            
+                            title="RSS"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-rss" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">RSS</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
 </nav>
 
             
-            <div id="main" data-behavior="1"
+            <div id="main" data-behavior="4"
                  class="
                         hasCoverMetaIn
                         ">
                 
-<article class="post" itemscope itemType="http://schema.org/BlogPosting">
+<article class="post">
     
     
         <div class="post-header main-content-wrap text-left">
     
-        <h1 class="post-title" itemprop="headline">
+        <h1 class="post-title">
             你所应该知道的A/B测试基础
         </h1>
     
-    <div class="post-meta">
-    <time itemprop="datePublished" content="Thu Aug 27 2015 21:56:52 GMT-0700">
+    
+        <div class="post-meta">
+    <time datetime="2015-08-27T21:56:52-07:00">
 	
-		    8月 27, 2015
+		    Aug 27, 2015
     	
     </time>
     
@@ -208,9 +242,12 @@
 
     
 </div>
-</div>
+
     
-    <div class="post-content markdown" itemprop="articleBody">
+</div>
+
+    
+    <div class="post-content markdown">
         <div class="main-content-wrap">
             <p>在互联网行业里面工作，能给我带来的一个乐趣就是“快”。天下武功，唯快不破。我们可以轻易地做到一天三次以上的产品更新速度，这是和许多传统行业的区别之一。如何利用好这个优势，在我眼里成为了产品发展的关键所在。</p>
 <a id="more"></a>
@@ -218,23 +255,23 @@
 <p>A/B测试方法的基本概括就是，将用户分为两组，一组使用旧产品（或旧功能），一组使用新的。然后对比两个用户组，通过数据来分析，新的功能究竟是好是坏。没错，就跟小学的时候做的那些有控制组、实验组的自然科学实验一样一样的。</p>
 <p>A/B测试的具体实施方式有很多种。桌面应用、网站、手机应用都有一些不同的A/B测试方法。本文中以网站的A/B测试为例来介绍。</p>
 <p>我们以天猫的购物车为例，现在的天猫购物车中，结算按钮是在最下方的。这里我浏览器窗口的高度弄得比较小，所以看起来结算按钮和物品之间距离很近，但是实际上他们之间是有很大的距离的。</p>
-<img src="/2015/08/27/introduction-to-ab-testing/tmall-cart.png" alt="天猫购物车" title="天猫购物车">
+<img src="/2015/08/27/introduction-to-ab-testing/tmall-cart.png" title="天猫购物车">
 <p>现在我就可以提出一个想法，让我们试着把结算按钮移动到购物车的最上方，或许可以增加这个结算按钮的点击穿透率（CTR，Click Through Rate），从而可能提高转化率（CR，Conversion Rate）。</p>
 <blockquote>
 <p>小知识&amp;题外话：CTR简单说即点击该结算按钮的次数占该页面的总访问次数的百分比。例如，在2014年10月25日这一天，一共有200万人打开了这个购物车的页面，其中有20万人点击“结算”并成功到达了结算页面，那么这一天该按钮的CTR即为<strong>20万/200万乘以100%，即10%</strong>。<br>CR，简单来说就是实际进行了消费活动的顾客占总访客数量的百分比。</p>
 </blockquote>
-<img src="/2015/08/27/introduction-to-ab-testing/tmall-cart-new.png" alt="天猫购物车新设计" title="天猫购物车新设计">
+<img src="/2015/08/27/introduction-to-ab-testing/tmall-cart-new.png" title="天猫购物车新设计">
 <p>现在，我们就有了两个版本的购物车。一个是现有版本，我们称之为A；一个是我新设计的版本，我们称之为B。我们的目标是想要知道，B的效果是否比A来得好。</p>
 <p>那么，为了衡量效果，我们就要明确我们要观测的数据。这里，我们选择CTR和CR作为我们的观测数据。如果新设计上线后，这两个数据如果有上升，那么就代表着这个新的设计是一个很好的改进。</p>
 <h3 id="按用户（流量）划分控制组和实验组"><a href="#按用户（流量）划分控制组和实验组" class="headerlink" title="按用户（流量）划分控制组和实验组"></a>按用户（流量）划分控制组和实验组</h3><p>接下来我们将用户划分成用户组和实验组。按用户分组也称作按流量分组。例如，我们可以让50%来到天猫的用户看到旧的设计，另外50%来到天猫的用户看到新的设计。</p>
 <p>需要注意的是，我们必须尽量保证同一个用户在实验期间所能看到的是同一个设计。如果他刚才看到的结算按钮在下面，现在又看到结算按钮在上面了，那么对他而言一定是一件很困惑的事情。</p>
-<img src="/2015/08/27/introduction-to-ab-testing/request-bucketing.png" alt="请求分桶" title="请求分桶">
+<img src="/2015/08/27/introduction-to-ab-testing/request-bucketing.png" title="请求分桶">
 <blockquote>
 <p>小知识：划分组的过程由服务器的特定算法完成，这类算法我们一般称之为分桶算法（Bucketing Algorithm）。分桶也就是分组，是一个概念。对网站请求进行分桶的那部分程序叫做请求分桶（Request Bucketer）。</p>
 </blockquote>
 <h3 id="按页面划分控制组和实验组"><a href="#按页面划分控制组和实验组" class="headerlink" title="按页面划分控制组和实验组"></a>按页面划分控制组和实验组</h3><p>有的时候，按照用户分组会存在一些问题。例如，如果你的实验是关于搜索引擎优化（SEO）的，那么可能就需要按照页面来划分控制组和实验组。例如，对于50%的购物车<strong>页面</strong>，无论谁访问，都是看到原来的设计；对于其他50%的购物车页面，则是新的设计。</p>
 <p>SEO的基本目的就是让搜索引擎更好搜索到网站的页面，所以我们希望在实验期间每次对于同一个页面，搜索引擎看到的结果都是一致的。这样才可以对比两种不同设计的页面对于搜索引擎爬虫的效果孰优孰劣。</p>
-<img src="/2015/08/27/introduction-to-ab-testing/seo-bucketing.png" alt="页面分桶" title="页面分桶">
+<img src="/2015/08/27/introduction-to-ab-testing/seo-bucketing.png" title="页面分桶">
 <p>典型的SEO优化包括对标题的优化。例如，控制组中的页面标题是放入了商家的宝贝数量，例如“艾迪达斯旗舰店 - 1020件商品 - 上天猫，就购了！”；实验组中的页面标题是放入了商家上传的照片的数量，例如“艾迪达斯旗舰店 - 4558张照片 - 上天猫，就购了！”。别小看这样细小的变化，业界的确有不少成功的SEO优化就是由细小的变化所产生的。</p>
 <h3 id="按页面划分的细节问题"><a href="#按页面划分的细节问题" class="headerlink" title="按页面划分的细节问题"></a>按页面划分的细节问题</h3><p>按页面划分的时候，如果仅仅划分为两个组，可能会出现一些问题。比如，如果对天猫商家页面进行按页面分组，如果在实验期间正好某商家自身发生了非常疯狂的大促，那么它所在的那一组的数据可能会直线飙升。这就可能引起我们的误解，我们可能以为这是由于实验本身造成的影响，于是造成了错误判断。</p>
 <p>简单的解决方法就是划分为四个组，而不是两个组：</p>
@@ -248,20 +285,18 @@
 <h3 id="分组的比例分配"><a href="#分组的比例分配" class="headerlink" title="分组的比例分配"></a>分组的比例分配</h3><p>分组的比例分配不一定要是50%：50%，因为有些新功能是很可能造成不好的影响的，特别是试用一些新技术。在流量或者页面很多的情况下，哪怕是99%：1%的比例分配也是可以的，因为在后面还有采样的过程。对于淘宝，就算是1%的流量也是非常巨大的，所以样本总量（population）够大，对1%流量采样和50%的流量采样一般是没什么区别的。</p>
 <h3 id="互斥实验"><a href="#互斥实验" class="headerlink" title="互斥实验"></a>互斥实验</h3><p>有些实验之间是互斥的，可能会互相影响结果。例如，实验A的存在会让实验B的效果适得其反。</p>
 <p>简单的方法就是开辟“泳道”（swimlane）。就好像在游泳的时候，你在你的泳道游你的蛙泳，我在我的泳道游我的自由泳，咱们互不侵犯。拿按页面划分来举例，我们可以让实验A所用的所有页面占网站总页面的20%，实验B占据20%，并且实验A和实验B所涉及的页面互不相交（即互斥）。</p>
-<img src="/2015/08/27/introduction-to-ab-testing/swimlanes.png" alt="泳道划分" title="泳道划分">
-<h3 id="在A-B测试中要注意什么"><a href="#在A-B测试中要注意什么" class="headerlink" title="在A/B测试中要注意什么"></a>在A/B测试中要注意什么</h3><p><strong>不要过早下定论</strong>。一个实验上线后，不能急着在两三天内就下定论。统计学上有一个概念叫做statistical confidence，有专门的方法可以用于计算。只有当计算出来的数据达到一定阀值的时候，我们才可以（从统计学上）说这个新的设计是成功或者失败的。我们可以用现成的<a href="https://vwo.com/ab-split-test-significance-calculator/" target="_blank" rel="external">计算器</a>来计算。</p>
+<img src="/2015/08/27/introduction-to-ab-testing/swimlanes.png" title="泳道划分">
+<h3 id="在A-B测试中要注意什么"><a href="#在A-B测试中要注意什么" class="headerlink" title="在A/B测试中要注意什么"></a>在A/B测试中要注意什么</h3><p><strong>不要过早下定论</strong>。一个实验上线后，不能急着在两三天内就下定论。统计学上有一个概念叫做statistical confidence，有专门的方法可以用于计算。只有当计算出来的数据达到一定阀值的时候，我们才可以（从统计学上）说这个新的设计是成功或者失败的。我们可以用现成的<a href="https://vwo.com/ab-split-test-significance-calculator/" target="_blank" rel="noopener">计算器</a>来计算。</p>
 <p><strong>尽量减小偏差（bias）</strong>。例如，如果你对页面进行分组采用的方式是让卖拐杖的页面成为控制组、不卖拐杖的页面成为实验组，那这里面就会产生很大的偏差。因为一般买拐杖都是老年人在买，或者中年的子女在帮老人买，青少年不太可能去买。所以，两组之间就会产生很大的用户的性格的差异，对实验结果的影响就可能很不好了。</p>
 <h3 id="所有的产品都可以进行A-B测试"><a href="#所有的产品都可以进行A-B测试" class="headerlink" title="所有的产品都可以进行A/B测试"></a>所有的产品都可以进行A/B测试</h3><p>A/B测试允许我们快速演进我们的产品。我认为，除了互联网行业之外，其他行业也应该学习快速进行A/B测试的思想，创造更好的、质量更高的产品。</p>
 <p>A/B测试的场景很多，不同的A/B测试方法每天都在帮我们创建更好的世界。建议大家可以上网搜索，并和身边的人一起讨论如何应用假设测试打造更好的产品。</p>
 <h3 id="推荐阅读"><a href="#推荐阅读" class="headerlink" title="推荐阅读"></a>推荐阅读</h3><ul>
-<li><a href="http://www.smashingmagazine.com/2010/06/the-ultimate-guide-to-a-b-testing/" target="_blank" rel="external">The Ultimate Guide To A/B Testing</a></li>
-<li><a href="http://www.sitepoint.com/designers-guide-a-b-testing/" target="_blank" rel="external">The Designer’s Guide to A/B Testing</a></li>
+<li><a href="http://www.smashingmagazine.com/2010/06/the-ultimate-guide-to-a-b-testing/" target="_blank" rel="noopener">The Ultimate Guide To A/B Testing</a></li>
+<li><a href="http://www.sitepoint.com/designers-guide-a-b-testing/" target="_blank" rel="noopener">The Designer’s Guide to A/B Testing</a></li>
 </ul>
 
             
-                
 
-            
         </div>
     </div>
     
@@ -291,13 +326,36 @@
         </form>
     </div>
 </div>
-    <div class="post-footer main-content-wrap">
+    <div id="post-footer" class="post-footer main-content-wrap">
         
-        <div class="post-actions-wrap">
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/08/30/what-happens-when-you-open-a-webpage/" data-tooltip="当你打开网页的时候，世界都发生了什么（1）" aria-label="PREVIOUS: 当你打开网页的时候，世界都发生了什么（1）">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">PREVIOUS</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/08/27/how-i-learn-as-a-software-engineer/" data-tooltip="我是如何对待学习编程这件事的" aria-label="NEXT: 我是如何对待学习编程这件事的">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">NEXT</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
     <ul class="post-actions post-action-share">
         <li class="post-action hide-lg hide-md hide-sm">
-            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
-                <i class="fa fa-share-alt"></i>
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="Share this post">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
             </a>
         </li>
         <li class="post-action hide-xs">
@@ -327,9 +385,12 @@
 
 
         
-            <div id="disqus_thread">
+        
+            
+                <div id="disqus_thread">
     <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 </div>
+            
         
     </div>
 </article>
@@ -338,18 +399,40 @@
 
                 <footer id="footer" class="main-content-wrap">
     <span class="copyrights">
-        Copyrights &copy; 2017 子回（John Wu）. All Rights Reserved.
+        Copyrights &copy; 2018 子回（John Wu）. All Rights Reserved.
     </span>
 </footer>
 
             </div>
             
-                <div id="bottom-bar" class="post-bottom-bar" data-behavior="1">
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
                     <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/08/30/what-happens-when-you-open-a-webpage/" data-tooltip="当你打开网页的时候，世界都发生了什么（1）" aria-label="PREVIOUS: 当你打开网页的时候，世界都发生了什么（1）">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">PREVIOUS</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/08/27/how-i-learn-as-a-software-engineer/" data-tooltip="我是如何对待学习编程这件事的" aria-label="NEXT: 我是如何对待学习编程这件事的">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">NEXT</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
     <ul class="post-actions post-action-share">
         <li class="post-action hide-lg hide-md hide-sm">
-            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
-                <i class="fa fa-share-alt"></i>
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="Share this post">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
             </a>
         </li>
         <li class="post-action hide-xs">
@@ -379,45 +462,102 @@
 
 
                 </div>
-                <div id="share-options-bar" class="share-options-bar" data-behavior="1">
+                <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+    <i id="btn-close-shareoptions" class="fa fa-close"></i>
     <ul class="share-options">
-        <li class="share-option">
-            <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/08/27/introduction-to-ab-testing/">
-                <i class="fa fa-google-plus"></i><span class="">Share on Google Plus</span>
-            </a>
-        </li>
-        <li class="share-option">
-            <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/08/27/introduction-to-ab-testing/">
-                <i class="fa fa-facebook-official"></i><span>Share on Facebook</span>
-            </a>
-        </li>
-        <li class="share-option">
-            <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/08/27/introduction-to-ab-testing/">
-                <i class="fa fa-twitter"></i><span>Share on Twitter</span>
-            </a>
-        </li>
+        
+            
+            
+            <li class="share-option">
+                <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/08/27/introduction-to-ab-testing/">
+                    <i class="fa fa-facebook-official" aria-hidden="true"></i><span>Share on Facebook</span>
+                </a>
+            </li>
+        
+            
+            
+            <li class="share-option">
+                <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/08/27/introduction-to-ab-testing/">
+                    <i class="fa fa-twitter" aria-hidden="true"></i><span>Share on Twitter</span>
+                </a>
+            </li>
+        
+            
+            
+            <li class="share-option">
+                <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/08/27/introduction-to-ab-testing/">
+                    <i class="fa fa-google-plus" aria-hidden="true"></i><span>Share on Google+</span>
+                </a>
+            </li>
+        
     </ul>
 </div>
-<div id="share-options-mask" class="share-options-mask"></div>
+
             
         </div>
-        <div id="cover" style="background-image:url('http://res.cloudinary.com/tranquilpeak-hexo-theme/image/upload/v1438975482/v1.3.0-cover.jpg');"></div>
-    </body>
-    <!--SCRIPTS-->
-<script src="/assets/js/script.min.js"></script>
+        
+
+
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-remove"></i>
+        </div>
+        
+            <img id="about-card-picture" src="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=110" alt="Author&#39;s picture"/>
+        
+            <h4 id="about-card-name">子回（John Wu）</h4>
+        
+            <div id="about-card-bio"><p>Strong opinion, weakly held.</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>Software Engineer at Facebook</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker"></i>
+                <br/>
+                San Francisco, CA
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-plvqpdisosqesdacqcnrardusldtgvjkw3tfmpjbhf0aa6t4lalcoshprtxn.min.js"></script>
 <!--SCRIPTS END-->
 
-    <script type="text/javascript">
-        var disqus_shortname = 'johnweng';
-        (function() {
-            var dsq = document.createElement('script');
-            dsq.type = 'text/javascript';
-            dsq.async = true;
-            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-        })();
-    </script>
+    
+        <script>
+             var disqus_config = function () {
+                 this.page.url = 'http://blog.leapoahead.com/2015/08/27/introduction-to-ab-testing/';
+                 
+                    this.page.identifier = '2015/08/27/introduction-to-ab-testing/';
+                 
+             };
+            (function() {
+                var d = document, s = d.createElement('script');
+                var disqus_shortname = 'johnweng';
+                s.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+
+                s.setAttribute('data-timestamp', +new Date());
+                (d.head || d.body).appendChild(s);
+            })();
+        </script>
+    
 
 
 
+    </body>
 </html>

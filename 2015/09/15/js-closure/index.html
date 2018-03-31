@@ -1,23 +1,26 @@
 
 <!DOCTYPE html>
-<html lang="zh_CN">
+<html lang="en">
     
 <head>
-    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="generator" content="回田园">
     <title>JavaScript闭包的底层运行机制 - 回田园</title>
     <meta name="author" content="子回（John Wu）">
     
     
-        <link rel="alternative" type="application/atom+xml" title="RSS" href="/atom.xml">
     
+        <link rel="alternate" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"子回（John Wu）","sameAs":["https://github.com/tjwudi","https://twitter.com/leapoahead","https://facebook.com/leapoahead","https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A","mailto:webmaster@leapoahead.com"],"image":"https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b"},"articleBody":"我研究JavaScript闭包（closure）已经有一段时间了。我之前只是学会了如何使用它们，而没有透彻地了解它们具体是如何运作的。那么，究竟什么是闭包？\n\nWikipedia给出的解释并没有太大的帮助。闭包是什么时候被创建的，什么时候被销毁的？具体的实现又是怎么样的？\n1234567891011121314151617181920\"use strict\";var myClosure = (function outerFunction() &#123;  var hidden = 1;  return &#123;    inc: function innerFunction() &#123;      return hidden++;    &#125;  &#125;;&#125;());myClosure.inc();  // 返回 1myClosure.inc();  // 返回 2myClosure.inc();  // 返回 3// 相信对JS熟悉的朋友都能很快理解这段代码// 那么在这段代码运行的背后究竟发生了怎样的事情呢？\n现在，我终于知道了答案，我感到很兴奋并且决定向大家解释这个答案。至少，我一定是不会忘记这个答案的。\n\nTell me and I forget. Teach me and I remember. Involve me and I learn.© Benjamin Franklin\n\n并且，在我阅读与闭包相关的现存的资料时，我很努力地尝试着去在脑海中想想每个事物之间的联系：对象之间是如何引用的，对象之间的继承关系是什么，等等。我找不到关于这些负责关系的很好的图表，于是我决定自己画一些。\n我将假设读者对JavaScript已经比较熟悉了，知道什么是全局对象，知道函数在JavaScript当中是“first-class objects”，等等。\n作用域链（Scope Chain）当JavaScript在运行的时候，它需要一些空间让它来存储本地变量（local variables）。我们将这些空间称为作用域对象（Scope object），有时候也称作LexicalEnvironment。例如，当你调用函数时，函数定义了一些本地变量，这些变量就被存储在一个作用域对象中。你可以将作用域函数想象成一个普通的JavaScript对象，但是有一个很大的区别就是你不能够直接在JavaScript当中直接获取这个对象。你只可以修改这个对象的属性，但是你不能够获取这个对象的引用。\n作用域对象的概念使得JavaScript和C、C++非常不同。在C、C++中，本地变量被保存在栈（stack）中。在JavaScript中，作用域对象是在堆中被创建的（至少表现出来的行为是这样的），所以在函数返回后它们也还是能够被访问到而不被销毁。\n正如你做想的，作用域对象是可以有父作用域对象（parent scope object）的。当代码试图访问一个变量的时候，解释器将在当前的作用域对象中查找这个属性。如果这个属性不存在，那么解释器就会在父作用域对象中查找这个属性。就这样，一直向父作用域对象查找，直到找到该属性或者再也没有父作用域对象。我们将这个查找变量的过程中所经过的作用域对象乘坐作用域链（Scope chain）。\n在作用域链中查找变量的过程和原型继承（prototypal inheritance）有着非常相似之处。但是，非常不一样的地方在于，当你在原型链（prototype chain）中找不到一个属性的时候，并不会引发一个错误，而是会得到undefined。但是如果你试图访问一个作用域链中不存在的属性的话，你就会得到一个ReferenceError。\n在作用域链的最顶层的元素就是全局对象（Global Object）了。运行在全局环境的JavaScript代码中，作用域链始终只含有一个元素，那就是全局对象。所以，当你在全局环境中定义变量的时候，它们就会被定义到全局对象中。当函数被调用的时候，作用域链就会包含多个作用域对象。\n全局环境中运行的代码好了，理论就说到这里。接下来我们来从实际的代码入手。\n12345// my_script.js\"use strict\";var foo = 1;var bar = 2;\n我们在全局环境中创建了两个变量。正如我刚才所说，此时的作用域对象就是全局对象。\n\n在上面的代码中，我们有一个执行的上下文（myscript.js自身的代码），以及它所引用的作用域对象。全局对象里面还含有很多不同的属性，在这里我们就忽略掉了。\n没有被嵌套的函数（Non-nested functions）接下来，我们看这段代码\n1234567891011121314151617\"use strict\";var foo = 1;var bar = 2;function myFunc() &#123;  //-- define local-to-function variables  var a = 1;  var b = 2;  var foo = 3;  console.log(\"inside myFunc\");&#125;console.log(\"outside\");//-- and then, call it:myFunc();\n当myFunc被定义的时候，myFunc的标识符（identifier）就被加到了当前的作用域对象中（在这里就是全局对象），并且这个标识符所引用的是一个函数对象（function object）。函数对象中所包含的是函数的源代码以及其他的属性。其中一个我们所关心的属性就是内部属性[[scope]]。[[scope]]所指向的就是当前的作用域对象。也就是指的就是函数的标识符被创建的时候，我们所能够直接访问的那个作用域对象（在这里就是全局对象）。\n\n“直接访问”的意思就是，在当前作用域链中，该作用域对象处于最底层，没有子作用域对象。\n\n所以，在console.log(&quot;outside&quot;)被运行之前，对象之间的关系是如下图所示。\n\n温习一下。myFunc所引用的函数对象其本身不仅仅含有函数的代码，并且还含有指向其被创建的时候的作用域对象。这一点非常重要！\n当myFunc函数被调用的时候，一个新的作用域对象被创建了。新的作用域对象中包含myFunc函数所定义的本地变量，以及其参数（arguments）。这个新的作用域对象的父作用域对象就是在运行myFunc时我们所能直接访问的那个作用域对象。\n所以，当myFunc被执行的时候，对象之间的关系如下图所示。\n\n现在我们就拥有了一个作用域链。当我们试图在myFunc当中访问某些变量的时候，JavaScript会先在其能直接访问的作用域对象（这里就是myFunc() scope）当中查找这个属性。如果找不到，那么就在它的父作用域对象当中查找（在这里就是Global Object）。如果一直往上找，找到没有父作用域对象为止还没有找到的话，那么就会抛出一个ReferenceError。\n例如，如果我们在myFunc中要访问a这个变量，那么在myFunc scope当中就可以找到它，得到值为1。\n如果我们尝试访问foo，我们就会在myFunc() scope中得到3。只有在myFunc() scope里面找不到foo的时候，JavaScript才会往Global Object去查找。所以，这里我们不会访问到Global Object里面的foo。\n如果我们尝试访问bar，我们在myFunc() scope当中找不到它，于是就会在Global Object当中查找，因此查找到2。\n很重要的是，只要这些作用域对象依然被引用，它们就不会被垃圾回收器（garbage collector）销毁，我们就一直能访问它们。当然，当引用一个作用域对象的最后一个引用被解除的时候，并不代表垃圾回收器会立刻回收它，只是它现在可以被回收了。\n所以，当myFunc()返回的时候，再也没有人引用myFunc() scope了。当垃圾回收结束后，对象之间的关系变成回了调用前的关系。\n\n接下来，为了图表直观起见，我将不再将函数对象画出来。但是，请永远记着，函数对象里面的[[scope]]属性，保存着该函数被定义的时候所能够直接访问的作用域对象。\n嵌套的函数（Nested functions）正如前面所说，当一个函数返回后，没有其他对象会保存对其的引用。所以，它就可能被垃圾回收器回收。但是如果我们在函数当中定义嵌套的函数并且返回，被调用函数的一方所存储呢？（如下面的代码）\n1234567function myFunc() &#123;  return innerFunc() &#123;    // ...  &#125;&#125;var innerFunc = myFunc();\n你已经知道的是，函数对象中总是有一个[[scope]]属性，保存着该函数被定义的时候所能够直接访问的作用域对象。所以，当我们在定义嵌套的函数的时候，这个嵌套的函数的[[scope]]就会引用外围函数（Outer function）的当前作用域对象。\n如果我们将这个嵌套函数返回，并被另外一个地方的标识符所引用的话，那么这个嵌套函数及其[[scope]]所引用的作用域对象就不会被垃圾回收所销毁。\n123456789101112131415161718192021222324\"use strict\";function createCounter(initial) &#123;  var counter = initial;  function increment(value) &#123;    counter += value;  &#125;  function get() &#123;    return counter;  &#125;  return &#123;    increment: increment,    get: get  &#125;;&#125;var myCounter = createCounter(100);console.log(myCounter.get());   // 返回 100myCounter.increment(5);console.log(myCounter.get());   // 返回 105\n当我们调用createCounter(100)的那一瞬间，对象之间的关系如下图\n\n注意increment和get函数都存有指向createCounter(100) scope的引用。如果createCounter(100)没有任何返回值，那么createCounter(100) scope不再被引用，于是就可以被垃圾回收。但是因为createCounter(100)实际上是有返回值的，并且返回值被存储在了myCounter中，所以对象之间的引用关系变成了如下图所示\n\n所以，createCounter(100)虽然已经返回了，但是它的作用域对象依然存在，可以且仅只能被嵌套的函数（increment和get）所访问。\n让我们试着运行myCounter.get()。刚才说过，函数被调用的时候会创建一个新的作用域对象，并且该作用域对象的父作用域对象会是当前可以直接访问的作用域对象。所以，当myCounter.get()被调用时的一瞬间，对象之间的关系如下。\n\n在myCounter.get()运行的过程中，作用域链最底层的对象就是get() scope，这是一个空对象。所以，当myCounter.get()访问counter变量时，JavaScript在get() scope中找不到这个属性，于是就向上到createCounter(100) scope当中查找。然后，myCounter.get()将这个值返回。\n调用myCounter.increment(5)的时候，事情变得更有趣了，因为这个时候函数调用的时候传入了参数。\n\n正如你所见，increment(5)的调用创建了一个新的作用域对象，并且其中含有传入的参数value。当这个函数尝试访问value的时候，JavaScript立刻就能在当前的作用域对象找到它。然而，这个函数试图访问counter的时候，JavaScript无法在当前的作用域对象找到它，于是就会在其父作用域createCounter(100) scope中查找。\n我们可以注意到，在createCounter函数之外，除了被返回的get和increment两个方法，没有其他的地方可以访问到value这个变量了。这就是用闭包实现“私有变量”的方法。\n我们注意到initial变量也被存储在createCounter()所创建的作用域对象中，尽管它没有被用到。所以，我们实际上可以去掉var counter = initial;，将initial改名为counter。但是为了代码的可读性起见，我们保留原有的代码不做变化。\n需要注意的是作用域链是不会被复制的。每次函数调用只会往作用域链下面新增一个作用域对象。所以，如果在函数调用的过程当中对作用域链中的任何一个作用域对象的变量进行修改的话，那么同时作用域链中也拥有该作用域对象的函数对象也是能够访问到这个变化后的变量的。\n这也就是为什么下面这个大家都很熟悉的例子会不能产出我们想要的结果。\n123456789\"use strict\";var elems = document.getElementsByClassName(\"myClass\"), i;for (i = 0; i &lt; elems.length; i++) &#123;  elems[i].addEventListener(\"click\", function () &#123;    this.innerHTML = i;  &#125;);&#125;\n在上面的循环中创建了多个函数对象，所有的函数对象的[[scope]]都保存着对当前作用域对象的引用。而变量i正好就在当前作用域链中，所以循环每次对i的修改，对于每个函数对象都是能够看到的。\n“看起来一样的”函数，不一样的作用域对象现在我们来看一个更有趣的例子。\n12345678\"use strict\";function createCounter(initial) &#123;  // ...&#125;var myCounter1 = createCounter(100);var myCounter2 = createCounter(200);\n当myCounter1和myCounter2被创建后，对象之间的关系为\n\n在上面的例子中，myCounter1.increment和myCounter2.increment的函数对象拥有着一样的代码以及一样的属性值（name，length等等），但是它们的[[scope]]指向的是不一样的作用域对象。\n这才有了下面的结果\n1234567891011var a, b;a = myCounter1.get();   // a 等于 100b = myCounter2.get();   // b 等于 200myCounter1.increment(1);myCounter1.increment(2);myCounter2.increment(5);a = myCounter1.get();   // a 等于 103b = myCounter2.get();   // b 等于 205\n作用域链和thisthis的值不会被保存在作用域链中，this的值取决于函数被调用的时候的情景。\n\n译者注：对这部分，译者自己曾经写过一篇更加详尽的文章，请参考《用自然语言的角度理解JavaScript中的this关键字》。原文的这一部分以及“this在嵌套的函数中的使用”译者便不再翻译。\n\n总结让我们来回想我们在本文开头提到的一些问题。\n\n什么是闭包？闭包就是同时含有对函数对象以及作用域对象引用的最想。实际上，所有JavaScript对象都是闭包。\n闭包是什么时候被创建的？因为所有JavaScript对象都是闭包，因此，当你定义一个函数的时候，你就定义了一个闭包。\n闭包是什么时候被销毁的？当它不被任何其他的对象引用的时候。\n\n专有名词翻译表本文采用下面的专有名词翻译表，如有更好的翻译请告知，尤其是加*的翻译\n\n*全局环境中运行的代码：top-level code\n参数：arguments\n作用域对象：Scope object\n作用域链：Scope Chain\n栈：stack\n原型继承：prototypal inheritance\n原型链：prototype chain\n全局对象：Global Object\n标识符：identifier\n垃圾回收器：garbage collector\n\n著作权声明本文经授权翻译自How do JavaScript closures work under the hood。\n译者对原文进行了描述上的一些修改。但在没有特殊注明的情况下，译者表述的意思和原文保持一致。\n","dateCreated":"2015-09-15T21:17:24-07:00","dateModified":"2015-09-15T21:17:41-07:00","datePublished":"2015-09-15T21:17:24-07:00","description":"我研究JavaScript闭包（closure）已经有一段时间了。我之前只是学会了如何使用它们，而没有透彻地了解它们具体是如何运作的。那么，究竟什么是闭包？","headline":"JavaScript闭包的底层运行机制","image":["js_closure_1.png"],"mainEntityOfPage":{"@type":"WebPage","@id":"http://blog.leapoahead.com/2015/09/15/js-closure/"},"publisher":{"@type":"Organization","name":"子回（John Wu）","sameAs":["https://github.com/tjwudi","https://twitter.com/leapoahead","https://facebook.com/leapoahead","https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A","mailto:webmaster@leapoahead.com"],"image":"https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b","logo":{"@type":"ImageObject","url":"https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b"}},"url":"http://blog.leapoahead.com/2015/09/15/js-closure/","thumbnailUrl":"js_closure_1.png"}</script>
     <meta name="description" content="我研究JavaScript闭包（closure）已经有一段时间了。我之前只是学会了如何使用它们，而没有透彻地了解它们具体是如何运作的。那么，究竟什么是闭包？">
 <meta property="og:type" content="blog">
 <meta property="og:title" content="JavaScript闭包的底层运行机制">
 <meta property="og:url" content="http://blog.leapoahead.com/2015/09/15/js-closure/index.html">
 <meta property="og:site_name" content="回田园">
 <meta property="og:description" content="我研究JavaScript闭包（closure）已经有一段时间了。我之前只是学会了如何使用它们，而没有透彻地了解它们具体是如何运作的。那么，究竟什么是闭包？">
+<meta property="og:locale" content="en">
 <meta property="og:image" content="http://blog.leapoahead.com/2015/09/15/js-closure/js_closure_1.png">
 <meta property="og:image" content="http://blog.leapoahead.com/2015/09/15/js-closure/js_closure_2.png">
 <meta property="og:image" content="http://blog.leapoahead.com/2015/09/15/js-closure/js_closure_3.png">
@@ -35,18 +38,20 @@
 <meta name="twitter:creator" content="@leapoahead">
     
     
+        
+    
     
         <meta property="og:image" content="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=640"/>
     
     
-        <meta property="og:image" content="/2015/09/15/js-closure/js_closure_1.png"/>
+        <meta property="og:image" content="http://blog.leapoahead.com/2015/09/15/js-closure/js_closure_1.png"/>
         <meta class="swiftype" name="image" data-type="enum" content="http://blog.leapoahead.com/2015/09/15/js-closure/js_closure_1.png" />
     
     
     
     
     <!--STYLES-->
-    <link rel="stylesheet" href="/assets/css/style.min.css">
+    <link rel="stylesheet" href="/assets/css/style-ofaazzmie6zorbkvxsyjh4p3coouliollv7rrwszuqeqxzl7trwkzzisuvjp.min.css">
     <!--STYLES END-->
     
     <script type="text/javascript">
@@ -64,144 +69,173 @@
     </script>
 
 
+    
 </head>
 
     <body>
         <div id="blog">
-            <header id="header" data-behavior="1">
-    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
-    <h1 class="header-title">
-        <a class="header-title-link" href="/ ">回田园</a>
-    </h1>
-</header>
+            <!-- Define author's picture -->
 
-            <nav id="sidebar" data-behavior="1">
+
     
-    <div class="sidebar-profile">
-        <div class="avatar-wrap">
-            <a href="/?action_from=sidebar-profile-picture">
-                <img class="sidebar-profile-picture" src="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90" alt="John Wu">
-            </a>
-        </div>
-        <p class="no-margin-bottom"><strong>子回（John Wu）</strong></p>
-        <p>Software Engineer at Yelp</p>
+        
+    
 
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a class="header-title-link" href="/ ">回田园</a>
     </div>
     
-        <ul class="sidebar-buttons">
         
-            <li class="sidebar-button">
-                
-                    <a  class="sidebar-button-link "
-                         href="/?action_from=sidebar-button-link"
-                        
-                    >
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-home"></i>
-                    <span class="sidebar-button-desc">主页</span>
-                </a>
-        </li>
+            <a  class="header-right-picture "
+                href="#about">
         
-            <li class="sidebar-button">
-                
-                    <a  class="sidebar-button-link "
-                         href="/all-categories?action_from=sidebar-button-link"
-                        
-                    >
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
-                    <span class="sidebar-button-desc">分类</span>
-                </a>
-        </li>
         
-    </ul>
+            <img class="header-picture" src="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90" alt="Author&#39;s picture"/>
+        
+        </a>
     
-        <ul class="sidebar-buttons">
-        
-            <li class="sidebar-button">
-                
-                  <a  class="sidebar-button-link " href="https://github.com/tjwudi?action_from=sidebar-button-link" target="_blank">
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-github"></i>
-                    <span class="sidebar-button-desc">GitHub</span>
-                </a>
-        </li>
-        
-            <li class="sidebar-button">
-                
-                  <a  class="sidebar-button-link " href="https://twitter.com/leapoahead?action_from=sidebar-button-link" target="_blank">
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-twitter"></i>
-                    <span class="sidebar-button-desc">Twitter</span>
-                </a>
-        </li>
-        
-            <li class="sidebar-button">
-                
-                  <a  class="sidebar-button-link " href="https://facebook.com/leapoahead?action_from=sidebar-button-link" target="_blank">
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-facebook"></i>
-                    <span class="sidebar-button-desc">Facebook</span>
-                </a>
-        </li>
-        
-            <li class="sidebar-button">
-                
-                  <a  class="sidebar-button-link " href="https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A?action_from=sidebar-button-link" target="_blank">
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-linkedin"></i>
-                    <span class="sidebar-button-desc">LinkedIn</span>
-                </a>
-        </li>
-        
-            <li class="sidebar-button">
-                
-                  <a  class="sidebar-button-link " href="mailto:webmaster@leapoahead.com?action_from=sidebar-button-link" target="_blank">
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-envelope-o"></i>
-                    <span class="sidebar-button-desc">Email</span>
-                </a>
-        </li>
-        
-    </ul>
+</header>
+
+            
+
     
-        <ul class="sidebar-buttons">
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
         
-            <li class="sidebar-button">
-                
-                    <a  class="sidebar-button-link "
-                         href="/atom.xml?action_from=sidebar-button-link"
-                        
-                    >
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-rss"></i>
-                    <span class="sidebar-button-desc">RSS</span>
+            <div class="sidebar-profile">
+                <a href="/#about">
+                    <img class="sidebar-profile-picture" src="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=110" alt="Author&#39;s picture"/>
                 </a>
-        </li>
+                <h4 class="sidebar-profile-name">子回（John Wu）</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p>Strong opinion, weakly held.</p>
+</h5>
+                
+            </div>
         
-    </ul>
-    
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/ "
+                            
+                            title="主页"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">主页</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-categories"
+                            
+                            title="分类"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">分类</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://github.com/tjwudi" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://twitter.com/leapoahead" target="_blank" rel="noopener" title="Twitter">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-twitter" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Twitter</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://facebook.com/leapoahead" target="_blank" rel="noopener" title="Facebook">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-facebook" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Facebook</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A" target="_blank" rel="noopener" title="LinkedIn">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-linkedin" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">LinkedIn</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="mailto:webmaster@leapoahead.com" target="_blank" rel="noopener" title="Email">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-envelope-o" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Email</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/atom.xml"
+                            
+                            title="RSS"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-rss" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">RSS</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
 </nav>
 
             
-            <div id="main" data-behavior="1"
+            <div id="main" data-behavior="4"
                  class="
                         hasCoverMetaIn
                         ">
                 
-<article class="post" itemscope itemType="http://schema.org/BlogPosting">
+<article class="post">
     
     
         <div class="post-header main-content-wrap text-left">
     
-        <h1 class="post-title" itemprop="headline">
+        <h1 class="post-title">
             JavaScript闭包的底层运行机制
         </h1>
     
-    <div class="post-meta">
-    <time itemprop="datePublished" content="Tue Sep 15 2015 21:17:24 GMT-0700">
+    
+        <div class="post-meta">
+    <time datetime="2015-09-15T21:17:24-07:00">
 	
-		    9月 15, 2015
+		    Sep 15, 2015
     	
     </time>
     
@@ -212,14 +246,17 @@
 
     
 </div>
-</div>
+
     
-    <div class="post-content markdown" itemprop="articleBody">
+</div>
+
+    
+    <div class="post-content markdown">
         <div class="main-content-wrap">
             <p>我研究JavaScript闭包（closure）已经有一段时间了。我之前只是学会了如何使用它们，而没有透彻地了解它们具体是如何运作的。那么，究竟什么是闭包？</p>
 <a id="more"></a>
-<p><a href="https://en.wikipedia.org/wiki/Closure_%28computer_programming%29" target="_blank" rel="external">Wikipedia</a>给出的解释并没有太大的帮助。闭包是什么时候被创建的，什么时候被销毁的？具体的实现又是怎么样的？</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="meta">"use strict"</span>;</div><div class="line"></div><div class="line"><span class="keyword">var</span> myClosure = (<span class="function"><span class="keyword">function</span> <span class="title">outerFunction</span>(<span class="params"></span>) </span>&#123;</div><div class="line"></div><div class="line">  <span class="keyword">var</span> hidden = <span class="number">1</span>;</div><div class="line"></div><div class="line">  <span class="keyword">return</span> &#123;</div><div class="line">    <span class="attr">inc</span>: <span class="function"><span class="keyword">function</span> <span class="title">innerFunction</span>(<span class="params"></span>) </span>&#123;</div><div class="line">      <span class="keyword">return</span> hidden++;</div><div class="line">    &#125;</div><div class="line">  &#125;;</div><div class="line"></div><div class="line">&#125;());</div><div class="line"></div><div class="line">myClosure.inc();  <span class="comment">// 返回 1</span></div><div class="line">myClosure.inc();  <span class="comment">// 返回 2</span></div><div class="line">myClosure.inc();  <span class="comment">// 返回 3</span></div><div class="line"></div><div class="line"><span class="comment">// 相信对JS熟悉的朋友都能很快理解这段代码</span></div><div class="line"><span class="comment">// 那么在这段代码运行的背后究竟发生了怎样的事情呢？</span></div></pre></td></tr></table></figure>
+<p><a href="https://en.wikipedia.org/wiki/Closure_%28computer_programming%29" target="_blank" rel="noopener">Wikipedia</a>给出的解释并没有太大的帮助。闭包是什么时候被创建的，什么时候被销毁的？具体的实现又是怎么样的？</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">"use strict"</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> myClosure = (<span class="function"><span class="keyword">function</span> <span class="title">outerFunction</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">var</span> hidden = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    inc: <span class="function"><span class="keyword">function</span> <span class="title">innerFunction</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> hidden++;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">&#125;());</span><br><span class="line"></span><br><span class="line">myClosure.inc();  <span class="comment">// 返回 1</span></span><br><span class="line">myClosure.inc();  <span class="comment">// 返回 2</span></span><br><span class="line">myClosure.inc();  <span class="comment">// 返回 3</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 相信对JS熟悉的朋友都能很快理解这段代码</span></span><br><span class="line"><span class="comment">// 那么在这段代码运行的背后究竟发生了怎样的事情呢？</span></span><br></pre></td></tr></table></figure>
 <p>现在，我终于知道了答案，我感到很兴奋并且决定向大家解释这个答案。至少，我一定是不会忘记这个答案的。</p>
 <blockquote>
 <p>Tell me and I forget. Teach me and I remember. Involve me and I learn.<br>© Benjamin Franklin</p>
@@ -232,59 +269,59 @@
 <p>在作用域链中查找变量的过程和原型继承（prototypal inheritance）有着非常相似之处。但是，非常不一样的地方在于，当你在原型链（prototype chain）中找不到一个属性的时候，并不会引发一个错误，而是会得到<code>undefined</code>。但是如果你试图访问一个作用域链中不存在的属性的话，你就会得到一个<code>ReferenceError</code>。</p>
 <p>在作用域链的最顶层的元素就是全局对象（Global Object）了。运行在全局环境的JavaScript代码中，作用域链始终只含有一个元素，那就是全局对象。所以，当你在全局环境中定义变量的时候，它们就会被定义到全局对象中。当函数被调用的时候，作用域链就会包含多个作用域对象。</p>
 <h3 id="全局环境中运行的代码"><a href="#全局环境中运行的代码" class="headerlink" title="全局环境中运行的代码"></a>全局环境中运行的代码</h3><p>好了，理论就说到这里。接下来我们来从实际的代码入手。</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// my_script.js</span></div><div class="line"><span class="meta">"use strict"</span>;</div><div class="line"></div><div class="line"><span class="keyword">var</span> foo = <span class="number">1</span>;</div><div class="line"><span class="keyword">var</span> bar = <span class="number">2</span>;</div></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// my_script.js</span></span><br><span class="line"><span class="meta">"use strict"</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> foo = <span class="number">1</span>;</span><br><span class="line"><span class="keyword">var</span> bar = <span class="number">2</span>;</span><br></pre></td></tr></table></figure>
 <p>我们在全局环境中创建了两个变量。正如我刚才所说，此时的作用域对象就是全局对象。</p>
-<img src="/2015/09/15/js-closure/js_closure_1.png" alt="在全局环境中创建两个变量" title="在全局环境中创建两个变量">
+<img src="/2015/09/15/js-closure/js_closure_1.png" title="在全局环境中创建两个变量">
 <p>在上面的代码中，我们有一个执行的上下文（<strong>myscript.js</strong>自身的代码），以及它所引用的作用域对象。全局对象里面还含有很多不同的属性，在这里我们就忽略掉了。</p>
 <h3 id="没有被嵌套的函数（Non-nested-functions）"><a href="#没有被嵌套的函数（Non-nested-functions）" class="headerlink" title="没有被嵌套的函数（Non-nested functions）"></a>没有被嵌套的函数（Non-nested functions）</h3><p>接下来，我们看这段代码</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="meta">"use strict"</span>;</div><div class="line"><span class="keyword">var</span> foo = <span class="number">1</span>;</div><div class="line"><span class="keyword">var</span> bar = <span class="number">2</span>;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">myFunc</span>(<span class="params"></span>) </span>&#123;</div><div class="line">  <span class="comment">//-- define local-to-function variables</span></div><div class="line">  <span class="keyword">var</span> a = <span class="number">1</span>;</div><div class="line">  <span class="keyword">var</span> b = <span class="number">2</span>;</div><div class="line">  <span class="keyword">var</span> foo = <span class="number">3</span>;</div><div class="line"></div><div class="line">  <span class="built_in">console</span>.log(<span class="string">"inside myFunc"</span>);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="built_in">console</span>.log(<span class="string">"outside"</span>);</div><div class="line"></div><div class="line"><span class="comment">//-- and then, call it:</span></div><div class="line">myFunc();</div></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">"use strict"</span>;</span><br><span class="line"><span class="keyword">var</span> foo = <span class="number">1</span>;</span><br><span class="line"><span class="keyword">var</span> bar = <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">myFunc</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="comment">//-- define local-to-function variables</span></span><br><span class="line">  <span class="keyword">var</span> a = <span class="number">1</span>;</span><br><span class="line">  <span class="keyword">var</span> b = <span class="number">2</span>;</span><br><span class="line">  <span class="keyword">var</span> foo = <span class="number">3</span>;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">"inside myFunc"</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">"outside"</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//-- and then, call it:</span></span><br><span class="line">myFunc();</span><br></pre></td></tr></table></figure>
 <p>当<code>myFunc</code>被定义的时候，<code>myFunc</code>的标识符（identifier）就被加到了当前的作用域对象中（在这里就是全局对象），并且这个标识符所引用的是一个函数对象（function object）。函数对象中所包含的是函数的源代码以及其他的属性。其中一个我们所关心的属性就是内部属性<code>[[scope]]</code>。<code>[[scope]]</code>所指向的就是当前的作用域对象。也就是指的就是函数的标识符被创建的时候，我们所能够直接访问的那个作用域对象（在这里就是全局对象）。</p>
 <blockquote>
 <p>“直接访问”的意思就是，在当前作用域链中，该作用域对象处于最底层，没有子作用域对象。</p>
 </blockquote>
 <p>所以，在<code>console.log(&quot;outside&quot;)</code>被运行之前，对象之间的关系是如下图所示。</p>
-<img src="/2015/09/15/js-closure/js_closure_2.png" alt="对象之间的关系" title="对象之间的关系">
+<img src="/2015/09/15/js-closure/js_closure_2.png" title="对象之间的关系">
 <p>温习一下。<code>myFunc</code>所引用的函数对象其本身不仅仅含有函数的代码，并且还含有指向其<strong>被创建的时候的作用域对象</strong>。这一点<strong>非常重要！</strong></p>
 <p>当<code>myFunc</code>函数被调用的时候，一个新的作用域对象被创建了。新的作用域对象中包含<code>myFunc</code>函数所定义的本地变量，以及其参数（arguments）。这个新的作用域对象的父作用域对象就是在运行<code>myFunc</code>时我们所能直接访问的那个作用域对象。</p>
 <p>所以，当<code>myFunc</code>被执行的时候，对象之间的关系如下图所示。</p>
-<img src="/2015/09/15/js-closure/js_closure_3.png" alt="对象之间的关系（函数执行后）" title="对象之间的关系（函数执行后）">
+<img src="/2015/09/15/js-closure/js_closure_3.png" title="对象之间的关系（函数执行后）">
 <p>现在我们就拥有了一个作用域链。当我们试图在<code>myFunc</code>当中访问某些变量的时候，JavaScript会先在其能直接访问的作用域对象（这里就是<code>myFunc() scope</code>）当中查找这个属性。如果找不到，那么就在它的父作用域对象当中查找（在这里就是<code>Global Object</code>）。如果一直往上找，找到没有父作用域对象为止还没有找到的话，那么就会抛出一个<code>ReferenceError</code>。</p>
 <p>例如，如果我们在<code>myFunc</code>中要访问<code>a</code>这个变量，那么在<code>myFunc scope</code>当中就可以找到它，得到值为<code>1</code>。</p>
 <p>如果我们尝试访问<code>foo</code>，我们就会在<code>myFunc() scope</code>中得到<code>3</code>。只有在<code>myFunc() scope</code>里面找不到<code>foo</code>的时候，JavaScript才会往<code>Global Object</code>去查找。所以，这里我们不会访问到<code>Global Object</code>里面的<code>foo</code>。</p>
 <p>如果我们尝试访问<code>bar</code>，我们在<code>myFunc() scope</code>当中找不到它，于是就会在<code>Global Object</code>当中查找，因此查找到2。</p>
 <p>很重要的是，只要这些作用域对象依然被引用，它们就不会被垃圾回收器（garbage collector）销毁，我们就一直能访问它们。当然，<strong>当引用一个作用域对象的最后一个引用被解除的时候，并不代表垃圾回收器会立刻回收它，只是它现在可以被回收了</strong>。</p>
 <p>所以，当<code>myFunc()</code>返回的时候，再也没有人引用<code>myFunc() scope</code>了。当垃圾回收结束后，对象之间的关系变成回了调用前的关系。</p>
-<img src="/2015/09/15/js-closure/js_closure_2.png" alt="对象之间的关系恢复" title="对象之间的关系恢复">
+<img src="/2015/09/15/js-closure/js_closure_2.png" title="对象之间的关系恢复">
 <p>接下来，为了图表直观起见，我将不再将函数对象画出来。但是，请永远记着，函数对象里面的<code>[[scope]]</code>属性，保存着该函数被定义的时候所能够直接访问的作用域对象。</p>
 <h3 id="嵌套的函数（Nested-functions）"><a href="#嵌套的函数（Nested-functions）" class="headerlink" title="嵌套的函数（Nested functions）"></a>嵌套的函数（Nested functions）</h3><p>正如前面所说，当一个函数返回后，没有其他对象会保存对其的引用。所以，它就可能被垃圾回收器回收。但是如果我们在函数当中定义嵌套的函数并且返回，被调用函数的一方所存储呢？（如下面的代码）</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">myFunc</span>(<span class="params"></span>) </span>&#123;</div><div class="line">  <span class="keyword">return</span> innerFunc() &#123;</div><div class="line">    <span class="comment">// ...</span></div><div class="line">  &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">var</span> innerFunc = myFunc();</div></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">myFunc</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> innerFunc() &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> innerFunc = myFunc();</span><br></pre></td></tr></table></figure>
 <p>你已经知道的是，函数对象中总是有一个<code>[[scope]]</code>属性，保存着该函数被定义的时候所能够直接访问的作用域对象。所以，当我们在定义嵌套的函数的时候，这个嵌套的函数的<code>[[scope]]</code>就会引用外围函数（Outer function）的当前作用域对象。</p>
 <p>如果我们将这个嵌套函数返回，并被另外一个地方的标识符所引用的话，那么这个嵌套函数及其<code>[[scope]]</code>所引用的作用域对象就不会被垃圾回收所销毁。</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="meta">"use strict"</span>;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">createCounter</span>(<span class="params">initial</span>) </span>&#123;</div><div class="line">  <span class="keyword">var</span> counter = initial;</div><div class="line"></div><div class="line">  <span class="function"><span class="keyword">function</span> <span class="title">increment</span>(<span class="params">value</span>) </span>&#123;</div><div class="line">    counter += value;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="function"><span class="keyword">function</span> <span class="title">get</span>(<span class="params"></span>) </span>&#123;</div><div class="line">    <span class="keyword">return</span> counter;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="keyword">return</span> &#123;</div><div class="line">    <span class="attr">increment</span>: increment,</div><div class="line">    <span class="attr">get</span>: get</div><div class="line">  &#125;;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">var</span> myCounter = createCounter(<span class="number">100</span>);</div><div class="line"></div><div class="line"><span class="built_in">console</span>.log(myCounter.get());   <span class="comment">// 返回 100</span></div><div class="line">myCounter.increment(<span class="number">5</span>);</div><div class="line"><span class="built_in">console</span>.log(myCounter.get());   <span class="comment">// 返回 105</span></div></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">"use strict"</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">createCounter</span>(<span class="params">initial</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> counter = initial;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">increment</span>(<span class="params">value</span>) </span>&#123;</span><br><span class="line">    counter += value;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">get</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> counter;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    increment: increment,</span><br><span class="line">    get: get</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> myCounter = createCounter(<span class="number">100</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(myCounter.get());   <span class="comment">// 返回 100</span></span><br><span class="line">myCounter.increment(<span class="number">5</span>);</span><br><span class="line"><span class="built_in">console</span>.log(myCounter.get());   <span class="comment">// 返回 105</span></span><br></pre></td></tr></table></figure>
 <p>当我们调用<code>createCounter(100)</code>的那一瞬间，对象之间的关系如下图</p>
-<img src="/2015/09/15/js-closure/js_closure_4.png" alt="调用createCounter(100)时对象间的关系" title="调用createCounter(100)时对象间的关系">
+<img src="/2015/09/15/js-closure/js_closure_4.png" title="调用createCounter(100)时对象间的关系">
 <p>注意<code>increment</code>和<code>get</code>函数都存有指向<code>createCounter(100) scope</code>的引用。如果<code>createCounter(100)</code>没有任何返回值，那么<code>createCounter(100) scope</code>不再被引用，于是就可以被垃圾回收。但是因为<code>createCounter(100)</code>实际上是有返回值的，并且返回值被存储在了<code>myCounter</code>中，所以对象之间的引用关系变成了如下图所示</p>
-<img src="/2015/09/15/js-closure/js_closure_5.png" alt="调用createCounter(100)后对象间的关系" title="调用createCounter(100)后对象间的关系">
+<img src="/2015/09/15/js-closure/js_closure_5.png" title="调用createCounter(100)后对象间的关系">
 <p>所以，<code>createCounter(100)</code>虽然已经返回了，但是它的作用域对象依然存在，可以<strong>且仅只能</strong>被嵌套的函数（<code>increment</code>和<code>get</code>）所访问。</p>
 <p>让我们试着运行<code>myCounter.get()</code>。刚才说过，函数被调用的时候会创建一个新的作用域对象，并且该作用域对象的父作用域对象会是当前可以直接访问的作用域对象。所以，当<code>myCounter.get()</code>被调用时的一瞬间，对象之间的关系如下。</p>
-<img src="/2015/09/15/js-closure/js_closure_5.png" alt="调用myCounter.get()对象间的关系" title="调用myCounter.get()对象间的关系">
+<img src="/2015/09/15/js-closure/js_closure_5.png" title="调用myCounter.get()对象间的关系">
 <p>在<code>myCounter.get()</code>运行的过程中，作用域链最底层的对象就是<code>get() scope</code>，这是一个空对象。所以，当<code>myCounter.get()</code>访问<code>counter</code>变量时，JavaScript在<code>get() scope</code>中找不到这个属性，于是就向上到<code>createCounter(100) scope</code>当中查找。然后，<code>myCounter.get()</code>将这个值返回。</p>
 <p>调用<code>myCounter.increment(5)</code>的时候，事情变得更有趣了，因为这个时候函数调用的时候传入了参数。</p>
-<img src="/2015/09/15/js-closure/js_closure_6_inc.png" alt="调用myCounter.increment(5)对象间的关系" title="调用myCounter.increment(5)对象间的关系">
+<img src="/2015/09/15/js-closure/js_closure_6_inc.png" title="调用myCounter.increment(5)对象间的关系">
 <p>正如你所见，<code>increment(5)</code>的调用创建了一个新的作用域对象，并且其中含有传入的参数<code>value</code>。当这个函数尝试访问<code>value</code>的时候，JavaScript立刻就能在当前的作用域对象找到它。然而，这个函数试图访问<code>counter</code>的时候，JavaScript无法在当前的作用域对象找到它，于是就会在其父作用域<code>createCounter(100) scope</code>中查找。</p>
 <p>我们可以注意到，在<code>createCounter</code>函数之外，除了被返回的<code>get</code>和<code>increment</code>两个方法，没有其他的地方可以访问到<code>value</code>这个变量了。<strong>这就是用闭包实现“私有变量”的方法</strong>。</p>
 <p>我们注意到<code>initial</code>变量也被存储在<code>createCounter()</code>所创建的作用域对象中，尽管它没有被用到。所以，我们实际上可以去掉<code>var counter = initial;</code>，将<code>initial</code>改名为<code>counter</code>。但是为了代码的可读性起见，我们保留原有的代码不做变化。</p>
 <p>需要注意的是作用域链是不会被复制的。每次函数调用只会往作用域链下面新增一个作用域对象。所以，如果在函数调用的过程当中对作用域链中的任何一个作用域对象的变量进行修改的话，那么同时作用域链中也拥有该作用域对象的函数对象也是能够访问到这个变化后的变量的。</p>
 <p>这也就是为什么下面这个大家都很熟悉的例子会不能产出我们想要的结果。</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="meta">"use strict"</span>;</div><div class="line"></div><div class="line"><span class="keyword">var</span> elems = <span class="built_in">document</span>.getElementsByClassName(<span class="string">"myClass"</span>), i;</div><div class="line"></div><div class="line"><span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; elems.length; i++) &#123;</div><div class="line">  elems[i].addEventListener(<span class="string">"click"</span>, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</div><div class="line">    <span class="keyword">this</span>.innerHTML = i;</div><div class="line">  &#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">"use strict"</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> elems = <span class="built_in">document</span>.getElementsByClassName(<span class="string">"myClass"</span>), i;</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; elems.length; i++) &#123;</span><br><span class="line">  elems[i].addEventListener(<span class="string">"click"</span>, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.innerHTML = i;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>在上面的循环中创建了多个函数对象，所有的函数对象的<code>[[scope]]</code>都保存着对当前作用域对象的引用。而变量<code>i</code>正好就在当前作用域链中，所以循环每次对<code>i</code>的修改，对于每个函数对象都是能够看到的。</p>
 <h3 id="“看起来一样的”函数，不一样的作用域对象"><a href="#“看起来一样的”函数，不一样的作用域对象" class="headerlink" title="“看起来一样的”函数，不一样的作用域对象"></a>“看起来一样的”函数，不一样的作用域对象</h3><p>现在我们来看一个更有趣的例子。</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="meta">"use strict"</span>;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">createCounter</span>(<span class="params">initial</span>) </span>&#123;</div><div class="line">  <span class="comment">// ...</span></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">var</span> myCounter1 = createCounter(<span class="number">100</span>);</div><div class="line"><span class="keyword">var</span> myCounter2 = createCounter(<span class="number">200</span>);</div></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">"use strict"</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">createCounter</span>(<span class="params">initial</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> myCounter1 = createCounter(<span class="number">100</span>);</span><br><span class="line"><span class="keyword">var</span> myCounter2 = createCounter(<span class="number">200</span>);</span><br></pre></td></tr></table></figure>
 <p>当<code>myCounter1</code>和<code>myCounter2</code>被创建后，对象之间的关系为</p>
-<img src="/2015/09/15/js-closure/js_closure_7.png" alt="myCounter1和myCounter2被创建后，对象之间的关系" title="myCounter1和myCounter2被创建后，对象之间的关系">
+<img src="/2015/09/15/js-closure/js_closure_7.png" title="myCounter1和myCounter2被创建后，对象之间的关系">
 <p>在上面的例子中，<code>myCounter1.increment</code>和<code>myCounter2.increment</code>的函数对象拥有着一样的代码以及一样的属性值（<code>name</code>，<code>length</code>等等），但是它们的<code>[[scope]]</code>指向的是<strong>不一样的作用域对象</strong>。</p>
 <p>这才有了下面的结果</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> a, b;</div><div class="line">a = myCounter1.get();   <span class="comment">// a 等于 100</span></div><div class="line">b = myCounter2.get();   <span class="comment">// b 等于 200</span></div><div class="line"></div><div class="line">myCounter1.increment(<span class="number">1</span>);</div><div class="line">myCounter1.increment(<span class="number">2</span>);</div><div class="line"></div><div class="line">myCounter2.increment(<span class="number">5</span>);</div><div class="line"></div><div class="line">a = myCounter1.get();   <span class="comment">// a 等于 103</span></div><div class="line">b = myCounter2.get();   <span class="comment">// b 等于 205</span></div></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> a, b;</span><br><span class="line">a = myCounter1.get();   <span class="comment">// a 等于 100</span></span><br><span class="line">b = myCounter2.get();   <span class="comment">// b 等于 200</span></span><br><span class="line"></span><br><span class="line">myCounter1.increment(<span class="number">1</span>);</span><br><span class="line">myCounter1.increment(<span class="number">2</span>);</span><br><span class="line"></span><br><span class="line">myCounter2.increment(<span class="number">5</span>);</span><br><span class="line"></span><br><span class="line">a = myCounter1.get();   <span class="comment">// a 等于 103</span></span><br><span class="line">b = myCounter2.get();   <span class="comment">// b 等于 205</span></span><br></pre></td></tr></table></figure>
 <h3 id="作用域链和this"><a href="#作用域链和this" class="headerlink" title="作用域链和this"></a>作用域链和<code>this</code></h3><p><code>this</code>的值不会被保存在作用域链中，<code>this</code>的值取决于函数被调用的时候的情景。</p>
 <blockquote>
 <p>译者注：对这部分，译者自己曾经写过一篇更加详尽的文章，请参考<a href="http://blog.leapoahead.com/2015/08/31/understanding-js-this-keyword/">《用自然语言的角度理解JavaScript中的this关键字》</a>。原文的这一部分以及“<code>this</code>在嵌套的函数中的使用”译者便不再翻译。</p>
@@ -308,13 +345,11 @@
 <li>标识符：identifier</li>
 <li>垃圾回收器：garbage collector</li>
 </ul>
-<h3 id="著作权声明"><a href="#著作权声明" class="headerlink" title="著作权声明"></a>著作权声明</h3><p>本文经授权翻译自<a href="http://dmitryfrank.com/articles/js_closures?utm_source=javascriptweekly&amp;utm_medium=email" target="_blank" rel="external">How do JavaScript closures work under the hood</a>。</p>
+<h3 id="著作权声明"><a href="#著作权声明" class="headerlink" title="著作权声明"></a>著作权声明</h3><p>本文经授权翻译自<a href="http://dmitryfrank.com/articles/js_closures?utm_source=javascriptweekly&amp;utm_medium=email" target="_blank" rel="noopener">How do JavaScript closures work under the hood</a>。</p>
 <p>译者对原文进行了描述上的一些修改。但在没有特殊注明的情况下，译者表述的意思和原文保持一致。</p>
 
             
-                
 
-            
         </div>
     </div>
     
@@ -344,13 +379,36 @@
         </form>
     </div>
 </div>
-    <div class="post-footer main-content-wrap">
+    <div id="post-footer" class="post-footer main-content-wrap">
         
-        <div class="post-actions-wrap">
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/09/19/function-as-first-class-citizen/" data-tooltip="“函数是一等公民”背后的含义" aria-label="PREVIOUS: “函数是一等公民”背后的含义">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">PREVIOUS</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/09/12/react-es6-webpack-in-5-minutes/" data-tooltip="5分钟内使用React、Webpack与ES6构建应用" aria-label="NEXT: 5分钟内使用React、Webpack与ES6构建应用">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">NEXT</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
     <ul class="post-actions post-action-share">
         <li class="post-action hide-lg hide-md hide-sm">
-            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
-                <i class="fa fa-share-alt"></i>
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="Share this post">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
             </a>
         </li>
         <li class="post-action hide-xs">
@@ -380,9 +438,12 @@
 
 
         
-            <div id="disqus_thread">
+        
+            
+                <div id="disqus_thread">
     <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 </div>
+            
         
     </div>
 </article>
@@ -391,18 +452,40 @@
 
                 <footer id="footer" class="main-content-wrap">
     <span class="copyrights">
-        Copyrights &copy; 2017 子回（John Wu）. All Rights Reserved.
+        Copyrights &copy; 2018 子回（John Wu）. All Rights Reserved.
     </span>
 </footer>
 
             </div>
             
-                <div id="bottom-bar" class="post-bottom-bar" data-behavior="1">
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
                     <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/09/19/function-as-first-class-citizen/" data-tooltip="“函数是一等公民”背后的含义" aria-label="PREVIOUS: “函数是一等公民”背后的含义">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">PREVIOUS</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/09/12/react-es6-webpack-in-5-minutes/" data-tooltip="5分钟内使用React、Webpack与ES6构建应用" aria-label="NEXT: 5分钟内使用React、Webpack与ES6构建应用">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">NEXT</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
     <ul class="post-actions post-action-share">
         <li class="post-action hide-lg hide-md hide-sm">
-            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
-                <i class="fa fa-share-alt"></i>
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="Share this post">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
             </a>
         </li>
         <li class="post-action hide-xs">
@@ -432,45 +515,102 @@
 
 
                 </div>
-                <div id="share-options-bar" class="share-options-bar" data-behavior="1">
+                <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+    <i id="btn-close-shareoptions" class="fa fa-close"></i>
     <ul class="share-options">
-        <li class="share-option">
-            <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/09/15/js-closure/">
-                <i class="fa fa-google-plus"></i><span class="">Share on Google Plus</span>
-            </a>
-        </li>
-        <li class="share-option">
-            <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/09/15/js-closure/">
-                <i class="fa fa-facebook-official"></i><span>Share on Facebook</span>
-            </a>
-        </li>
-        <li class="share-option">
-            <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/09/15/js-closure/">
-                <i class="fa fa-twitter"></i><span>Share on Twitter</span>
-            </a>
-        </li>
+        
+            
+            
+            <li class="share-option">
+                <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/09/15/js-closure/">
+                    <i class="fa fa-facebook-official" aria-hidden="true"></i><span>Share on Facebook</span>
+                </a>
+            </li>
+        
+            
+            
+            <li class="share-option">
+                <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/09/15/js-closure/">
+                    <i class="fa fa-twitter" aria-hidden="true"></i><span>Share on Twitter</span>
+                </a>
+            </li>
+        
+            
+            
+            <li class="share-option">
+                <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/09/15/js-closure/">
+                    <i class="fa fa-google-plus" aria-hidden="true"></i><span>Share on Google+</span>
+                </a>
+            </li>
+        
     </ul>
 </div>
-<div id="share-options-mask" class="share-options-mask"></div>
+
             
         </div>
-        <div id="cover" style="background-image:url('http://res.cloudinary.com/tranquilpeak-hexo-theme/image/upload/v1438975482/v1.3.0-cover.jpg');"></div>
-    </body>
-    <!--SCRIPTS-->
-<script src="/assets/js/script.min.js"></script>
+        
+
+
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-remove"></i>
+        </div>
+        
+            <img id="about-card-picture" src="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=110" alt="Author&#39;s picture"/>
+        
+            <h4 id="about-card-name">子回（John Wu）</h4>
+        
+            <div id="about-card-bio"><p>Strong opinion, weakly held.</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>Software Engineer at Facebook</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker"></i>
+                <br/>
+                San Francisco, CA
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-plvqpdisosqesdacqcnrardusldtgvjkw3tfmpjbhf0aa6t4lalcoshprtxn.min.js"></script>
 <!--SCRIPTS END-->
 
-    <script type="text/javascript">
-        var disqus_shortname = 'johnweng';
-        (function() {
-            var dsq = document.createElement('script');
-            dsq.type = 'text/javascript';
-            dsq.async = true;
-            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-        })();
-    </script>
+    
+        <script>
+             var disqus_config = function () {
+                 this.page.url = 'http://blog.leapoahead.com/2015/09/15/js-closure/';
+                 
+                    this.page.identifier = '2015/09/15/js-closure/';
+                 
+             };
+            (function() {
+                var d = document, s = d.createElement('script');
+                var disqus_shortname = 'johnweng';
+                s.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+
+                s.setAttribute('data-timestamp', +new Date());
+                (d.head || d.body).appendChild(s);
+            })();
+        </script>
+    
 
 
 
+    </body>
 </html>

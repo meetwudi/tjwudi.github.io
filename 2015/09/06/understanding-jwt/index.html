@@ -1,23 +1,26 @@
 
 <!DOCTYPE html>
-<html lang="zh_CN">
+<html lang="en">
     
 <head>
-    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="generator" content="回田园">
     <title>JSON Web Token - 在Web应用间安全地传递信息 - 回田园</title>
     <meta name="author" content="子回（John Wu）">
     
     
-        <link rel="alternative" type="application/atom+xml" title="RSS" href="/atom.xml">
     
+        <link rel="alternate" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"子回（John Wu）","sameAs":["https://github.com/tjwudi","https://twitter.com/leapoahead","https://facebook.com/leapoahead","https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A","mailto:webmaster@leapoahead.com"],"image":"https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b"},"articleBody":"JSON Web Token（JWT）是一个非常轻巧的规范。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。\n\n让我们来假想一下一个场景。在A用户关注了B用户的时候，系统发邮件给B用户，并且附有一个链接“点此关注A用户”。链接的地址可以是这样的\n1https://your.awesome-app.com/make-friend/?from_user=B&amp;target_user=A\n上面的URL主要通过URL来描述这个当然这样做有一个弊端，那就是要求用户B用户是一定要先登录的。可不可以简化这个流程，让B用户不用登录就可以完成这个操作。JWT就允许我们做到这点。\n\nJWT的组成一个JWT实际上就是一个字符串，它由三部分组成，头部、载荷与签名。\n载荷（Payload）我们先将上面的添加好友的操作描述成一个JSON对象。其中添加了一些其他的信息，帮助今后收到这个JWT的服务器理解这个JWT。\n123456789&#123;    \"iss\": \"John Wu JWT\",    \"iat\": 1441593502,    \"exp\": 1441594722,    \"aud\": \"www.example.com\",    \"sub\": \"jrocket@example.com\",    \"from_user\": \"B\",    \"target_user\": \"A\"&#125;\n这里面的前五个字段都是由JWT的标准所定义的。\n\niss: 该JWT的签发者\nsub: 该JWT所面向的用户\naud: 接收该JWT的一方\nexp(expires): 什么时候过期，这里是一个Unix时间戳\niat(issued at): 在什么时候签发的\n\n这些定义都可以在标准中找到。 \n将上面的JSON对象进行[base64编码]可以得到下面的字符串。这个字符串我们将它称作JWT的Payload（载荷）。\n1eyJpc3MiOiJKb2huIFd1IEpXVCIsImlhdCI6MTQ0MTU5MzUwMiwiZXhwIjoxNDQxNTk0NzIyLCJhdWQiOiJ3d3cuZXhhbXBsZS5jb20iLCJzdWIiOiJqcm9ja2V0QGV4YW1wbGUuY29tIiwiZnJvbV91c2VyIjoiQiIsInRhcmdldF91c2VyIjoiQSJ9\n如果你使用Node.js，可以用Node.js的包base64url来得到这个字符串。\n1234567var base64url = require('base64url')var header = &#123;    \"from_user\": \"B\",    \"target_user\": \"A\"&#125;console.log(base64url(JSON.stringify(header)))// 输出：eyJpc3MiOiJKb2huIFd1IEpXVCIsImlhdCI6MTQ0MTU5MzUwMiwiZXhwIjoxNDQxNTk0NzIyLCJhdWQiOiJ3d3cuZXhhbXBsZS5jb20iLCJzdWIiOiJqcm9ja2V0QGV4YW1wbGUuY29tIiwiZnJvbV91c2VyIjoiQiIsInRhcmdldF91c2VyIjoiQSJ9\n\n小知识：Base64是一种编码，也就是说，它是可以被翻译回原来的样子来的。它并不是一种加密过程。\n\n头部（Header）JWT还需要一个头部，头部用于描述关于该JWT的最基本的信息，例如其类型以及签名所用的算法等。这也可以被表示成一个JSON对象。\n1234&#123;  \"typ\": \"JWT\",  \"alg\": \"HS256\"&#125;\n在这里，我们说明了这是一个JWT，并且我们所用的签名算法（后面会提到）是HS256算法。\n对它也要进行Base64编码，之后的字符串就成了JWT的Header（头部）。\n1eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9\n签名（签名）将上面的两个编码后的字符串都用句号.连接在一起（头部在前），就形成了\n1eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcm9tX3VzZXIiOiJCIiwidGFyZ2V0X3VzZXIiOiJBIn0\n\n这一部分的过程在node-jws的源码中有体现\n\n最后，我们将上面拼接完的字符串用HS256算法进行加密。在加密的时候，我们还需要提供一个密钥（secret）。如果我们用mystar作为密钥的话，那么就可以得到我们加密后的内容\n1rSWamyAYwuHCo7IFAgd1oRpSP7nzL7BF5t7ItqpKViM\n这一部分又叫做签名。\n\n最后将这一部分签名也拼接在被签名的字符串后面，我们就得到了完整的JWT\n1eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcm9tX3VzZXIiOiJCIiwidGFyZ2V0X3VzZXIiOiJBIn0.rSWamyAYwuHCo7IFAgd1oRpSP7nzL7BF5t7ItqpKViM\n于是，我们就可以将邮件中的URL改成\n1https://your.awesome-app.com/make-friend/?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcm9tX3VzZXIiOiJCIiwidGFyZ2V0X3VzZXIiOiJBIn0.rSWamyAYwuHCo7IFAgd1oRpSP7nzL7BF5t7ItqpKViM\n这样就可以安全地完成添加好友的操作了！\n且慢，我们一定会有一些问题：\n\n签名的目的是什么？\nBase64是一种编码，是可逆的，那么我的信息不就被暴露了吗？\n\n让我逐一为你说明。\n签名的目的最后一步签名的过程，实际上是对头部以及载荷内容进行签名。一般而言，加密算法对于不同的输入产生的输出总是不一样的。对于两个不同的输入，产生同样的输出的概率极其地小（有可能比我成世界首富的概率还小）。所以，我们就把“不一样的输入产生不一样的输出”当做必然事件来看待吧。\n所以，如果有人对头部以及载荷的内容解码之后进行修改，再进行编码的话，那么新的头部和载荷的签名和之前的签名就将是不一样的。而且，如果不知道服务器加密的时候用的密钥的话，得出来的签名也一定会是不一样的。\n\n服务器应用在接受到JWT后，会首先对头部和载荷的内容用同一算法再次签名。那么服务器应用是怎么知道我们用的是哪一种算法呢？别忘了，我们在JWT的头部中已经用alg字段指明了我们的加密算法了。\n如果服务器应用对头部和载荷再次以同样方法签名之后发现，自己计算出来的签名和接受到的签名不一样，那么就说明这个Token的内容被别人动过的，我们应该拒绝这个Token，返回一个HTTP 401 Unauthorized响应。\n信息会暴露？是的。\n所以，在JWT中，不应该在载荷里面加入任何敏感的数据。在上面的例子中，我们传输的是用户的User ID。这个值实际上不是什么敏感内容，一般情况下被知道也是安全的。\n但是像密码这样的内容就不能被放在JWT中了。如果将用户的密码放在了JWT中，那么怀有恶意的第三方通过Base64解码就能很快地知道你的密码了。\nJWT的适用场景我们可以看到，JWT适合用于向Web应用传递一些非敏感信息。例如在上面提到的完成加好友的操作，还有诸如下订单的操作等等。\n其实JWT还经常用于设计用户认证和授权系统，甚至实现Web应用的单点登录。在下一次的文章中，我将为大家系统地总结JWT在用户认证和授权上的应用。如果想要及时地收到下一篇文章的更新，您可以在下方订阅我的半月刊：）\n","dateCreated":"2015-09-06T20:25:36-07:00","dateModified":"2015-09-06T20:25:36-07:00","datePublished":"2015-09-06T20:25:36-07:00","description":"JSON Web Token（JWT）是一个非常轻巧的规范。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。","headline":"JSON Web Token - 在Web应用间安全地传递信息","image":["jwt.png"],"mainEntityOfPage":{"@type":"WebPage","@id":"http://blog.leapoahead.com/2015/09/06/understanding-jwt/"},"publisher":{"@type":"Organization","name":"子回（John Wu）","sameAs":["https://github.com/tjwudi","https://twitter.com/leapoahead","https://facebook.com/leapoahead","https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A","mailto:webmaster@leapoahead.com"],"image":"https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b","logo":{"@type":"ImageObject","url":"https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b"}},"url":"http://blog.leapoahead.com/2015/09/06/understanding-jwt/","thumbnailUrl":"jwt.png"}</script>
     <meta name="description" content="JSON Web Token（JWT）是一个非常轻巧的规范。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。">
 <meta property="og:type" content="blog">
 <meta property="og:title" content="JSON Web Token - 在Web应用间安全地传递信息">
 <meta property="og:url" content="http://blog.leapoahead.com/2015/09/06/understanding-jwt/index.html">
 <meta property="og:site_name" content="回田园">
 <meta property="og:description" content="JSON Web Token（JWT）是一个非常轻巧的规范。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。">
+<meta property="og:locale" content="en">
 <meta property="og:image" content="http://blog.leapoahead.com/2015/09/06/understanding-jwt/jwt.png">
 <meta property="og:image" content="http://blog.leapoahead.com/2015/09/06/understanding-jwt/sig1.png">
 <meta property="og:image" content="http://blog.leapoahead.com/2015/09/06/understanding-jwt/sig2.png">
@@ -29,18 +32,20 @@
 <meta name="twitter:creator" content="@leapoahead">
     
     
+        
+    
     
         <meta property="og:image" content="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=640"/>
     
     
-        <meta property="og:image" content="/2015/09/06/understanding-jwt/jwt.png"/>
+        <meta property="og:image" content="http://blog.leapoahead.com/2015/09/06/understanding-jwt/jwt.png"/>
         <meta class="swiftype" name="image" data-type="enum" content="http://blog.leapoahead.com/2015/09/06/understanding-jwt/jwt.png" />
     
     
     
     
     <!--STYLES-->
-    <link rel="stylesheet" href="/assets/css/style.min.css">
+    <link rel="stylesheet" href="/assets/css/style-ofaazzmie6zorbkvxsyjh4p3coouliollv7rrwszuqeqxzl7trwkzzisuvjp.min.css">
     <!--STYLES END-->
     
     <script type="text/javascript">
@@ -58,144 +63,173 @@
     </script>
 
 
+    
 </head>
 
     <body>
         <div id="blog">
-            <header id="header" data-behavior="1">
-    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
-    <h1 class="header-title">
-        <a class="header-title-link" href="/ ">回田园</a>
-    </h1>
-</header>
+            <!-- Define author's picture -->
 
-            <nav id="sidebar" data-behavior="1">
+
     
-    <div class="sidebar-profile">
-        <div class="avatar-wrap">
-            <a href="/?action_from=sidebar-profile-picture">
-                <img class="sidebar-profile-picture" src="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90" alt="John Wu">
-            </a>
-        </div>
-        <p class="no-margin-bottom"><strong>子回（John Wu）</strong></p>
-        <p>Software Engineer at Yelp</p>
+        
+    
 
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a class="header-title-link" href="/ ">回田园</a>
     </div>
     
-        <ul class="sidebar-buttons">
         
-            <li class="sidebar-button">
-                
-                    <a  class="sidebar-button-link "
-                         href="/?action_from=sidebar-button-link"
-                        
-                    >
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-home"></i>
-                    <span class="sidebar-button-desc">主页</span>
-                </a>
-        </li>
+            <a  class="header-right-picture "
+                href="#about">
         
-            <li class="sidebar-button">
-                
-                    <a  class="sidebar-button-link "
-                         href="/all-categories?action_from=sidebar-button-link"
-                        
-                    >
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
-                    <span class="sidebar-button-desc">分类</span>
-                </a>
-        </li>
         
-    </ul>
+            <img class="header-picture" src="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90" alt="Author&#39;s picture"/>
+        
+        </a>
     
-        <ul class="sidebar-buttons">
-        
-            <li class="sidebar-button">
-                
-                  <a  class="sidebar-button-link " href="https://github.com/tjwudi?action_from=sidebar-button-link" target="_blank">
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-github"></i>
-                    <span class="sidebar-button-desc">GitHub</span>
-                </a>
-        </li>
-        
-            <li class="sidebar-button">
-                
-                  <a  class="sidebar-button-link " href="https://twitter.com/leapoahead?action_from=sidebar-button-link" target="_blank">
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-twitter"></i>
-                    <span class="sidebar-button-desc">Twitter</span>
-                </a>
-        </li>
-        
-            <li class="sidebar-button">
-                
-                  <a  class="sidebar-button-link " href="https://facebook.com/leapoahead?action_from=sidebar-button-link" target="_blank">
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-facebook"></i>
-                    <span class="sidebar-button-desc">Facebook</span>
-                </a>
-        </li>
-        
-            <li class="sidebar-button">
-                
-                  <a  class="sidebar-button-link " href="https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A?action_from=sidebar-button-link" target="_blank">
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-linkedin"></i>
-                    <span class="sidebar-button-desc">LinkedIn</span>
-                </a>
-        </li>
-        
-            <li class="sidebar-button">
-                
-                  <a  class="sidebar-button-link " href="mailto:webmaster@leapoahead.com?action_from=sidebar-button-link" target="_blank">
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-envelope-o"></i>
-                    <span class="sidebar-button-desc">Email</span>
-                </a>
-        </li>
-        
-    </ul>
+</header>
+
+            
+
     
-        <ul class="sidebar-buttons">
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
         
-            <li class="sidebar-button">
-                
-                    <a  class="sidebar-button-link "
-                         href="/atom.xml?action_from=sidebar-button-link"
-                        
-                    >
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-rss"></i>
-                    <span class="sidebar-button-desc">RSS</span>
+            <div class="sidebar-profile">
+                <a href="/#about">
+                    <img class="sidebar-profile-picture" src="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=110" alt="Author&#39;s picture"/>
                 </a>
-        </li>
+                <h4 class="sidebar-profile-name">子回（John Wu）</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p>Strong opinion, weakly held.</p>
+</h5>
+                
+            </div>
         
-    </ul>
-    
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/ "
+                            
+                            title="主页"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">主页</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-categories"
+                            
+                            title="分类"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">分类</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://github.com/tjwudi" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://twitter.com/leapoahead" target="_blank" rel="noopener" title="Twitter">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-twitter" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Twitter</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://facebook.com/leapoahead" target="_blank" rel="noopener" title="Facebook">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-facebook" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Facebook</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A" target="_blank" rel="noopener" title="LinkedIn">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-linkedin" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">LinkedIn</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="mailto:webmaster@leapoahead.com" target="_blank" rel="noopener" title="Email">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-envelope-o" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Email</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/atom.xml"
+                            
+                            title="RSS"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-rss" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">RSS</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
 </nav>
 
             
-            <div id="main" data-behavior="1"
+            <div id="main" data-behavior="4"
                  class="
                         hasCoverMetaIn
                         ">
                 
-<article class="post" itemscope itemType="http://schema.org/BlogPosting">
+<article class="post">
     
     
         <div class="post-header main-content-wrap text-left">
     
-        <h1 class="post-title" itemprop="headline">
+        <h1 class="post-title">
             JSON Web Token - 在Web应用间安全地传递信息
         </h1>
     
-    <div class="post-meta">
-    <time itemprop="datePublished" content="Sun Sep 06 2015 20:25:36 GMT-0700">
+    
+        <div class="post-meta">
+    <time datetime="2015-09-06T20:25:36-07:00">
 	
-		    9月 06, 2015
+		    Sep 06, 2015
     	
     </time>
     
@@ -206,19 +240,22 @@
 
     
 </div>
-</div>
+
     
-    <div class="post-content markdown" itemprop="articleBody">
+</div>
+
+    
+    <div class="post-content markdown">
         <div class="main-content-wrap">
-            <p>JSON Web Token（JWT）是一个非常轻巧的<a href="https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32" target="_blank" rel="external">规范</a>。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。</p>
+            <p>JSON Web Token（JWT）是一个非常轻巧的<a href="https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32" target="_blank" rel="noopener">规范</a>。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。</p>
 <a id="more"></a>
 <p>让我们来假想一下一个场景。在A用户关注了B用户的时候，系统发邮件给B用户，并且附有一个链接“点此关注A用户”。链接的地址可以是这样的</p>
-<figure class="highlight dts"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="symbol">https:</span><span class="comment">//your.awesome-app.com/make-friend/?from_user=B&amp;target_user=A</span></div></pre></td></tr></table></figure>
+<figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https:<span class="comment">//your.awesome-app.com/make-friend/?from_user=B&amp;target_user=A</span></span><br></pre></td></tr></table></figure>
 <p>上面的URL主要通过URL来描述这个当然这样做有一个弊端，那就是要求用户B用户是一定要先登录的。可不可以简化这个流程，让B用户不用登录就可以完成这个操作。JWT就允许我们做到这点。</p>
-<img src="/2015/09/06/understanding-jwt/jwt.png" alt="JSON Web Token" title="JSON Web Token">
+<img src="/2015/09/06/understanding-jwt/jwt.png" title="JSON Web Token">
 <h3 id="JWT的组成"><a href="#JWT的组成" class="headerlink" title="JWT的组成"></a>JWT的组成</h3><p>一个JWT实际上就是一个字符串，它由三部分组成，<strong>头部</strong>、<strong>载荷</strong>与<strong>签名</strong>。</p>
 <h5 id="载荷（Payload）"><a href="#载荷（Payload）" class="headerlink" title="载荷（Payload）"></a>载荷（Payload）</h5><p>我们先将上面的添加好友的操作描述成一个JSON对象。其中添加了一些其他的信息，帮助今后收到这个JWT的服务器理解这个JWT。</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">&#123;</div><div class="line">    <span class="attr">"iss"</span>: <span class="string">"John Wu JWT"</span>,</div><div class="line">    <span class="attr">"iat"</span>: <span class="number">1441593502</span>,</div><div class="line">    <span class="attr">"exp"</span>: <span class="number">1441594722</span>,</div><div class="line">    <span class="attr">"aud"</span>: <span class="string">"www.example.com"</span>,</div><div class="line">    <span class="attr">"sub"</span>: <span class="string">"jrocket@example.com"</span>,</div><div class="line">    <span class="attr">"from_user"</span>: <span class="string">"B"</span>,</div><div class="line">    <span class="attr">"target_user"</span>: <span class="string">"A"</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">"iss"</span>: <span class="string">"John Wu JWT"</span>,</span><br><span class="line">    <span class="attr">"iat"</span>: <span class="number">1441593502</span>,</span><br><span class="line">    <span class="attr">"exp"</span>: <span class="number">1441594722</span>,</span><br><span class="line">    <span class="attr">"aud"</span>: <span class="string">"www.example.com"</span>,</span><br><span class="line">    <span class="attr">"sub"</span>: <span class="string">"jrocket@example.com"</span>,</span><br><span class="line">    <span class="attr">"from_user"</span>: <span class="string">"B"</span>,</span><br><span class="line">    <span class="attr">"target_user"</span>: <span class="string">"A"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>这里面的前五个字段都是由JWT的标准所定义的。</p>
 <ul>
 <li><code>iss</code>: 该JWT的签发者</li>
@@ -227,32 +264,32 @@
 <li><code>exp</code>(expires): 什么时候过期，这里是一个Unix时间戳</li>
 <li><code>iat</code>(issued at): 在什么时候签发的</li>
 </ul>
-<p>这些定义都可以在<a href="https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32" target="_blank" rel="external">标准</a>中找到。 </p>
+<p>这些定义都可以在<a href="https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32" target="_blank" rel="noopener">标准</a>中找到。 </p>
 <p>将上面的JSON对象进行[base64编码]可以得到下面的字符串。这个字符串我们将它称作JWT的<strong>Payload</strong>（载荷）。</p>
-<figure class="highlight gcode"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">eyJpc<span class="number">3</span>MiOiJKb<span class="number">2</span>huIFd<span class="number">1</span>IEpX<span class="attr">VCIsImlhdCI6</span>MTQ<span class="number">0</span>MTU<span class="number">5</span>MzUwMiwiZXhwIjox<span class="symbol">NDQxNTk0</span><span class="symbol">NzIyLCJhdWQiOiJ3</span>d<span class="number">3</span>cuZXhhbXBsZS<span class="number">5</span>jb<span class="number">20</span>iLCJzdWIiOiJqc<span class="name">m9</span>ja<span class="number">2</span>V<span class="number">0</span>QGV<span class="number">4</span>YW<span class="number">1</span>wbGUuY<span class="number">29</span>tIiwiZ<span class="symbol">nJvbV91</span>c<span class="number">2</span>VyIjoiQiIsI<span class="symbol">nRhcmdldF91</span>c<span class="number">2</span>VyIjoiQSJ<span class="number">9</span></div></pre></td></tr></table></figure>
-<p>如果你使用Node.js，可以用Node.js的包<a href="https://github.com/brianloveswords/base64url" target="_blank" rel="external">base64url</a>来得到这个字符串。</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> base64url = <span class="built_in">require</span>(<span class="string">'base64url'</span>)</div><div class="line"><span class="keyword">var</span> header = &#123;</div><div class="line">    <span class="string">"from_user"</span>: <span class="string">"B"</span>,</div><div class="line">    <span class="string">"target_user"</span>: <span class="string">"A"</span></div><div class="line">&#125;</div><div class="line"><span class="built_in">console</span>.log(base64url(<span class="built_in">JSON</span>.stringify(header)))</div><div class="line"><span class="comment">// 输出：eyJpc3MiOiJKb2huIFd1IEpXVCIsImlhdCI6MTQ0MTU5MzUwMiwiZXhwIjoxNDQxNTk0NzIyLCJhdWQiOiJ3d3cuZXhhbXBsZS5jb20iLCJzdWIiOiJqcm9ja2V0QGV4YW1wbGUuY29tIiwiZnJvbV91c2VyIjoiQiIsInRhcmdldF91c2VyIjoiQSJ9</span></div></pre></td></tr></table></figure>
+<figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">eyJpc<span class="number">3</span>MiOiJKb<span class="number">2</span>huIFd<span class="number">1</span>IEpX<span class="attr">VCIsImlhdCI6</span>MTQ<span class="number">0</span>MTU<span class="number">5</span>MzUwMiwiZXhwIjox<span class="symbol">NDQxNTk0</span><span class="symbol">NzIyLCJhdWQiOiJ3</span>d<span class="number">3</span>cuZXhhbXBsZS<span class="number">5</span>jb<span class="number">20</span>iLCJzdWIiOiJqc<span class="name">m9</span>ja<span class="number">2</span>V<span class="number">0</span>QGV<span class="number">4</span>YW<span class="number">1</span>wbGUuY<span class="number">29</span>tIiwiZ<span class="symbol">nJvbV91</span>c<span class="number">2</span>VyIjoiQiIsI<span class="symbol">nRhcmdldF91</span>c<span class="number">2</span>VyIjoiQSJ<span class="number">9</span></span><br></pre></td></tr></table></figure>
+<p>如果你使用Node.js，可以用Node.js的包<a href="https://github.com/brianloveswords/base64url" target="_blank" rel="noopener">base64url</a>来得到这个字符串。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> base64url = <span class="built_in">require</span>(<span class="string">'base64url'</span>)</span><br><span class="line"><span class="keyword">var</span> header = &#123;</span><br><span class="line">    <span class="string">"from_user"</span>: <span class="string">"B"</span>,</span><br><span class="line">    <span class="string">"target_user"</span>: <span class="string">"A"</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">console</span>.log(base64url(<span class="built_in">JSON</span>.stringify(header)))</span><br><span class="line"><span class="comment">// 输出：eyJpc3MiOiJKb2huIFd1IEpXVCIsImlhdCI6MTQ0MTU5MzUwMiwiZXhwIjoxNDQxNTk0NzIyLCJhdWQiOiJ3d3cuZXhhbXBsZS5jb20iLCJzdWIiOiJqcm9ja2V0QGV4YW1wbGUuY29tIiwiZnJvbV91c2VyIjoiQiIsInRhcmdldF91c2VyIjoiQSJ9</span></span><br></pre></td></tr></table></figure>
 <blockquote>
 <p>小知识：Base64是一种编码，也就是说，它是可以被翻译回原来的样子来的。它并不是一种加密过程。</p>
 </blockquote>
 <h5 id="头部（Header）"><a href="#头部（Header）" class="headerlink" title="头部（Header）"></a>头部（Header）</h5><p>JWT还需要一个头部，头部用于描述关于该JWT的最基本的信息，例如其类型以及签名所用的算法等。这也可以被表示成一个JSON对象。</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&#123;</div><div class="line">  <span class="attr">"typ"</span>: <span class="string">"JWT"</span>,</div><div class="line">  <span class="attr">"alg"</span>: <span class="string">"HS256"</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"typ"</span>: <span class="string">"JWT"</span>,</span><br><span class="line">  <span class="attr">"alg"</span>: <span class="string">"HS256"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>在这里，我们说明了这是一个JWT，并且我们所用的签名算法（后面会提到）是HS256算法。</p>
 <p>对它也要进行Base64编码，之后的字符串就成了JWT的<strong>Header</strong>（头部）。</p>
-<figure class="highlight gcode"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">eyJ<span class="number">0</span>eXAiOiJKV<span class="number">1</span>QiLCJhbGciOiJIUzI<span class="number">1</span><span class="symbol">NiJ9</span></div></pre></td></tr></table></figure>
+<figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">eyJ<span class="number">0</span>eXAiOiJKV<span class="number">1</span>QiLCJhbGciOiJIUzI<span class="number">1</span><span class="symbol">NiJ9</span></span><br></pre></td></tr></table></figure>
 <h5 id="签名（签名）"><a href="#签名（签名）" class="headerlink" title="签名（签名）"></a>签名（签名）</h5><p>将上面的两个编码后的字符串都用句号<code>.</code>连接在一起（头部在前），就形成了</p>
-<figure class="highlight gcode"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">eyJ<span class="number">0</span>eXAiOiJKV<span class="number">1</span>QiLCJhbGciOiJIUzI<span class="number">1</span><span class="symbol">NiJ9</span>.eyJmc<span class="name">m9</span>tX<span class="number">3</span>VzZXIiOiJCIiwidGFyZ<span class="number">2</span>V<span class="number">0</span>X<span class="number">3</span>VzZXIiOiJBI<span class="symbol">n0</span></div></pre></td></tr></table></figure>
+<figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">eyJ<span class="number">0</span>eXAiOiJKV<span class="number">1</span>QiLCJhbGciOiJIUzI<span class="number">1</span><span class="symbol">NiJ9</span>.eyJmc<span class="name">m9</span>tX<span class="number">3</span>VzZXIiOiJCIiwidGFyZ<span class="number">2</span>V<span class="number">0</span>X<span class="number">3</span>VzZXIiOiJBI<span class="symbol">n0</span></span><br></pre></td></tr></table></figure>
 <blockquote>
-<p>这一部分的过程在<a href="https://github.com/brianloveswords/node-jws/blob/master/lib/sign-stream.js" target="_blank" rel="external">node-jws的源码</a>中有体现</p>
+<p>这一部分的过程在<a href="https://github.com/brianloveswords/node-jws/blob/master/lib/sign-stream.js" target="_blank" rel="noopener">node-jws的源码</a>中有体现</p>
 </blockquote>
 <p>最后，我们将上面拼接完的字符串用HS256算法进行加密。在加密的时候，我们还需要提供一个密钥（secret）。如果我们用<code>mystar</code>作为密钥的话，那么就可以得到我们加密后的内容</p>
-<figure class="highlight gcode"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">rSWamyAYwuHC<span class="meta">o7</span>IFAgd<span class="number">1</span>oRpSP<span class="number">7</span><span class="symbol">nzL7</span>BF<span class="number">5</span>t<span class="number">7</span>ItqpKViM</div></pre></td></tr></table></figure>
+<figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rSWamyAYwuHC<span class="meta">o7</span>IFAgd<span class="number">1</span>oRpSP<span class="number">7</span><span class="symbol">nzL7</span>BF<span class="number">5</span>t<span class="number">7</span>ItqpKViM</span><br></pre></td></tr></table></figure>
 <p>这一部分又叫做<strong>签名</strong>。</p>
-<img src="/2015/09/06/understanding-jwt/sig1.png" alt="签名过程" title="签名过程">
+<img src="/2015/09/06/understanding-jwt/sig1.png" title="签名过程">
 <p>最后将这一部分签名也拼接在被签名的字符串后面，我们就得到了完整的JWT</p>
-<figure class="highlight gcode"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">eyJ<span class="number">0</span>eXAiOiJKV<span class="number">1</span>QiLCJhbGciOiJIUzI<span class="number">1</span><span class="symbol">NiJ9</span>.eyJmc<span class="name">m9</span>tX<span class="number">3</span>VzZXIiOiJCIiwidGFyZ<span class="number">2</span>V<span class="number">0</span>X<span class="number">3</span>VzZXIiOiJBI<span class="symbol">n0</span>.rSWamyAYwuHC<span class="meta">o7</span>IFAgd<span class="number">1</span>oRpSP<span class="number">7</span><span class="symbol">nzL7</span>BF<span class="number">5</span>t<span class="number">7</span>ItqpKViM</div></pre></td></tr></table></figure>
+<figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">eyJ<span class="number">0</span>eXAiOiJKV<span class="number">1</span>QiLCJhbGciOiJIUzI<span class="number">1</span><span class="symbol">NiJ9</span>.eyJmc<span class="name">m9</span>tX<span class="number">3</span>VzZXIiOiJCIiwidGFyZ<span class="number">2</span>V<span class="number">0</span>X<span class="number">3</span>VzZXIiOiJBI<span class="symbol">n0</span>.rSWamyAYwuHC<span class="meta">o7</span>IFAgd<span class="number">1</span>oRpSP<span class="number">7</span><span class="symbol">nzL7</span>BF<span class="number">5</span>t<span class="number">7</span>ItqpKViM</span><br></pre></td></tr></table></figure>
 <p>于是，我们就可以将邮件中的URL改成</p>
-<figure class="highlight dts"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="symbol">https:</span><span class="comment">//your.awesome-app.com/make-friend/?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcm9tX3VzZXIiOiJCIiwidGFyZ2V0X3VzZXIiOiJBIn0.rSWamyAYwuHCo7IFAgd1oRpSP7nzL7BF5t7ItqpKViM</span></div></pre></td></tr></table></figure>
+<figure class="highlight dts"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">https:</span><span class="comment">//your.awesome-app.com/make-friend/?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcm9tX3VzZXIiOiJCIiwidGFyZ2V0X3VzZXIiOiJBIn0.rSWamyAYwuHCo7IFAgd1oRpSP7nzL7BF5t7ItqpKViM</span></span><br></pre></td></tr></table></figure>
 <p>这样就可以安全地完成添加好友的操作了！</p>
 <p>且慢，我们一定会有一些问题：</p>
 <ol>
@@ -262,7 +299,7 @@
 <p>让我逐一为你说明。</p>
 <h3 id="签名的目的"><a href="#签名的目的" class="headerlink" title="签名的目的"></a>签名的目的</h3><p>最后一步签名的过程，实际上是对头部以及载荷内容进行签名。一般而言，加密算法对于不同的输入产生的输出总是不一样的。对于两个不同的输入，产生同样的输出的概率极其地小（有可能比我成世界首富的概率还小）。所以，我们就把“不一样的输入产生不一样的输出”当做必然事件来看待吧。</p>
 <p>所以，如果有人对头部以及载荷的内容解码之后进行修改，再进行编码的话，那么新的头部和载荷的签名和之前的签名就将是不一样的。而且，如果不知道服务器加密的时候用的密钥的话，得出来的签名也一定会是不一样的。</p>
-<img src="/2015/09/06/understanding-jwt/sig2.png" alt="签名过程" title="签名过程">
+<img src="/2015/09/06/understanding-jwt/sig2.png" title="签名过程">
 <p>服务器应用在接受到JWT后，会首先对头部和载荷的内容用同一算法再次签名。那么服务器应用是怎么知道我们用的是哪一种算法呢？别忘了，我们在JWT的头部中已经用<code>alg</code>字段指明了我们的加密算法了。</p>
 <p>如果服务器应用对头部和载荷再次以同样方法签名之后发现，自己计算出来的签名和接受到的签名不一样，那么就说明这个Token的内容被别人动过的，我们应该拒绝这个Token，返回一个HTTP 401 Unauthorized响应。</p>
 <h3 id="信息会暴露？"><a href="#信息会暴露？" class="headerlink" title="信息会暴露？"></a>信息会暴露？</h3><p>是的。</p>
@@ -272,9 +309,7 @@
 <p>其实JWT还经常用于设计用户认证和授权系统，甚至实现Web应用的单点登录。在下一次的文章中，我将为大家系统地总结JWT在用户认证和授权上的应用。如果想要及时地收到下一篇文章的更新，您可以在下方订阅我的半月刊：）</p>
 
             
-                
 
-            
         </div>
     </div>
     
@@ -304,13 +339,36 @@
         </form>
     </div>
 </div>
-    <div class="post-footer main-content-wrap">
+    <div id="post-footer" class="post-footer main-content-wrap">
         
-        <div class="post-actions-wrap">
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/09/07/user-authentication-with-jwt/" data-tooltip="八幅漫画理解使用JSON Web Token设计单点登录系统" aria-label="PREVIOUS: 八幅漫画理解使用JSON Web Token设计单点登录系统">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">PREVIOUS</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/09/04/managing-env-constants/" data-tooltip="以Node应用为例谈如何管理Web应用的环境常量" aria-label="NEXT: 以Node应用为例谈如何管理Web应用的环境常量">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">NEXT</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
     <ul class="post-actions post-action-share">
         <li class="post-action hide-lg hide-md hide-sm">
-            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
-                <i class="fa fa-share-alt"></i>
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="Share this post">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
             </a>
         </li>
         <li class="post-action hide-xs">
@@ -331,7 +389,7 @@
             </li>
         
         <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default jiathis_button_tsina" href="http://www.jiathis.com/send/?webid=tsina&uid=1399172634630776&summary=&lt;p&gt;JSON Web Token（JWT）是一个非常轻巧的&lt;a href=&quot;https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32&quot;&gt;规范&lt;/a&gt;。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。&lt;/p&gt;&title=JSON Web Token - 在Web应用间安全地传递信息&url=http://blog.leapoahead.com/2015/09/06/understanding-jwt/" target="new">
+            <a class="post-action-btn btn btn--default jiathis_button_tsina" href="http://www.jiathis.com/send/?webid=tsina&uid=1399172634630776&summary=&lt;p&gt;JSON Web Token（JWT）是一个非常轻巧的&lt;a href=&quot;https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;规范&lt;/a&gt;。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。&lt;/p&gt;&title=JSON Web Token - 在Web应用间安全地传递信息&url=http://blog.leapoahead.com/2015/09/06/understanding-jwt/" target="new">
                 <i class="fa fa-weibo"></i>
             </a>
         </li>
@@ -340,9 +398,12 @@
 
 
         
-            <div id="disqus_thread">
+        
+            
+                <div id="disqus_thread">
     <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 </div>
+            
         
     </div>
 </article>
@@ -351,18 +412,40 @@
 
                 <footer id="footer" class="main-content-wrap">
     <span class="copyrights">
-        Copyrights &copy; 2017 子回（John Wu）. All Rights Reserved.
+        Copyrights &copy; 2018 子回（John Wu）. All Rights Reserved.
     </span>
 </footer>
 
             </div>
             
-                <div id="bottom-bar" class="post-bottom-bar" data-behavior="1">
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
                     <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/09/07/user-authentication-with-jwt/" data-tooltip="八幅漫画理解使用JSON Web Token设计单点登录系统" aria-label="PREVIOUS: 八幅漫画理解使用JSON Web Token设计单点登录系统">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">PREVIOUS</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/09/04/managing-env-constants/" data-tooltip="以Node应用为例谈如何管理Web应用的环境常量" aria-label="NEXT: 以Node应用为例谈如何管理Web应用的环境常量">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">NEXT</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
     <ul class="post-actions post-action-share">
         <li class="post-action hide-lg hide-md hide-sm">
-            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
-                <i class="fa fa-share-alt"></i>
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="Share this post">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
             </a>
         </li>
         <li class="post-action hide-xs">
@@ -383,7 +466,7 @@
             </li>
         
         <li class="post-action hide-xs">
-            <a class="post-action-btn btn btn--default jiathis_button_tsina" href="http://www.jiathis.com/send/?webid=tsina&uid=1399172634630776&summary=&lt;p&gt;JSON Web Token（JWT）是一个非常轻巧的&lt;a href=&quot;https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32&quot;&gt;规范&lt;/a&gt;。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。&lt;/p&gt;&title=JSON Web Token - 在Web应用间安全地传递信息&url=http://blog.leapoahead.com/2015/09/06/understanding-jwt/" target="new">
+            <a class="post-action-btn btn btn--default jiathis_button_tsina" href="http://www.jiathis.com/send/?webid=tsina&uid=1399172634630776&summary=&lt;p&gt;JSON Web Token（JWT）是一个非常轻巧的&lt;a href=&quot;https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;规范&lt;/a&gt;。这个规范允许我们使用JWT在用户和服务器之间传递安全可靠的信息。&lt;/p&gt;&title=JSON Web Token - 在Web应用间安全地传递信息&url=http://blog.leapoahead.com/2015/09/06/understanding-jwt/" target="new">
                 <i class="fa fa-weibo"></i>
             </a>
         </li>
@@ -392,45 +475,102 @@
 
 
                 </div>
-                <div id="share-options-bar" class="share-options-bar" data-behavior="1">
+                <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+    <i id="btn-close-shareoptions" class="fa fa-close"></i>
     <ul class="share-options">
-        <li class="share-option">
-            <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/09/06/understanding-jwt/">
-                <i class="fa fa-google-plus"></i><span class="">Share on Google Plus</span>
-            </a>
-        </li>
-        <li class="share-option">
-            <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/09/06/understanding-jwt/">
-                <i class="fa fa-facebook-official"></i><span>Share on Facebook</span>
-            </a>
-        </li>
-        <li class="share-option">
-            <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/09/06/understanding-jwt/">
-                <i class="fa fa-twitter"></i><span>Share on Twitter</span>
-            </a>
-        </li>
+        
+            
+            
+            <li class="share-option">
+                <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/09/06/understanding-jwt/">
+                    <i class="fa fa-facebook-official" aria-hidden="true"></i><span>Share on Facebook</span>
+                </a>
+            </li>
+        
+            
+            
+            <li class="share-option">
+                <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/09/06/understanding-jwt/">
+                    <i class="fa fa-twitter" aria-hidden="true"></i><span>Share on Twitter</span>
+                </a>
+            </li>
+        
+            
+            
+            <li class="share-option">
+                <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/09/06/understanding-jwt/">
+                    <i class="fa fa-google-plus" aria-hidden="true"></i><span>Share on Google+</span>
+                </a>
+            </li>
+        
     </ul>
 </div>
-<div id="share-options-mask" class="share-options-mask"></div>
+
             
         </div>
-        <div id="cover" style="background-image:url('http://res.cloudinary.com/tranquilpeak-hexo-theme/image/upload/v1438975482/v1.3.0-cover.jpg');"></div>
-    </body>
-    <!--SCRIPTS-->
-<script src="/assets/js/script.min.js"></script>
+        
+
+
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-remove"></i>
+        </div>
+        
+            <img id="about-card-picture" src="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=110" alt="Author&#39;s picture"/>
+        
+            <h4 id="about-card-name">子回（John Wu）</h4>
+        
+            <div id="about-card-bio"><p>Strong opinion, weakly held.</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>Software Engineer at Facebook</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker"></i>
+                <br/>
+                San Francisco, CA
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-plvqpdisosqesdacqcnrardusldtgvjkw3tfmpjbhf0aa6t4lalcoshprtxn.min.js"></script>
 <!--SCRIPTS END-->
 
-    <script type="text/javascript">
-        var disqus_shortname = 'johnweng';
-        (function() {
-            var dsq = document.createElement('script');
-            dsq.type = 'text/javascript';
-            dsq.async = true;
-            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-        })();
-    </script>
+    
+        <script>
+             var disqus_config = function () {
+                 this.page.url = 'http://blog.leapoahead.com/2015/09/06/understanding-jwt/';
+                 
+                    this.page.identifier = '2015/09/06/understanding-jwt/';
+                 
+             };
+            (function() {
+                var d = document, s = d.createElement('script');
+                var disqus_shortname = 'johnweng';
+                s.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+
+                s.setAttribute('data-timestamp', +new Date());
+                (d.head || d.body).appendChild(s);
+            })();
+        </script>
+    
 
 
 
+    </body>
 </html>

@@ -1,64 +1,51 @@
 
 <!DOCTYPE html>
-<html lang="zh_CN">
+<html lang="en">
     
 <head>
-    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="generator" content="回田园">
     <title>用自然语言的角度理解JavaScript中的this关键字 - 回田园</title>
     <meta name="author" content="子回（John Wu）">
     
     
-        <link rel="alternative" type="application/atom+xml" title="RSS" href="/atom.xml">
     
-    <meta name="description" content="在编写JavaScript应用的时候，我们经常会使用this关键字。那么this关键字究竟是怎样工作的？它的设计有哪些好的地方，有哪些不好的地方？本文带大家全面系统地认识这个老朋友。
-
-
-小明正在跑步，他看起来很开心
-
-这里的小明是主语，如果没有这个主语，那么后面的代词『他』将毫无意义。有了主语，代词才有了可以指代的事物。
-类比到JavaScript的世界中，我们在调用一个对象的方法的时候，需要先">
+        <link rel="alternate" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"子回（John Wu）","sameAs":["https://github.com/tjwudi","https://twitter.com/leapoahead","https://facebook.com/leapoahead","https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A","mailto:webmaster@leapoahead.com"],"image":"https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b"},"articleBody":"在编写JavaScript应用的时候，我们经常会使用this关键字。那么this关键字究竟是怎样工作的？它的设计有哪些好的地方，有哪些不好的地方？本文带大家全面系统地认识这个老朋友。\n\n\n小明正在跑步，他看起来很开心\n\n这里的小明是主语，如果没有这个主语，那么后面的代词『他』将毫无意义。有了主语，代词才有了可以指代的事物。\n类比到JavaScript的世界中，我们在调用一个对象的方法的时候，需要先指明这个对象，再指明要调用的方法。\n12345678var xiaoming = &#123;  name: 'Xiao Ming',  run: function() &#123;    console.log(`$&#123;this.name&#125; seems happy`);  &#125;,&#125;;xiaoming.run();\n在线演示\n在上面的例子中，第8行中的xiaoming指定了run方法运行时的主语。因此，在run中，我们才可以用this来代替xiaoming这个对象。可以看到this起了代词的作用。\n同样的，对于一个JavaScript类，在将它初始化之后，我们也可以用类似的方法来理解：类的实例在调用其方法的时候，将作为主语，其方法中的this就自然变成了指代主语的代词。\n12345678910111213141516class People &#123;  constructor(name) &#123;    // 在用new关键字实例化一个对象的时候，相当于在说，    // “创建一个People类实例（主语），它（this）的name是……”    // 所以这里的this就是新创建的People类实例    this.name = name;  &#125;    run() &#123;    console.log(`$&#123;this.name&#125; seems happy.`)    &#125;&#125;// new关键字实例化一个类var xiaoming = new People('xiaoming');xiaoming.run();\n在线演示\n这就是我认为this关键字设计得精彩的地方！如果将调用方法的语句（上面代码的第16行）和方法本身的代码连起来，像英语一样读，其实是完全通顺的。\nthis的绑定句子的主语是可以变的，例如在下面的场景中，run被赋值到小芳（xiaofang）身上之后，调用xiaofang.run，主语就变成了小芳！\n1234567891011121314var xiaofang = &#123;  name: 'Xiao Fang',&#125;;var xiaoming = &#123;  name: 'Xiao Ming',  run: function() &#123;    console.log(`$&#123;this.name&#125; seems happy`);  &#125;,&#125;;xiaofang.run = xiaoming.run;// 主语变成了小芳xiaofang.run();\n在线演示\n在这种情况下，句子还是通顺的。所以，非常完美！\n\n但是如果小明很抠门，不愿意将run方法借给小芳以后，this就变成了小芳的话，那么小明要怎么做呢？他可以通过Function.prototype.bind让run运行时候的this永远为小明自己。\n12345678910111213141516171819var xiaofang = &#123;  name: 'Xiao Fang',&#125;;var xiaoming = &#123;  name: 'Xiao Ming',  run: function() &#123;    console.log(`$&#123;this.name&#125; seems happy`);  &#125;,&#125;;// 将小明的run方法绑定（bind）后，返回的还是一个// 函数，但是这个函数之后被调用的时候就算主语不是小明，// 它的this依然是小明xiaoming.run = xiaoming.run.bind(xiaoming);xiaofang.run = xiaoming.run;// 主语虽然是小芳，但是最后this还是小明xiaofang.run();\n在线演示\n那么同一个函数被多次bind之后，到底this是哪一次bind的对象呢？你可以自己尝试看看。\ncall与applyFunction.prototype.call允许你在调用一个函数的时候指定它的this的值。\n1234567891011var xiaoming = &#123;    name: 'Xiao Ming'&#125;;function run(today, mood) &#123;    console.log(`Today is $&#123;today&#125;, $&#123;this.name&#125; seems $&#123;mood&#125;`);&#125;// 函数的call方法第一个参数是this的值// 后续只需按函数参数的顺序传参即可run.call(xiaoming, 'Monday', 'happy')\n在线演示\nFunction.prototype.apply和Function.prototype.call的功能是一模一样的，区别进在于，apply里将函数调用所需的所有参数放到一个数组当中。\n123456789101112var xiaoming = &#123;    name: 'Xiao Ming'&#125;;function run(today, mood) &#123;    console.log(`Today is $&#123;today&#125;, $&#123;this.name&#125; seems $&#123;mood&#125;`);&#125;// apply只接受两个参数// 第二个参数是一个数组，这个数组的元素被按顺序// 作为run调用的参数run.apply(xiaoming, ['Monday', 'happy'])\n在线演示\n那么call/apply和上面的bind混用的时候是什么样的行为呢？这个也留给大家自行验证。但是在一般情况下，我们应该避免混用它们，否则会造成代码检查或者调试的时候难以跟踪this的值的问题。\n当方法失去主语的时候，this不再有？其实大家可以发现我的用词，当一个function被调用的时候是有主语的时候，它是一个方法；当一个function被调用的时候是没有主语的时候，它是一个函数。当一个函数运行的时候，它虽然没有主语，但是它的this的值会是全局对象。在浏览器里，那就是window。当然了，前提是函数没有被bind过，也不是被apply或call所调用。\n那么function作为函数的情景有哪些呢？\n首先，全局函数的调用就是最简单的一种。\n1234function bar() &#123;  console.log(this === window); // 输出：true&#125;bar();\n立即调用的函数表达式（IIFE，Immediately-Invoked Function Expression）也是没有主语的，所以它被调用的时候this也是全局对象。\n123(function() &#123;  console.log(this === window); // 输出：true&#125;)();\n在线演示（包含上面两个例子）\n但是，当函数被执行在严格模式（strict-mode）下的时候，函数的调用时的this就是undefined了。这是很值得注意的一点。\n12345function bar() &#123;  'use strict';  console.log('Case 2 ' + String(this === undefined)); // 输出：undefined&#125;bar();\n不可见的调用有时候，你没有办法看到你定义的函数是怎么被调用的。因此，你就没有办法知道它的主语。下面是一个用jQuery添加事件监听器的例子。\n123456789101112window.val = 'window val';var obj = &#123;  val: 'obj val',  foo: function() &#123;    $('#text').bind('click', function() &#123;      console.log(this.val);    &#125;);  &#125;&#125;;obj.foo();\n在线演示\n在事件的回调函数（第6行开始定义的匿名函数）里面，this的值既不是window，又不是obj，而是页面上id为text的HTML元素。\n123456789var obj = &#123;  foo: function() &#123;    $('#text').bind('click', function() &#123;      console.log(this === document.getElementById('text')); // 输出：true    &#125;);  &#125;&#125;;obj.foo();\n在线演示\n这是因为匿名函数是被jQuery内部调用的，我们不知道它调用的时候的主语是什么，或者是否被bind等函数修改过this的值。所以，当你将匿名函数交给程序的其他部分调用的时候，需要格外地谨慎。\n如果我们想要在上面的回调函数里面使用obj的val值，除了直接写obj.val之外，还可以在foo方法中用一个新的变量that来保存foo运行时this的值。这样说有些绕口，我们看下例子便知。\n12345678910111213window.val = 'window val';var obj = &#123;  val: 'obj val',  foo: function() &#123;    var that = this; // 保存this的引用到that，这里的this实际上就是obj    $('#text').bind('click', function() &#123;      console.log(that.val); // 输出：obj val    &#125;);  &#125;&#125;;obj.foo();\n在线演示\n另外一种方法就是为该匿名函数bind了。\n123456789101112window.val = 'window val';var obj = &#123;  val: 'obj val',  foo: function() &#123;    $('#text').bind('click', function() &#123;      console.log(this.val); // 输出：obj val    &#125;.bind(this));  &#125;&#125;;obj.foo();\n在线演示\n总结在JavaScript中this的用法的确是千奇百怪，但是如果利用自然语言的方式来理解，一切就顺理成章了。不知道你读完这篇文章时候理解了吗？还是睡着了？亲……醒醒……\n如果有任何疑问，欢迎在评论区讨论。另外，欢迎在下方订阅我的半月刊，我将为你分享有趣的技术、产品、设计的片段。\n    \n","dateCreated":"2015-08-31T12:44:14-07:00","dateModified":"2015-08-31T21:49:49-07:00","datePublished":"2015-08-31T12:44:14-07:00","description":"","headline":"用自然语言的角度理解JavaScript中的this关键字","image":["what_is_this.png"],"mainEntityOfPage":{"@type":"WebPage","@id":"http://blog.leapoahead.com/2015/08/31/understanding-js-this-keyword/"},"publisher":{"@type":"Organization","name":"子回（John Wu）","sameAs":["https://github.com/tjwudi","https://twitter.com/leapoahead","https://facebook.com/leapoahead","https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A","mailto:webmaster@leapoahead.com"],"image":"https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b","logo":{"@type":"ImageObject","url":"https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b"}},"url":"http://blog.leapoahead.com/2015/08/31/understanding-js-this-keyword/","thumbnailUrl":"what_is_this.png"}</script>
+    <meta name="description" content="在编写JavaScript应用的时候，我们经常会使用this关键字。那么this关键字究竟是怎样工作的？它的设计有哪些好的地方，有哪些不好的地方？本文带大家全面系统地认识这个老朋友。   小明正在跑步，他看起来很开心  这里的小明是主语，如果没有这个主语，那么后面的代词『他』将毫无意义。有了主语，代词才有了可以指代的事物。 类比到JavaScript的世界中，我们在调用一个对象的方法的时候，需要先">
 <meta property="og:type" content="blog">
 <meta property="og:title" content="用自然语言的角度理解JavaScript中的this关键字">
 <meta property="og:url" content="http://blog.leapoahead.com/2015/08/31/understanding-js-this-keyword/index.html">
 <meta property="og:site_name" content="回田园">
-<meta property="og:description" content="在编写JavaScript应用的时候，我们经常会使用this关键字。那么this关键字究竟是怎样工作的？它的设计有哪些好的地方，有哪些不好的地方？本文带大家全面系统地认识这个老朋友。
-
-
-小明正在跑步，他看起来很开心
-
-这里的小明是主语，如果没有这个主语，那么后面的代词『他』将毫无意义。有了主语，代词才有了可以指代的事物。
-类比到JavaScript的世界中，我们在调用一个对象的方法的时候，需要先">
+<meta property="og:description" content="在编写JavaScript应用的时候，我们经常会使用this关键字。那么this关键字究竟是怎样工作的？它的设计有哪些好的地方，有哪些不好的地方？本文带大家全面系统地认识这个老朋友。   小明正在跑步，他看起来很开心  这里的小明是主语，如果没有这个主语，那么后面的代词『他』将毫无意义。有了主语，代词才有了可以指代的事物。 类比到JavaScript的世界中，我们在调用一个对象的方法的时候，需要先">
+<meta property="og:locale" content="en">
 <meta property="og:image" content="http://blog.leapoahead.com/2015/08/31/understanding-js-this-keyword/what_is_this.png">
 <meta property="og:image" content="http://blog.leapoahead.com/2015/08/31/understanding-js-this-keyword/this_is_perfect.png">
 <meta property="og:image" content="http://blog.leapoahead.com/2015/08/31/understanding-js-this-keyword/oh_yeah.gif">
 <meta property="og:updated_time" content="2015-09-01T04:49:49.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="用自然语言的角度理解JavaScript中的this关键字">
-<meta name="twitter:description" content="在编写JavaScript应用的时候，我们经常会使用this关键字。那么this关键字究竟是怎样工作的？它的设计有哪些好的地方，有哪些不好的地方？本文带大家全面系统地认识这个老朋友。
-
-
-小明正在跑步，他看起来很开心
-
-这里的小明是主语，如果没有这个主语，那么后面的代词『他』将毫无意义。有了主语，代词才有了可以指代的事物。
-类比到JavaScript的世界中，我们在调用一个对象的方法的时候，需要先">
+<meta name="twitter:description" content="在编写JavaScript应用的时候，我们经常会使用this关键字。那么this关键字究竟是怎样工作的？它的设计有哪些好的地方，有哪些不好的地方？本文带大家全面系统地认识这个老朋友。   小明正在跑步，他看起来很开心  这里的小明是主语，如果没有这个主语，那么后面的代词『他』将毫无意义。有了主语，代词才有了可以指代的事物。 类比到JavaScript的世界中，我们在调用一个对象的方法的时候，需要先">
 <meta name="twitter:image" content="http://blog.leapoahead.com/2015/08/31/understanding-js-this-keyword/what_is_this.png">
 <meta name="twitter:creator" content="@leapoahead">
     
+    
+        
     
     
         <meta property="og:image" content="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=640"/>
     
     
-        <meta property="og:image" content="/2015/08/31/understanding-js-this-keyword/what_is_this.png"/>
+        <meta property="og:image" content="http://blog.leapoahead.com/2015/08/31/understanding-js-this-keyword/what_is_this.png"/>
         <meta class="swiftype" name="image" data-type="enum" content="http://blog.leapoahead.com/2015/08/31/understanding-js-this-keyword/what_is_this.png" />
     
     
     
     
     <!--STYLES-->
-    <link rel="stylesheet" href="/assets/css/style.min.css">
+    <link rel="stylesheet" href="/assets/css/style-ofaazzmie6zorbkvxsyjh4p3coouliollv7rrwszuqeqxzl7trwkzzisuvjp.min.css">
     <!--STYLES END-->
     
     <script type="text/javascript">
@@ -76,144 +63,173 @@
     </script>
 
 
+    
 </head>
 
     <body>
         <div id="blog">
-            <header id="header" data-behavior="1">
-    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
-    <h1 class="header-title">
-        <a class="header-title-link" href="/ ">回田园</a>
-    </h1>
-</header>
+            <!-- Define author's picture -->
 
-            <nav id="sidebar" data-behavior="1">
+
     
-    <div class="sidebar-profile">
-        <div class="avatar-wrap">
-            <a href="/?action_from=sidebar-profile-picture">
-                <img class="sidebar-profile-picture" src="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90" alt="John Wu">
-            </a>
-        </div>
-        <p class="no-margin-bottom"><strong>子回（John Wu）</strong></p>
-        <p>Software Engineer at Yelp</p>
+        
+    
 
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a class="header-title-link" href="/ ">回田园</a>
     </div>
     
-        <ul class="sidebar-buttons">
         
-            <li class="sidebar-button">
-                
-                    <a  class="sidebar-button-link "
-                         href="/?action_from=sidebar-button-link"
-                        
-                    >
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-home"></i>
-                    <span class="sidebar-button-desc">主页</span>
-                </a>
-        </li>
+            <a  class="header-right-picture "
+                href="#about">
         
-            <li class="sidebar-button">
-                
-                    <a  class="sidebar-button-link "
-                         href="/all-categories?action_from=sidebar-button-link"
-                        
-                    >
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
-                    <span class="sidebar-button-desc">分类</span>
-                </a>
-        </li>
         
-    </ul>
+            <img class="header-picture" src="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=90" alt="Author&#39;s picture"/>
+        
+        </a>
     
-        <ul class="sidebar-buttons">
-        
-            <li class="sidebar-button">
-                
-                  <a  class="sidebar-button-link " href="https://github.com/tjwudi?action_from=sidebar-button-link" target="_blank">
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-github"></i>
-                    <span class="sidebar-button-desc">GitHub</span>
-                </a>
-        </li>
-        
-            <li class="sidebar-button">
-                
-                  <a  class="sidebar-button-link " href="https://twitter.com/leapoahead?action_from=sidebar-button-link" target="_blank">
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-twitter"></i>
-                    <span class="sidebar-button-desc">Twitter</span>
-                </a>
-        </li>
-        
-            <li class="sidebar-button">
-                
-                  <a  class="sidebar-button-link " href="https://facebook.com/leapoahead?action_from=sidebar-button-link" target="_blank">
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-facebook"></i>
-                    <span class="sidebar-button-desc">Facebook</span>
-                </a>
-        </li>
-        
-            <li class="sidebar-button">
-                
-                  <a  class="sidebar-button-link " href="https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A?action_from=sidebar-button-link" target="_blank">
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-linkedin"></i>
-                    <span class="sidebar-button-desc">LinkedIn</span>
-                </a>
-        </li>
-        
-            <li class="sidebar-button">
-                
-                  <a  class="sidebar-button-link " href="mailto:webmaster@leapoahead.com?action_from=sidebar-button-link" target="_blank">
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-envelope-o"></i>
-                    <span class="sidebar-button-desc">Email</span>
-                </a>
-        </li>
-        
-    </ul>
+</header>
+
+            
+
     
-        <ul class="sidebar-buttons">
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
         
-            <li class="sidebar-button">
-                
-                    <a  class="sidebar-button-link "
-                         href="/atom.xml?action_from=sidebar-button-link"
-                        
-                    >
-                
-                    <i class="sidebar-button-icon fa fa-lg fa-rss"></i>
-                    <span class="sidebar-button-desc">RSS</span>
+            <div class="sidebar-profile">
+                <a href="/#about">
+                    <img class="sidebar-profile-picture" src="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=110" alt="Author&#39;s picture"/>
                 </a>
-        </li>
+                <h4 class="sidebar-profile-name">子回（John Wu）</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p>Strong opinion, weakly held.</p>
+</h5>
+                
+            </div>
         
-    </ul>
-    
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/ "
+                            
+                            title="主页"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">主页</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-categories"
+                            
+                            title="分类"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">分类</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://github.com/tjwudi" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://twitter.com/leapoahead" target="_blank" rel="noopener" title="Twitter">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-twitter" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Twitter</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://facebook.com/leapoahead" target="_blank" rel="noopener" title="Facebook">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-facebook" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Facebook</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://www.linkedin.com/profile/view?id=AAIAAA6vTjkB-WP5j_3sqqGoM4mQmCquhPb9x0A" target="_blank" rel="noopener" title="LinkedIn">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-linkedin" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">LinkedIn</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="mailto:webmaster@leapoahead.com" target="_blank" rel="noopener" title="Email">
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-envelope-o" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Email</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/atom.xml"
+                            
+                            title="RSS"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-lg fa-rss" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">RSS</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
 </nav>
 
             
-            <div id="main" data-behavior="1"
+            <div id="main" data-behavior="4"
                  class="
                         hasCoverMetaIn
                         ">
                 
-<article class="post" itemscope itemType="http://schema.org/BlogPosting">
+<article class="post">
     
     
         <div class="post-header main-content-wrap text-left">
     
-        <h1 class="post-title" itemprop="headline">
+        <h1 class="post-title">
             用自然语言的角度理解JavaScript中的this关键字
         </h1>
     
-    <div class="post-meta">
-    <time itemprop="datePublished" content="Mon Aug 31 2015 12:44:14 GMT-0700">
+    
+        <div class="post-meta">
+    <time datetime="2015-08-31T12:44:14-07:00">
 	
-		    8月 31, 2015
+		    Aug 31, 2015
     	
     </time>
     
@@ -224,70 +240,71 @@
 
     
 </div>
-</div>
+
     
-    <div class="post-content markdown" itemprop="articleBody">
+</div>
+
+    
+    <div class="post-content markdown">
         <div class="main-content-wrap">
             <p>在编写JavaScript应用的时候，我们经常会使用<code>this</code>关键字。那么<code>this</code>关键字究竟是怎样工作的？它的设计有哪些好的地方，有哪些不好的地方？本文带大家全面系统地认识这个老朋友。</p>
-<img src="/2015/08/31/understanding-js-this-keyword/what_is_this.png" alt="WHAT IS THIS" title="WHAT IS THIS">
+<img src="/2015/08/31/understanding-js-this-keyword/what_is_this.png" title="WHAT IS THIS">
 <blockquote>
 <p>小明正在跑步，他看起来很开心</p>
 </blockquote>
 <p>这里的小明是<strong>主语</strong>，如果没有这个主语，那么后面的代词『他』将毫无意义。有了主语，代词才有了可以指代的事物。</p>
 <p>类比到JavaScript的世界中，我们在调用一个对象的方法的时候，需要先指明这个对象，再指明要调用的方法。</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> xiaoming = &#123;</div><div class="line">  <span class="attr">name</span>: <span class="string">'Xiao Ming'</span>,</div><div class="line">  <span class="attr">run</span>: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</div><div class="line">    <span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;<span class="keyword">this</span>.name&#125;</span> seems happy`</span>);</div><div class="line">  &#125;,</div><div class="line">&#125;;</div><div class="line"></div><div class="line">xiaoming.run();</div></pre></td></tr></table></figure>
-<p><a href="http://jsbin.com/nawesuhoxu/edit?js,console" target="_blank" rel="external">在线演示</a></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> xiaoming = &#123;</span><br><span class="line">  name: <span class="string">'Xiao Ming'</span>,</span><br><span class="line">  run: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;<span class="keyword">this</span>.name&#125;</span> seems happy`</span>);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">xiaoming.run();</span><br></pre></td></tr></table></figure>
+<p><a href="http://jsbin.com/nawesuhoxu/edit?js,console" target="_blank" rel="noopener">在线演示</a></p>
 <p>在上面的例子中，第8行中的<code>xiaoming</code>指定了<code>run</code>方法运行时的主语。因此，在<code>run</code>中，我们才可以用<code>this</code>来代替<code>xiaoming</code>这个对象。可以看到<code>this</code>起了代词的作用。</p>
 <p>同样的，对于一个JavaScript类，在将它初始化之后，我们也可以用类似的方法来理解：类的实例在调用其方法的时候，将作为主语，其方法中的<code>this</code>就自然变成了指代主语的代词。</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">People</span> </span>&#123;</div><div class="line">  <span class="keyword">constructor</span>(name) &#123;</div><div class="line">    <span class="comment">// 在用new关键字实例化一个对象的时候，相当于在说，</span></div><div class="line">    <span class="comment">// “创建一个People类实例（主语），它（this）的name是……”</span></div><div class="line">    <span class="comment">// 所以这里的this就是新创建的People类实例</span></div><div class="line">    <span class="keyword">this</span>.name = name;</div><div class="line">  &#125;</div><div class="line">  </div><div class="line">  run() &#123;</div><div class="line">    <span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;<span class="keyword">this</span>.name&#125;</span> seems happy.`</span>)  </div><div class="line">  &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// new关键字实例化一个类</span></div><div class="line"><span class="keyword">var</span> xiaoming = <span class="keyword">new</span> People(<span class="string">'xiaoming'</span>);</div><div class="line">xiaoming.run();</div></pre></td></tr></table></figure>
-<p><a href="http://jsbin.com/nanujaheyu/edit?js,console" target="_blank" rel="external">在线演示</a></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">People</span> </span>&#123;</span><br><span class="line">  <span class="keyword">constructor</span>(name) &#123;</span><br><span class="line">    <span class="comment">// 在用new关键字实例化一个对象的时候，相当于在说，</span></span><br><span class="line">    <span class="comment">// “创建一个People类实例（主语），它（this）的name是……”</span></span><br><span class="line">    <span class="comment">// 所以这里的this就是新创建的People类实例</span></span><br><span class="line">    <span class="keyword">this</span>.name = name;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  run() &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;<span class="keyword">this</span>.name&#125;</span> seems happy.`</span>)  </span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// new关键字实例化一个类</span></span><br><span class="line"><span class="keyword">var</span> xiaoming = <span class="keyword">new</span> People(<span class="string">'xiaoming'</span>);</span><br><span class="line">xiaoming.run();</span><br></pre></td></tr></table></figure>
+<p><a href="http://jsbin.com/nanujaheyu/edit?js,console" target="_blank" rel="noopener">在线演示</a></p>
 <p>这就是我认为this关键字设计得精彩的地方！如果将调用方法的语句（上面代码的第16行）和方法本身的代码连起来，像英语一样读，其实是完全通顺的。</p>
 <h3 id="this的绑定"><a href="#this的绑定" class="headerlink" title="this的绑定"></a><code>this</code>的绑定</h3><p>句子的主语是可以变的，例如在下面的场景中，<code>run</code>被赋值到小芳（<code>xiaofang</code>）身上之后，调用<code>xiaofang.run</code>，主语就变成了小芳！</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> xiaofang = &#123;</div><div class="line">  <span class="attr">name</span>: <span class="string">'Xiao Fang'</span>,</div><div class="line">&#125;;</div><div class="line"></div><div class="line"><span class="keyword">var</span> xiaoming = &#123;</div><div class="line">  <span class="attr">name</span>: <span class="string">'Xiao Ming'</span>,</div><div class="line">  <span class="attr">run</span>: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</div><div class="line">    <span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;<span class="keyword">this</span>.name&#125;</span> seems happy`</span>);</div><div class="line">  &#125;,</div><div class="line">&#125;;</div><div class="line"></div><div class="line">xiaofang.run = xiaoming.run;</div><div class="line"><span class="comment">// 主语变成了小芳</span></div><div class="line">xiaofang.run();</div></pre></td></tr></table></figure>
-<p><a href="http://jsbin.com/siherigulo/1/edit?js,console" target="_blank" rel="external">在线演示</a></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> xiaofang = &#123;</span><br><span class="line">  name: <span class="string">'Xiao Fang'</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> xiaoming = &#123;</span><br><span class="line">  name: <span class="string">'Xiao Ming'</span>,</span><br><span class="line">  run: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;<span class="keyword">this</span>.name&#125;</span> seems happy`</span>);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">xiaofang.run = xiaoming.run;</span><br><span class="line"><span class="comment">// 主语变成了小芳</span></span><br><span class="line">xiaofang.run();</span><br></pre></td></tr></table></figure>
+<p><a href="http://jsbin.com/siherigulo/1/edit?js,console" target="_blank" rel="noopener">在线演示</a></p>
 <p>在这种情况下，句子还是通顺的。所以，非常完美！</p>
-<img src="/2015/08/31/understanding-js-this-keyword/this_is_perfect.png" alt="非常完美！" title="非常完美！">
-<p>但是如果小明很抠门，不愿意将<code>run</code>方法借给小芳以后，<code>this</code>就变成了小芳的话，那么小明要怎么做呢？他可以通过<a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Function/bind" target="_blank" rel="external">Function.prototype.bind</a>让<code>run</code>运行时候的<code>this</code>永远为小明自己。</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> xiaofang = &#123;</div><div class="line">  <span class="attr">name</span>: <span class="string">'Xiao Fang'</span>,</div><div class="line">&#125;;</div><div class="line"></div><div class="line"><span class="keyword">var</span> xiaoming = &#123;</div><div class="line">  <span class="attr">name</span>: <span class="string">'Xiao Ming'</span>,</div><div class="line">  <span class="attr">run</span>: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</div><div class="line">    <span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;<span class="keyword">this</span>.name&#125;</span> seems happy`</span>);</div><div class="line">  &#125;,</div><div class="line">&#125;;</div><div class="line"></div><div class="line"><span class="comment">// 将小明的run方法绑定（bind）后，返回的还是一个</span></div><div class="line"><span class="comment">// 函数，但是这个函数之后被调用的时候就算主语不是小明，</span></div><div class="line"><span class="comment">// 它的this依然是小明</span></div><div class="line">xiaoming.run = xiaoming.run.bind(xiaoming);</div><div class="line"></div><div class="line">xiaofang.run = xiaoming.run;</div><div class="line"><span class="comment">// 主语虽然是小芳，但是最后this还是小明</span></div><div class="line">xiaofang.run();</div></pre></td></tr></table></figure>
-<p><a href="http://jsbin.com/reforakoja/1/edit?js,console" target="_blank" rel="external">在线演示</a></p>
+<img src="/2015/08/31/understanding-js-this-keyword/this_is_perfect.png" title="非常完美！">
+<p>但是如果小明很抠门，不愿意将<code>run</code>方法借给小芳以后，<code>this</code>就变成了小芳的话，那么小明要怎么做呢？他可以通过<a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Function/bind" target="_blank" rel="noopener">Function.prototype.bind</a>让<code>run</code>运行时候的<code>this</code>永远为小明自己。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> xiaofang = &#123;</span><br><span class="line">  name: <span class="string">'Xiao Fang'</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> xiaoming = &#123;</span><br><span class="line">  name: <span class="string">'Xiao Ming'</span>,</span><br><span class="line">  run: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;<span class="keyword">this</span>.name&#125;</span> seems happy`</span>);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 将小明的run方法绑定（bind）后，返回的还是一个</span></span><br><span class="line"><span class="comment">// 函数，但是这个函数之后被调用的时候就算主语不是小明，</span></span><br><span class="line"><span class="comment">// 它的this依然是小明</span></span><br><span class="line">xiaoming.run = xiaoming.run.bind(xiaoming);</span><br><span class="line"></span><br><span class="line">xiaofang.run = xiaoming.run;</span><br><span class="line"><span class="comment">// 主语虽然是小芳，但是最后this还是小明</span></span><br><span class="line">xiaofang.run();</span><br></pre></td></tr></table></figure>
+<p><a href="http://jsbin.com/reforakoja/1/edit?js,console" target="_blank" rel="noopener">在线演示</a></p>
 <p>那么同一个函数被多次<code>bind</code>之后，到底<code>this</code>是哪一次<code>bind</code>的对象呢？你可以自己尝试看看。</p>
-<h3 id="call与apply"><a href="#call与apply" class="headerlink" title="call与apply"></a><code>call</code>与<code>apply</code></h3><p><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Function/call" target="_blank" rel="external">Function.prototype.call</a>允许你在调用一个函数的时候指定它的<code>this</code>的值。</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> xiaoming = &#123;</div><div class="line">    <span class="attr">name</span>: <span class="string">'Xiao Ming'</span></div><div class="line">&#125;;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">run</span>(<span class="params">today, mood</span>) </span>&#123;</div><div class="line">    <span class="built_in">console</span>.log(<span class="string">`Today is <span class="subst">$&#123;today&#125;</span>, <span class="subst">$&#123;<span class="keyword">this</span>.name&#125;</span> seems <span class="subst">$&#123;mood&#125;</span>`</span>);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// 函数的call方法第一个参数是this的值</span></div><div class="line"><span class="comment">// 后续只需按函数参数的顺序传参即可</span></div><div class="line">run.call(xiaoming, <span class="string">'Monday'</span>, <span class="string">'happy'</span>)</div></pre></td></tr></table></figure>
-<p><a href="http://jsbin.com/xuvugihuda/1/edit?js,console" target="_blank" rel="external">在线演示</a></p>
-<p><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Function/apply" target="_blank" rel="external">Function.prototype.apply</a>和<code>Function.prototype.call</code>的功能是一模一样的，区别进在于，<code>apply</code>里将函数调用所需的所有参数放到一个数组当中。</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> xiaoming = &#123;</div><div class="line">    <span class="attr">name</span>: <span class="string">'Xiao Ming'</span></div><div class="line">&#125;;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">run</span>(<span class="params">today, mood</span>) </span>&#123;</div><div class="line">    <span class="built_in">console</span>.log(<span class="string">`Today is <span class="subst">$&#123;today&#125;</span>, <span class="subst">$&#123;<span class="keyword">this</span>.name&#125;</span> seems <span class="subst">$&#123;mood&#125;</span>`</span>);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// apply只接受两个参数</span></div><div class="line"><span class="comment">// 第二个参数是一个数组，这个数组的元素被按顺序</span></div><div class="line"><span class="comment">// 作为run调用的参数</span></div><div class="line">run.apply(xiaoming, [<span class="string">'Monday'</span>, <span class="string">'happy'</span>])</div></pre></td></tr></table></figure>
-<p><a href="http://jsbin.com/safupufuca/1/edit?js,console" target="_blank" rel="external">在线演示</a></p>
+<h3 id="call与apply"><a href="#call与apply" class="headerlink" title="call与apply"></a><code>call</code>与<code>apply</code></h3><p><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Function/call" target="_blank" rel="noopener">Function.prototype.call</a>允许你在调用一个函数的时候指定它的<code>this</code>的值。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> xiaoming = &#123;</span><br><span class="line">    name: <span class="string">'Xiao Ming'</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">run</span>(<span class="params">today, mood</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">`Today is <span class="subst">$&#123;today&#125;</span>, <span class="subst">$&#123;<span class="keyword">this</span>.name&#125;</span> seems <span class="subst">$&#123;mood&#125;</span>`</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 函数的call方法第一个参数是this的值</span></span><br><span class="line"><span class="comment">// 后续只需按函数参数的顺序传参即可</span></span><br><span class="line">run.call(xiaoming, <span class="string">'Monday'</span>, <span class="string">'happy'</span>)</span><br></pre></td></tr></table></figure>
+<p><a href="http://jsbin.com/xuvugihuda/1/edit?js,console" target="_blank" rel="noopener">在线演示</a></p>
+<p><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Function/apply" target="_blank" rel="noopener">Function.prototype.apply</a>和<code>Function.prototype.call</code>的功能是一模一样的，区别进在于，<code>apply</code>里将函数调用所需的所有参数放到一个数组当中。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> xiaoming = &#123;</span><br><span class="line">    name: <span class="string">'Xiao Ming'</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">run</span>(<span class="params">today, mood</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">`Today is <span class="subst">$&#123;today&#125;</span>, <span class="subst">$&#123;<span class="keyword">this</span>.name&#125;</span> seems <span class="subst">$&#123;mood&#125;</span>`</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// apply只接受两个参数</span></span><br><span class="line"><span class="comment">// 第二个参数是一个数组，这个数组的元素被按顺序</span></span><br><span class="line"><span class="comment">// 作为run调用的参数</span></span><br><span class="line">run.apply(xiaoming, [<span class="string">'Monday'</span>, <span class="string">'happy'</span>])</span><br></pre></td></tr></table></figure>
+<p><a href="http://jsbin.com/safupufuca/1/edit?js,console" target="_blank" rel="noopener">在线演示</a></p>
 <p>那么<code>call</code>/<code>apply</code>和上面的<code>bind</code>混用的时候是什么样的行为呢？这个也留给大家自行验证。但是在一般情况下，我们应该避免混用它们，否则会造成代码检查或者调试的时候难以跟踪<code>this</code>的值的问题。</p>
 <h3 id="当方法失去主语的时候，this不再有？"><a href="#当方法失去主语的时候，this不再有？" class="headerlink" title="当方法失去主语的时候，this不再有？"></a>当方法失去主语的时候，<code>this</code>不再有？</h3><p>其实大家可以发现我的用词，当一个<code>function</code>被调用的时候是有主语的时候，它是一个<strong>方法</strong>；当一个<code>function</code>被调用的时候是没有主语的时候，它是一个<strong>函数</strong>。当一个函数运行的时候，它虽然没有主语，但是它的<code>this</code>的值会是全局对象。在浏览器里，那就是<code>window</code>。当然了，前提是函数没有被<code>bind</code>过，也不是被<code>apply</code>或<code>call</code>所调用。</p>
 <p>那么<code>function</code>作为函数的情景有哪些呢？</p>
 <p>首先，全局函数的调用就是最简单的一种。</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">bar</span>(<span class="params"></span>) </span>&#123;</div><div class="line">  <span class="built_in">console</span>.log(<span class="keyword">this</span> === <span class="built_in">window</span>); <span class="comment">// 输出：true</span></div><div class="line">&#125;</div><div class="line">bar();</div></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">bar</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="keyword">this</span> === <span class="built_in">window</span>); <span class="comment">// 输出：true</span></span><br><span class="line">&#125;</span><br><span class="line">bar();</span><br></pre></td></tr></table></figure>
 <p>立即调用的函数表达式（IIFE，Immediately-Invoked Function Expression）也是没有主语的，所以它被调用的时候<code>this</code>也是全局对象。</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</div><div class="line">  <span class="built_in">console</span>.log(<span class="keyword">this</span> === <span class="built_in">window</span>); <span class="comment">// 输出：true</span></div><div class="line">&#125;)();</div></pre></td></tr></table></figure>
-<p><a href="http://jsbin.com/qavagatuya/1/edit?js,console" target="_blank" rel="external">在线演示（包含上面两个例子）</a></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="keyword">this</span> === <span class="built_in">window</span>); <span class="comment">// 输出：true</span></span><br><span class="line">&#125;)();</span><br></pre></td></tr></table></figure>
+<p><a href="http://jsbin.com/qavagatuya/1/edit?js,console" target="_blank" rel="noopener">在线演示（包含上面两个例子）</a></p>
 <p>但是，当函数被执行在严格模式（strict-mode）下的时候，函数的调用时的this就是<code>undefined</code>了。这是很值得注意的一点。</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">bar</span>(<span class="params"></span>) </span>&#123;</div><div class="line"><span class="meta">  'use strict'</span>;</div><div class="line">  <span class="built_in">console</span>.log(<span class="string">'Case 2 '</span> + <span class="built_in">String</span>(<span class="keyword">this</span> === <span class="literal">undefined</span>)); <span class="comment">// 输出：undefined</span></div><div class="line">&#125;</div><div class="line">bar();</div></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">bar</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line"><span class="meta">  'use strict'</span>;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'Case 2 '</span> + <span class="built_in">String</span>(<span class="keyword">this</span> === <span class="literal">undefined</span>)); <span class="comment">// 输出：undefined</span></span><br><span class="line">&#125;</span><br><span class="line">bar();</span><br></pre></td></tr></table></figure>
 <h3 id="不可见的调用"><a href="#不可见的调用" class="headerlink" title="不可见的调用"></a>不可见的调用</h3><p>有时候，你没有办法看到你定义的函数是怎么被调用的。因此，你就没有办法知道它的主语。下面是一个用jQuery添加事件监听器的例子。</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">window</span>.val = <span class="string">'window val'</span>;</div><div class="line"></div><div class="line"><span class="keyword">var</span> obj = &#123;</div><div class="line">  <span class="attr">val</span>: <span class="string">'obj val'</span>,</div><div class="line">  <span class="attr">foo</span>: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</div><div class="line">    $(<span class="string">'#text'</span>).bind(<span class="string">'click'</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</div><div class="line">      <span class="built_in">console</span>.log(<span class="keyword">this</span>.val);</div><div class="line">    &#125;);</div><div class="line">  &#125;</div><div class="line">&#125;;</div><div class="line"></div><div class="line">obj.foo();</div></pre></td></tr></table></figure>
-<p><a href="http://jsbin.com/yeweyoliva/1/edit?js,console,output" target="_blank" rel="external">在线演示</a></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">window</span>.val = <span class="string">'window val'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> obj = &#123;</span><br><span class="line">  val: <span class="string">'obj val'</span>,</span><br><span class="line">  foo: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    $(<span class="string">'#text'</span>).bind(<span class="string">'click'</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="keyword">this</span>.val);</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">obj.foo();</span><br></pre></td></tr></table></figure>
+<p><a href="http://jsbin.com/yeweyoliva/1/edit?js,console,output" target="_blank" rel="noopener">在线演示</a></p>
 <p>在事件的回调函数（第6行开始定义的匿名函数）里面，<code>this</code>的值既不是<code>window</code>，又不是<code>obj</code>，而是页面上<code>id</code>为<code>text</code>的HTML元素。</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> obj = &#123;</div><div class="line">  <span class="attr">foo</span>: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</div><div class="line">    $(<span class="string">'#text'</span>).bind(<span class="string">'click'</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</div><div class="line">      <span class="built_in">console</span>.log(<span class="keyword">this</span> === <span class="built_in">document</span>.getElementById(<span class="string">'text'</span>)); <span class="comment">// 输出：true</span></div><div class="line">    &#125;);</div><div class="line">  &#125;</div><div class="line">&#125;;</div><div class="line"></div><div class="line">obj.foo();</div></pre></td></tr></table></figure>
-<p><a href="http://jsbin.com/vikayufiso/1/edit?js,console,output" target="_blank" rel="external">在线演示</a></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> obj = &#123;</span><br><span class="line">  foo: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    $(<span class="string">'#text'</span>).bind(<span class="string">'click'</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="keyword">this</span> === <span class="built_in">document</span>.getElementById(<span class="string">'text'</span>)); <span class="comment">// 输出：true</span></span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">obj.foo();</span><br></pre></td></tr></table></figure>
+<p><a href="http://jsbin.com/vikayufiso/1/edit?js,console,output" target="_blank" rel="noopener">在线演示</a></p>
 <p>这是因为匿名函数是被jQuery内部调用的，我们不知道它调用的时候的主语是什么，或者是否被<code>bind</code>等函数修改过<code>this</code>的值。所以，当你将匿名函数交给程序的其他部分调用的时候，需要格外地谨慎。</p>
 <p>如果我们想要在上面的回调函数里面使用obj的<code>val</code>值，除了直接写<code>obj.val</code>之外，还可以在foo方法中用一个新的变量<code>that</code>来保存<code>foo</code>运行时<code>this</code>的值。这样说有些绕口，我们看下例子便知。</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">window</span>.val = <span class="string">'window val'</span>;</div><div class="line"></div><div class="line"><span class="keyword">var</span> obj = &#123;</div><div class="line">  <span class="attr">val</span>: <span class="string">'obj val'</span>,</div><div class="line">  <span class="attr">foo</span>: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</div><div class="line">    <span class="keyword">var</span> that = <span class="keyword">this</span>; <span class="comment">// 保存this的引用到that，这里的this实际上就是obj</span></div><div class="line">    $(<span class="string">'#text'</span>).bind(<span class="string">'click'</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</div><div class="line">      <span class="built_in">console</span>.log(that.val); <span class="comment">// 输出：obj val</span></div><div class="line">    &#125;);</div><div class="line">  &#125;</div><div class="line">&#125;;</div><div class="line"></div><div class="line">obj.foo();</div></pre></td></tr></table></figure>
-<p><a href="http://jsbin.com/fefozitake/1/edit?js,console,output" target="_blank" rel="external">在线演示</a></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">window</span>.val = <span class="string">'window val'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> obj = &#123;</span><br><span class="line">  val: <span class="string">'obj val'</span>,</span><br><span class="line">  foo: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> that = <span class="keyword">this</span>; <span class="comment">// 保存this的引用到that，这里的this实际上就是obj</span></span><br><span class="line">    $(<span class="string">'#text'</span>).bind(<span class="string">'click'</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="built_in">console</span>.log(that.val); <span class="comment">// 输出：obj val</span></span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">obj.foo();</span><br></pre></td></tr></table></figure>
+<p><a href="http://jsbin.com/fefozitake/1/edit?js,console,output" target="_blank" rel="noopener">在线演示</a></p>
 <p>另外一种方法就是为该匿名函数<code>bind</code>了。</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">window</span>.val = <span class="string">'window val'</span>;</div><div class="line"></div><div class="line"><span class="keyword">var</span> obj = &#123;</div><div class="line">  <span class="attr">val</span>: <span class="string">'obj val'</span>,</div><div class="line">  <span class="attr">foo</span>: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</div><div class="line">    $(<span class="string">'#text'</span>).bind(<span class="string">'click'</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</div><div class="line">      <span class="built_in">console</span>.log(<span class="keyword">this</span>.val); <span class="comment">// 输出：obj val</span></div><div class="line">    &#125;.bind(<span class="keyword">this</span>));</div><div class="line">  &#125;</div><div class="line">&#125;;</div><div class="line"></div><div class="line">obj.foo();</div></pre></td></tr></table></figure>
-<p><a href="http://jsbin.com/kodupitade/1/edit?js,console,output" target="_blank" rel="external">在线演示</a></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">window</span>.val = <span class="string">'window val'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> obj = &#123;</span><br><span class="line">  val: <span class="string">'obj val'</span>,</span><br><span class="line">  foo: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    $(<span class="string">'#text'</span>).bind(<span class="string">'click'</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="keyword">this</span>.val); <span class="comment">// 输出：obj val</span></span><br><span class="line">    &#125;.bind(<span class="keyword">this</span>));</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">obj.foo();</span><br></pre></td></tr></table></figure>
+<p><a href="http://jsbin.com/kodupitade/1/edit?js,console,output" target="_blank" rel="noopener">在线演示</a></p>
 <h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>在JavaScript中<code>this</code>的用法的确是千奇百怪，但是如果利用自然语言的方式来理解，一切就顺理成章了。不知道你读完这篇文章时候理解了吗？还是睡着了？亲……醒醒……</p>
 <p>如果有任何疑问，欢迎在评论区讨论。<strong>另外，欢迎在下方订阅我的半月刊，我将为你分享有趣的技术、产品、设计的片段。</strong></p>
-<div style="width: 200px"><br>    <img src="/2015/08/31/understanding-js-this-keyword/oh_yeah.gif" alt="oh_yeah.gif" title=""><br></div>
+<div style="width: 200px"><br>    <img src="/2015/08/31/understanding-js-this-keyword/oh_yeah.gif"><br></div>
 
             
-                
 
-            
         </div>
     </div>
     
@@ -317,13 +334,36 @@
         </form>
     </div>
 </div>
-    <div class="post-footer main-content-wrap">
+    <div id="post-footer" class="post-footer main-content-wrap">
         
-        <div class="post-actions-wrap">
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/09/03/prevent-node-require-dot-hell/" data-tooltip="在Node应用中避免“Dot Hell”" aria-label="PREVIOUS: 在Node应用中避免“Dot Hell”">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">PREVIOUS</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/08/30/what-happens-when-you-open-a-webpage/" data-tooltip="当你打开网页的时候，世界都发生了什么（1）" aria-label="NEXT: 当你打开网页的时候，世界都发生了什么（1）">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">NEXT</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
     <ul class="post-actions post-action-share">
         <li class="post-action hide-lg hide-md hide-sm">
-            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
-                <i class="fa fa-share-alt"></i>
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="Share this post">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
             </a>
         </li>
         <li class="post-action hide-xs">
@@ -353,9 +393,12 @@
 
 
         
-            <div id="disqus_thread">
+        
+            
+                <div id="disqus_thread">
     <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 </div>
+            
         
     </div>
 </article>
@@ -364,18 +407,40 @@
 
                 <footer id="footer" class="main-content-wrap">
     <span class="copyrights">
-        Copyrights &copy; 2017 子回（John Wu）. All Rights Reserved.
+        Copyrights &copy; 2018 子回（John Wu）. All Rights Reserved.
     </span>
 </footer>
 
             </div>
             
-                <div id="bottom-bar" class="post-bottom-bar" data-behavior="1">
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
                     <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/09/03/prevent-node-require-dot-hell/" data-tooltip="在Node应用中避免“Dot Hell”" aria-label="PREVIOUS: 在Node应用中避免“Dot Hell”">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">PREVIOUS</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2015/08/30/what-happens-when-you-open-a-webpage/" data-tooltip="当你打开网页的时候，世界都发生了什么（1）" aria-label="NEXT: 当你打开网页的时候，世界都发生了什么（1）">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">NEXT</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
     <ul class="post-actions post-action-share">
         <li class="post-action hide-lg hide-md hide-sm">
-            <a class="post-action-btn btn btn--default btn-open-shareoptions"  href="#btn-open-shareoptions">
-                <i class="fa fa-share-alt"></i>
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="Share this post">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
             </a>
         </li>
         <li class="post-action hide-xs">
@@ -405,45 +470,102 @@
 
 
                 </div>
-                <div id="share-options-bar" class="share-options-bar" data-behavior="1">
+                <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+    <i id="btn-close-shareoptions" class="fa fa-close"></i>
     <ul class="share-options">
-        <li class="share-option">
-            <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/08/31/understanding-js-this-keyword/">
-                <i class="fa fa-google-plus"></i><span class="">Share on Google Plus</span>
-            </a>
-        </li>
-        <li class="share-option">
-            <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/08/31/understanding-js-this-keyword/">
-                <i class="fa fa-facebook-official"></i><span>Share on Facebook</span>
-            </a>
-        </li>
-        <li class="share-option">
-            <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/08/31/understanding-js-this-keyword/">
-                <i class="fa fa-twitter"></i><span>Share on Twitter</span>
-            </a>
-        </li>
+        
+            
+            
+            <li class="share-option">
+                <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://blog.leapoahead.com/2015/08/31/understanding-js-this-keyword/">
+                    <i class="fa fa-facebook-official" aria-hidden="true"></i><span>Share on Facebook</span>
+                </a>
+            </li>
+        
+            
+            
+            <li class="share-option">
+                <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=http://blog.leapoahead.com/2015/08/31/understanding-js-this-keyword/">
+                    <i class="fa fa-twitter" aria-hidden="true"></i><span>Share on Twitter</span>
+                </a>
+            </li>
+        
+            
+            
+            <li class="share-option">
+                <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=http://blog.leapoahead.com/2015/08/31/understanding-js-this-keyword/">
+                    <i class="fa fa-google-plus" aria-hidden="true"></i><span>Share on Google+</span>
+                </a>
+            </li>
+        
     </ul>
 </div>
-<div id="share-options-mask" class="share-options-mask"></div>
+
             
         </div>
-        <div id="cover" style="background-image:url('http://res.cloudinary.com/tranquilpeak-hexo-theme/image/upload/v1438975482/v1.3.0-cover.jpg');"></div>
-    </body>
-    <!--SCRIPTS-->
-<script src="/assets/js/script.min.js"></script>
+        
+
+
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-remove"></i>
+        </div>
+        
+            <img id="about-card-picture" src="https://www.gravatar.com/avatar/1380392c951c5d3edc96146b1d5b877b?s=110" alt="Author&#39;s picture"/>
+        
+            <h4 id="about-card-name">子回（John Wu）</h4>
+        
+            <div id="about-card-bio"><p>Strong opinion, weakly held.</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>Software Engineer at Facebook</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker"></i>
+                <br/>
+                San Francisco, CA
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-plvqpdisosqesdacqcnrardusldtgvjkw3tfmpjbhf0aa6t4lalcoshprtxn.min.js"></script>
 <!--SCRIPTS END-->
 
-    <script type="text/javascript">
-        var disqus_shortname = 'johnweng';
-        (function() {
-            var dsq = document.createElement('script');
-            dsq.type = 'text/javascript';
-            dsq.async = true;
-            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-        })();
-    </script>
+    
+        <script>
+             var disqus_config = function () {
+                 this.page.url = 'http://blog.leapoahead.com/2015/08/31/understanding-js-this-keyword/';
+                 
+                    this.page.identifier = '2015/08/31/understanding-js-this-keyword/';
+                 
+             };
+            (function() {
+                var d = document, s = d.createElement('script');
+                var disqus_shortname = 'johnweng';
+                s.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+
+                s.setAttribute('data-timestamp', +new Date());
+                (d.head || d.body).appendChild(s);
+            })();
+        </script>
+    
 
 
 
+    </body>
 </html>
